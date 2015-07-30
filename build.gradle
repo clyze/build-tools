@@ -4,9 +4,17 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.4'
 }
 
+repositories {
+    mavenCentral()
+    ivy {
+        url "../ivy-repo"
+    }
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    compile "doop:doop-client:1.0"
 }
 
 
