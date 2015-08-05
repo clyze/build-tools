@@ -1,4 +1,8 @@
 apply plugin: 'groovy'
+apply plugin: 'ivy-publish'
+
+group = 'plast-lab'
+version = '1.0-SNAPSHOT'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.4'
@@ -17,4 +21,21 @@ dependencies {
     compile "doop:doop-client:1.0"
 }
 
+publishing {
+    repositories {
+        ivy {
+            name "local-ivy-repo"
+            url "../ivy-repo"
+        }
+    }
 
+    publications {
+
+        doopGradlePlugin(IvyPublication) {
+            organisation "$group"
+            module "${project.name}"
+            revision "$version"
+            from components.java
+        }
+    }
+}

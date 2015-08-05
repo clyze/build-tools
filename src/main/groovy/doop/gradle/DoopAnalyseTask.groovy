@@ -10,6 +10,7 @@ class DoopAnalyseTask extends DefaultTask {
 
     @TaskAction
     void analyse() {
-
+        println "Analysis id: ${project.extensions.doop.analysis.id}"
+        println "Analysis jars: ${project.extensions.doop.analysis.jars}"
     }
 }
