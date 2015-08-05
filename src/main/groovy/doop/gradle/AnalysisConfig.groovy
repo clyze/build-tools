@@ -4,5 +4,6 @@ package doop.gradle
  */
 class AnalysisConfig {
     String id
-    Set<File> jars
+    Set<File> jar
+    Map<String, Object> options
 }

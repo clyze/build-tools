@@ -18,7 +18,8 @@ repositories {
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    compile "doop:doop-client:1.0"
+    compile "doop:doop-client:1.0",
+            "commons-cli:commons-cli:1.2"
 }
 
 publishing {

@@ -1,5 +1,8 @@
 package doop.gradle
 
+import doop.web.client.Helper
+import doop.web.client.RestClient
+import org.apache.commons.cli.Option
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -33,8 +36,10 @@ class DoopPlugin implements Plugin<Project> {
 
     private void configureDefaults(Project project) {
         project.extensions.doop.analysis.id = project.name
-        project.extensions.doop.analysis.jars = project.tasks.findByName('jar').outputs.files.files +
-                                                project.configurations.runtime.files
+        project.extensions.doop.analysis.jar = project.tasks.findByName('jar').outputs.files.files +
+                                               project.configurations.runtime.files
+
+        project.extensions.doop.analysis.options = Helper.createDefaultOptions()
     }
 
     private void configureCompileTask(Project project) {
