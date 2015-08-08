@@ -4,6 +4,7 @@ package doop.gradle
  */
 class AnalysisConfig {
     String id
+    String name = 'context-insensitive'
     Set<File> jar
     Map<String, Object> options
 }

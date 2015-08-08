@@ -1,14 +1,14 @@
 package doop.gradle
 
 import doop.web.client.Helper
-import doop.web.client.RestClient
-import org.apache.commons.cli.Option
-import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
+/**
+ * The doop gradle plugin.
+ */
 class DoopPlugin implements Plugin<Project> {
     static final String DOOP_GROUP = "Doop"
 
@@ -20,17 +20,20 @@ class DoopPlugin implements Plugin<Project> {
             throw new RuntimeException('The java plugin should be applied before Doop')
         }
 
+        //create the doop extension
         project.extensions.create('doop', DoopExtension)
 
+        //configure the tasks
         configureCompileTask(project)
         configureSourceJarTask(project)
-        configureAnalyseTask(project)
+        configurePostAnalysisTask(project)
 
         //update the project's artifacts
         project.artifacts {
             archives project.tasks.findByName('sourcesJar')
         }
 
+        //set the default values
         configureDefaults(project)
     }
 
@@ -57,8 +60,8 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
     }
 
-    private void configureAnalyseTask(Project project) {
-        DoopAnalyseTask task = project.tasks.create('analyse', DoopAnalyseTask)
+    private void configurePostAnalysisTask(Project project) {
+        AnalyseTask task = project.tasks.create('analyse', AnalyseTask)
         task.dependsOn project.tasks.findByName('jar')
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
