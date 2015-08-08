@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.client.methods.HttpPut
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.entity.mime.MultipartEntityBuilder
+import org.apache.http.entity.mime.content.StringBody
 import org.apache.http.message.BasicNameValuePair
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -86,20 +87,23 @@ class AnalyseTask extends DefaultTask {
 
                     //process the options
                     options.each { Map.Entry<String, Object> entry ->
-                        /*
-                        String optionName = entry.getKey()
-                        AnalysisOption option = entry.getValue()
-                        if (option.value) {
-                            if (optionName == "DYNAMIC") {
-                                List<String> dynamicFiles = option.value as List<String>
-                                doop.web.client.Helper.addFilesToMultiPart("DYNAMIC", dynamicFiles, builder)
-                            } else if (option.isFile) {
-                                doop.web.client.Helper.addFilesToMultiPart(optionName, [option.value as String], builder)
-                            } else {
-                                builder.addPart(optionName, new StringBody(option.value as String))
+                        String optionId = entry.getKey().toUpperCase()
+                        Object value = entry.getValue()
+                        if (value) {
+                            if (optionId == "DYNAMIC") {
+                                List<File> dynamicFiles = (value as List<String>).each { String file ->
+                                    return project.file(file)
+                                }
+
+                                Helper.addFilesToMultiPart("DYNAMIC", dynamicFiles, builder)
+                            }
+                            else if (Helper.isFileOption(optionId)) {
+                                Helper.addFilesToMultiPart(optionId, [project.file(value)], builder)
+                            }
+                            else {
+                                builder.addPart(optionId, new StringBody(value as String))
                             }
                         }
-                        */
                     }
                 }
                 HttpEntity entity = builder.build()
