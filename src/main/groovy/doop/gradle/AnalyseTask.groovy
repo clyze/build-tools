@@ -16,6 +16,8 @@ import org.apache.http.message.BasicNameValuePair
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
+import java.awt.Desktop
+
 /**
  * Created by saiko on 28/7/2015.
  */
@@ -51,23 +53,28 @@ class AnalyseTask extends DefaultTask {
             println "Updated user token: $token"
         }
 
+        postAndStartAnalysis(host, port, name, id, jars, options, token)
+    }
+
+    private static void postAndStartAnalysis(String host, int port, String name, String id, Set<File> jars,
+                                             Map<String, Object> options, String token) {
+
         def authenticator = {String h, int p, HttpUriRequest request ->
             //send the token with the request
             request.addHeader(RestCommandBase.HEADER_TOKEN, token)
         }
-
-        postAndStartAnalysis(host, port, name, id, jars, options, authenticator)
-    }
-
-    private static void postAndStartAnalysis(String host, int port, String name, String id, Set<File> jars,
-                                             Map<String, Object> options, Closure authenticator) {
 
         println "Creating post command..."
         RestCommandBase<Void> post = createPostCommand(name, id, jars, options, authenticator)
         post.onSuccess = {HttpEntity entity ->
             String postedId = new JsonSlurper().parse(entity.getContent(), "UTF-8").id
             println "Executing start command..."
-            createStartCommand(postedId, authenticator).execute(host, port)
+            RestCommandBase<Void> start = createStartCommand(postedId, authenticator)
+            start.onSuccess = { HttpEntity ent ->
+                println "Sit back and relax while we analyse your code..."
+                openBrowser(host, port, id, token)
+            }
+            start.execute(host, port)
         }
         println "Executing post command..."
         post.execute(host, port)
@@ -120,11 +127,7 @@ class AnalyseTask extends DefaultTask {
             requestBuilder: {String url ->
                 return new HttpPut("${url}/${id}?status=start")
             },
-            authenticator: authenticator,
-            onSuccess: {HttpEntity entity ->
-                println "Sit back and relax while we analyse your code..."
-                //TODO: Open the user's browser
-            }
+            authenticator: authenticator
         )
     }
 
@@ -145,5 +148,24 @@ class AnalyseTask extends DefaultTask {
                 return json.token
             }
         )
+    }
+
+    private static void openBrowser(String host, int port, String postedId, String token) {
+        File html = File.createTempFile("_doop", ".html")
+        html.withWriter('UTF-8') { w ->
+            w.write """\
+                    <html>
+                        <head>
+                            <script>
+                                document.cookie="JSESSIONID=$token";
+                                document.location="http://$host:$port/jdoop/web/analysis.html?id=$postedId"
+                            </script>
+                        </head>
+                        <body>
+                        </body>
+                    </html>
+                    """.stripIndent()
+        }
+        Desktop.getDesktop().browse(html.toURI())
     }
 }
