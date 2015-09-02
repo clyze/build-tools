@@ -44,6 +44,7 @@ class AnalyseTask extends DefaultTask {
         println "Analysis jars: ${jars}"
         println "Analysis options: ${options}"
 
+        /*
         Authenticator.init()
         String token = Authenticator.getUserToken()
         println "Stored user token: $token"
@@ -52,6 +53,8 @@ class AnalyseTask extends DefaultTask {
             Authenticator.setUserToken(token)
             println "Updated user token: $token"
         }
+        */
+        String token = createLoginCommand(username, password).execute(host, port)
 
         postAndStartAnalysis(host, port, name, id, jars, options, token)
     }
@@ -157,7 +160,7 @@ class AnalyseTask extends DefaultTask {
                     <html>
                         <head>
                             <script>
-                                document.cookie="JSESSIONID=$token";
+                                document.cookie="SESSIONID=$token";
                                 document.location="http://$host:$port/jdoop/web/analysis.html?id=$postedId"
                             </script>
                         </head>
