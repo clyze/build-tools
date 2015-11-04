@@ -1,6 +1,5 @@
 package doop.gradle
 
-import doop.web.client.Authenticator
 import doop.web.client.Helper
 import doop.web.client.RestCommandBase
 import groovy.json.JsonSlurper
@@ -16,7 +15,8 @@ import org.apache.http.message.BasicNameValuePair
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-import java.awt.Desktop
+import java.awt.*
+import java.util.List
 
 /**
  * Created by saiko on 28/7/2015.
@@ -36,12 +36,14 @@ class AnalyseTask extends DefaultTask {
         String id = project.extensions.doop.analysis.id
         Set<File> jars = project.extensions.doop.analysis.jar
         Map<String, Object> options = project.extensions.doop.analysis.options
+        File sources = project.tasks.findByName('sourcesJar').outputs.files.files[0]
 
         println "host: ${host}"
         println "port: ${port}"
         println "Analysis name: ${name}"
         println "Analysis id: ${id}"
         println "Analysis jars: ${jars}"
+        println "Analysis sources: ${sources}"
         println "Analysis options: ${options}"
 
         /*
@@ -56,10 +58,10 @@ class AnalyseTask extends DefaultTask {
         */
         String token = createLoginCommand(username, password).execute(host, port)
 
-        postAndStartAnalysis(host, port, name, id, jars, options, token)
+        postAndStartAnalysis(host, port, name, id, jars, sources, options, token)
     }
 
-    private static void postAndStartAnalysis(String host, int port, String name, String id, Set<File> jars,
+    private static void postAndStartAnalysis(String host, int port, String name, String id, Set<File> jars, File sources,
                                              Map<String, Object> options, String token) {
 
         def authenticator = {String h, int p, HttpUriRequest request ->
@@ -68,7 +70,7 @@ class AnalyseTask extends DefaultTask {
         }
 
         println "Creating post command..."
-        RestCommandBase<Void> post = createPostCommand(name, id, jars, options, authenticator)
+        RestCommandBase<Void> post = createPostCommand(name, id, jars, sources, options, authenticator)
         post.onSuccess = {HttpEntity entity ->
             String postedId = new JsonSlurper().parse(entity.getContent(), "UTF-8").id
             println "Executing start command..."
@@ -83,7 +85,7 @@ class AnalyseTask extends DefaultTask {
         post.execute(host, port)
     }
 
-    private static RestCommandBase<Void> createPostCommand(String name, String id, Set<File> jars,
+    private static RestCommandBase<Void> createPostCommand(String name, String id, Set<File> jars, File sources,
                                                            Map<String, Object> options, Closure authenticator) {
         return new RestCommandBase<Void>(
             endPoint: "analyses",
@@ -93,7 +95,10 @@ class AnalyseTask extends DefaultTask {
                 Helper.buildPostRequest(builder, id, name) {
 
                     //process the jars
-                   Helper.addFilesToMultiPart("jar", jars.toList(), builder)
+                    Helper.addFilesToMultiPart("jar", jars.toList(), builder)
+
+                    //process the sources
+                    Helper.addFilesToMultiPart("sources", [sources], builder)
 
                     //process the options
                     options.each { Map.Entry<String, Object> entry ->

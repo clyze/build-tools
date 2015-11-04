@@ -26,7 +26,7 @@ class DoopPlugin implements Plugin<Project> {
         //configure the tasks
         configureCompileTask(project)
         configureSourceJarTask(project)
-        configurePostAnalysisTask(project)
+        configureSubmitAnalysisTask(project)
 
         //update the project's artifacts
         project.artifacts {
@@ -60,9 +60,9 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
     }
 
-    private void configurePostAnalysisTask(Project project) {
+    private void configureSubmitAnalysisTask(Project project) {
         AnalyseTask task = project.tasks.create('analyse', AnalyseTask)
-        task.dependsOn project.tasks.findByName('jar')
+        task.dependsOn project.tasks.findByName('jar'), project.tasks.findByName('sourcesJar')
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
     }
