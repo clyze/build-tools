@@ -37,6 +37,10 @@ class AnalyseTask extends DefaultTask {
         Set<File> jars = project.extensions.doop.analysis.jar
         Map<String, Object> options = project.extensions.doop.analysis.options
         File sources = project.tasks.findByName('sourcesJar').outputs.files.files[0]
+        File jcPluginMetadata = new File(project.projectDir, "jcplugin.zip")
+        if (!jcPluginMetadata.exists()) {
+            throw new RuntimeException("The jcplugin.zip is not found")
+        }
 
         println "host: ${host}"
         println "port: ${port}"
@@ -46,23 +50,13 @@ class AnalyseTask extends DefaultTask {
         println "Analysis sources: ${sources}"
         println "Analysis options: ${options}"
 
-        /*
-        Authenticator.init()
-        String token = Authenticator.getUserToken()
-        println "Stored user token: $token"
-        if (!token) {
-            token = createLoginCommand(username, password).execute(host, port)
-            Authenticator.setUserToken(token)
-            println "Updated user token: $token"
-        }
-        */
         String token = createLoginCommand(username, password).execute(host, port)
 
-        postAndStartAnalysis(host, port, name, id, jars, sources, options, token)
+        postAndStartAnalysis(host, port, name, id, jars, sources, jcPluginMetadata, options, token)
     }
 
     private static void postAndStartAnalysis(String host, int port, String name, String id, Set<File> jars, File sources,
-                                             Map<String, Object> options, String token) {
+                                             File jcPluginMetadata, Map<String, Object> options, String token) {
 
         def authenticator = {String h, int p, HttpUriRequest request ->
             //send the token with the request
@@ -70,7 +64,7 @@ class AnalyseTask extends DefaultTask {
         }
 
         println "Creating post command..."
-        RestCommandBase<Void> post = createPostCommand(name, id, jars, sources, options, authenticator)
+        RestCommandBase<Void> post = createPostCommand(name, id, jars, sources, jcPluginMetadata, options, authenticator)
         post.onSuccess = {HttpEntity entity ->
             String postedId = new JsonSlurper().parse(entity.getContent(), "UTF-8").id
             println "Executing start command..."
@@ -86,7 +80,8 @@ class AnalyseTask extends DefaultTask {
     }
 
     private static RestCommandBase<Void> createPostCommand(String name, String id, Set<File> jars, File sources,
-                                                           Map<String, Object> options, Closure authenticator) {
+                                                           File jcPluginMetadata, Map<String, Object> options,
+                                                           Closure authenticator) {
         return new RestCommandBase<Void>(
             endPoint: "analyses",
             requestBuilder: { String url ->
@@ -99,6 +94,9 @@ class AnalyseTask extends DefaultTask {
 
                     //process the sources
                     Helper.addFilesToMultiPart("sources", [sources], builder)
+
+                    //process the jcPluginMetadata
+                    Helper.addFilesToMultiPart("jcPluginMetadata", [jcPluginMetadata], builder)
 
                     //process the options
                     options.each { Map.Entry<String, Object> entry ->
