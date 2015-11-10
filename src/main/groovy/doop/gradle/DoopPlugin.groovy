@@ -38,7 +38,8 @@ class DoopPlugin implements Plugin<Project> {
     }
 
     private void configureDefaults(Project project) {
-        project.extensions.doop.analysis.id = project.name
+        project.extensions.doop.projectName = project.name
+        project.extensions.doop.projectVersion = project.version?.toString()
         project.extensions.doop.analysis.jar = project.tasks.findByName('jar').outputs.files.files +
                                                project.configurations.runtime.files
 

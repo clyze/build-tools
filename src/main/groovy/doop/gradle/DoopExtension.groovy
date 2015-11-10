@@ -10,6 +10,8 @@ class DoopExtension {
     int port
     String username
     String password
+    String projectName
+    String projectVersion
     AnalysisConfig analysis = new AnalysisConfig()
 
     def analysis(Closure cl) {

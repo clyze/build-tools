@@ -26,79 +26,72 @@ class AnalyseTask extends DefaultTask {
     @TaskAction
     void analyse() {
 
-        String host = project.extensions.doop.host
-        int port = project.extensions.doop.port
+        DoopExtension doop = project.extensions.doop
 
-        String username = project.extensions.doop.username
-        String password = project.extensions.doop.password
-
-        String name = project.extensions.doop.analysis.name
-        String id = project.extensions.doop.analysis.id
-        Set<File> jars = project.extensions.doop.analysis.jar
-        Map<String, Object> options = project.extensions.doop.analysis.options
         File sources = project.tasks.findByName('sourcesJar').outputs.files.files[0]
         File jcPluginMetadata = new File(project.projectDir, "jcplugin.zip")
         if (!jcPluginMetadata.exists()) {
             throw new RuntimeException("The jcplugin.zip is not found")
         }
 
-        println "host: ${host}"
-        println "port: ${port}"
-        println "Analysis name: ${name}"
-        println "Analysis id: ${id}"
-        println "Analysis jars: ${jars}"
-        println "Analysis sources: ${sources}"
-        println "Analysis options: ${options}"
+        println "Connecting to server at ${doop.host}:${doop.port}"
+        String token = createLoginCommand(doop).execute(doop.host, doop.port)
 
-        String token = createLoginCommand(username, password).execute(host, port)
-
-        postAndStartAnalysis(host, port, name, id, jars, sources, jcPluginMetadata, options, token)
+        println "Submitting ${doop.projectName}:${doop.projectVersion} for ${doop.analysis.name} analysis"
+        postAndStartAnalysis(doop, sources, jcPluginMetadata, token)
     }
 
-    private static void postAndStartAnalysis(String host, int port, String name, String id, Set<File> jars, File sources,
-                                             File jcPluginMetadata, Map<String, Object> options, String token) {
+    private static void postAndStartAnalysis(DoopExtension doop, File sources, File jcPluginMetadata, String token) {
 
         def authenticator = {String h, int p, HttpUriRequest request ->
             //send the token with the request
             request.addHeader(RestCommandBase.HEADER_TOKEN, token)
         }
 
-        println "Creating post command..."
-        RestCommandBase<Void> post = createPostCommand(name, id, jars, sources, jcPluginMetadata, options, authenticator)
+        RestCommandBase<Void> post = createPostCommand(doop, sources, jcPluginMetadata, authenticator)
         post.onSuccess = {HttpEntity entity ->
             String postedId = new JsonSlurper().parse(entity.getContent(), "UTF-8").id
-            println "Executing start command..."
+            println "The analysis has been submitted successfully! Starting it (id: $postedId)."
             RestCommandBase<Void> start = createStartCommand(postedId, authenticator)
             start.onSuccess = { HttpEntity ent ->
                 println "Sit back and relax while we analyse your code..."
-                openBrowser(host, port, id, token)
+                openBrowser(doop.host, doop.port, postedId, token)
             }
-            start.execute(host, port)
+            start.execute(doop.host, doop.port)
         }
-        println "Executing post command..."
-        post.execute(host, port)
+        post.execute(doop.host, doop.port)
     }
 
-    private static RestCommandBase<Void> createPostCommand(String name, String id, Set<File> jars, File sources,
-                                                           File jcPluginMetadata, Map<String, Object> options,
+    private static RestCommandBase<Void> createPostCommand(DoopExtension doop, File sources, File jcPluginMetadata,
                                                            Closure authenticator) {
         return new RestCommandBase<Void>(
             endPoint: "analyses",
             requestBuilder: { String url ->
                 HttpPost post = new HttpPost(url)
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create()
-                Helper.buildPostRequest(builder, id, name) {
+                //submit a null id for the analysis to make the server generate one automatically
+                Helper.buildPostRequest(builder, null, doop.analysis.name) {
+
+                    //process the project name and version
+                    builder.addPart("projectName", new StringBody(doop.projectName))
+                    builder.addPart("projectVersion", new StringBody(doop.projectVersion))
 
                     //process the jars
+                    Set<File> jars = doop.analysis.jar
+                    println "Submitting jars: ${jars}"
                     Helper.addFilesToMultiPart("jar", jars.toList(), builder)
 
                     //process the sources
+                    println "Submitting sources: ${sources}"
                     Helper.addFilesToMultiPart("sources", [sources], builder)
 
                     //process the jcPluginMetadata
+                    println "Submitting jcplugin metadata: ${jcPluginMetadata}"
                     Helper.addFilesToMultiPart("jcPluginMetadata", [jcPluginMetadata], builder)
 
                     //process the options
+                    Map<String, Object> options = doop.analysis.options
+                    println "Submitting options: ${options}"
                     options.each { Map.Entry<String, Object> entry ->
                         String optionId = entry.getKey().toUpperCase()
                         Object value = entry.getValue()
@@ -137,15 +130,15 @@ class AnalyseTask extends DefaultTask {
         )
     }
 
-    private static RestCommandBase<String> createLoginCommand(String username, String password) {
+    private static RestCommandBase<String> createLoginCommand(DoopExtension doop) {
         return new RestCommandBase<String>(
             endPoint: "authenticate",
             authenticationRequired: false,
             requestBuilder: { String url ->
                 HttpPost post = new HttpPost(url)
                 List<NameValuePair> params = new ArrayList<>(2)
-                params.add(new BasicNameValuePair("username", username))
-                params.add(new BasicNameValuePair("password", password))
+                params.add(new BasicNameValuePair("username", doop.username))
+                params.add(new BasicNameValuePair("password", doop.password))
                 post.setEntity(new UrlEncodedFormEntity(params))
                 return post
             },
