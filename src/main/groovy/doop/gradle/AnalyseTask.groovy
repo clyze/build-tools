@@ -37,7 +37,7 @@ class AnalyseTask extends DefaultTask {
         println "Connecting to server at ${doop.host}:${doop.port}"
         String token = createLoginCommand(doop).execute(doop.host, doop.port)
 
-        println "Submitting ${doop.projectName}:${doop.projectVersion} for ${doop.analysis.name} analysis"
+        println "Submitting ${doop.projectName} version ${doop.projectVersion} for ${doop.analysis.name} analysis"
         postAndStartAnalysis(doop, sources, jcPluginMetadata, token)
     }
 
@@ -51,7 +51,7 @@ class AnalyseTask extends DefaultTask {
         RestCommandBase<Void> post = createPostCommand(doop, sources, jcPluginMetadata, authenticator)
         post.onSuccess = {HttpEntity entity ->
             String postedId = new JsonSlurper().parse(entity.getContent(), "UTF-8").id
-            println "The analysis has been submitted successfully! Starting it (id: $postedId)."
+            println "The analysis has been submitted successfully: $postedId."
             RestCommandBase<Void> start = createStartCommand(postedId, authenticator)
             start.onSuccess = { HttpEntity ent ->
                 println "Sit back and relax while we analyse your code..."
