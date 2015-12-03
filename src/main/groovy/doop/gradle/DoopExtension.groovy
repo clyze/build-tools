@@ -12,6 +12,7 @@ class DoopExtension {
     String password
     String projectName
     String projectVersion
+    File scavengeOutputDir
     AnalysisConfig analysis = new AnalysisConfig()
 
     def analysis(Closure cl) {

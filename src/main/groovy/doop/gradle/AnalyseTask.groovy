@@ -28,11 +28,8 @@ class AnalyseTask extends DefaultTask {
 
         DoopExtension doop = project.extensions.doop
 
-        File sources = project.tasks.findByName('sourcesJar').outputs.files.files[0]
-        File jcPluginMetadata = new File(project.projectDir, "jcplugin.zip")
-        if (!jcPluginMetadata.exists()) {
-            throw new RuntimeException("The jcplugin.zip is not found")
-        }
+        File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
+        File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
 
         println "Connecting to server at ${doop.host}:${doop.port}"
         String token = createLoginCommand(doop).execute(doop.host, doop.port)
