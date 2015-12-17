@@ -121,7 +121,7 @@ class AnalyseTask extends DefaultTask {
         return new RestCommandBase<Void>(
             endPoint: "analyses",
             requestBuilder: {String url ->
-                return new HttpPut("${url}/${id}?status=start")
+                return new HttpPut("${url}/${id}/action/start")
             },
             authenticator: authenticator
         )
@@ -154,7 +154,7 @@ class AnalyseTask extends DefaultTask {
                         <head>
                             <script>
                                 document.cookie="SESSIONID=$token";
-                                document.location="http://$host:$port/jdoop/web/analysis.html?id=$postedId"
+                                document.location="http://$host:$port/jdoop/web/main.html#show/$postedId"
                             </script>
                         </head>
                         <body>
