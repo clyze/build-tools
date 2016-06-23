@@ -1,11 +1,14 @@
 apply plugin: 'groovy'
 apply plugin: 'ivy-publish'
 
-group = 'plast-lab'
+group = 'org.clyze'
 version = '1.0-SNAPSHOT'
 
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
+    gradleVersion = '2.14'
 }
 
 repositories {
@@ -16,11 +19,19 @@ repositories {
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile "plast-lab:doop-jcplugin:1.0-SNAPSHOT",
-            "plast-lab:doop-client:1.0",
+    compile gradleApi(),
+            localGroovy(),
             "commons-cli:commons-cli:1.2"
+
+    compile("org.clyze:doop-jcplugin:1.0-SNAPSHOT") {
+        exclude module: "groovy-all"
+    }
+
+    compile("org.clyze:doop-client:1.0") {
+        exclude module: "groovy-all"
+    }
+
+    runtime "org.codehaus.groovy:groovy-all:2.4.7"
 }
 
 publishing {
