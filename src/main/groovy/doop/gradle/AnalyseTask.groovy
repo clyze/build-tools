@@ -45,23 +45,40 @@ class AnalyseTask extends DefaultTask {
             request.addHeader(RestCommandBase.HEADER_TOKEN, token)
         }
 
-        RestCommandBase<Void> post = createPostCommand(doop, sources, jcPluginMetadata, authenticator)
-        post.onSuccess = {HttpEntity entity ->
-            String postedId = new JsonSlurper().parse(entity.getContent(), "UTF-8").id
-            println "The analysis has been submitted successfully: $postedId."
-            RestCommandBase<Void> start = createStartCommand(postedId, authenticator)
-            start.onSuccess = { HttpEntity ent ->
-                println "Sit back and relax while we analyse your code..."
-                openBrowser(doop.host, doop.port, postedId, token)
-            }
-            start.execute(doop.host, doop.port)
+        String autoLoginToken = null
+
+        RestCommandBase<String> postAnalysis = createPostCommand(doop, sources, jcPluginMetadata, authenticator)
+        String postedId = postAnalysis.execute(doop.host, doop.port)
+        println "The analysis has been submitted successfully: $postedId."
+
+        RestCommandBase<String> createAutoLoginToken = createAutoLoginTokenCommand(authenticator)
+        try {
+            autoLoginToken = createAutoLoginToken.execute(doop.host, doop.port)
+
         }
-        post.execute(doop.host, doop.port)
+        catch(Exception e) {
+            println "Autologin failed: ${e.getMessage()}"
+        }
+
+        String analysisPageURL = createAnalysisPageURL(doop.host, doop.port, postedId, autoLoginToken)
+
+        RestCommandBase<Void> start = createStartCommand(postedId, authenticator)
+        start.onSuccess = { HttpEntity ent ->
+
+            if (autoLoginToken) {
+                println "Sit back and relax while we analyse your code..."
+                openBrowser(analysisPageURL)
+            }
+            else {
+                println "Visit $analysisPageURL"
+            }
+        }
+        start.execute(doop.host, doop.port)
     }
 
-    private static RestCommandBase<Void> createPostCommand(DoopExtension doop, File sources, File jcPluginMetadata,
+    private static RestCommandBase<String> createPostCommand(DoopExtension doop, File sources, File jcPluginMetadata,
                                                            Closure authenticator) {
-        return new RestCommandBase<Void>(
+        return new RestCommandBase<String>(
             endPoint: "analyses",
             requestBuilder: { String url ->
                 HttpPost post = new HttpPost(url)
@@ -113,6 +130,24 @@ class AnalyseTask extends DefaultTask {
                 post.setEntity(entity)
                 return post
             },
+            onSuccess: { HttpEntity entity ->
+                def json = new JsonSlurper().parse(entity.getContent(), "UTF-8")
+                return json.id
+            },
+            authenticator: authenticator
+        )
+    }
+
+    private static RestCommandBase<String> createAutoLoginTokenCommand(Closure authenticator) {
+        return new RestCommandBase<String>(
+            endPoint: "token",
+            requestBuilder:  { String url ->
+                return new HttpPost(url)
+            },
+            onSuccess: { HttpEntity entity ->
+                def json = new JsonSlurper().parse(entity.getContent(), "UTF-8")
+                return json.token
+            },
             authenticator: authenticator
         )
     }
@@ -146,15 +181,18 @@ class AnalyseTask extends DefaultTask {
         )
     }
 
-    private static void openBrowser(String host, int port, String postedId, String token) {
+    private static String createAnalysisPageURL(String host, int port, String postedId, String token = null) {
+        return "http://$host:$port/jdoop/web/main.html" + (token ? "?t=$token" : "") + "#show/$postedId"
+    }
+
+    private static void openBrowser(String url) {
         File html = File.createTempFile("_doop", ".html")
         html.withWriter('UTF-8') { w ->
             w.write """\
                     <html>
                         <head>
                             <script>
-                                document.cookie="SESSIONID=$token";
-                                document.location="http://$host:$port/jdoop/web/main.html#show/$postedId"
+                                document.location="$url"
                             </script>
                         </head>
                         <body>
