@@ -1,7 +1,7 @@
-package doop.gradle
+package org.clyze.doop.gradle
 
-import doop.web.client.Helper
-import doop.web.client.RestCommandBase
+import org.clyze.doop.web.client.Helper
+import org.clyze.doop.web.client.RestCommandBase
 import groovy.json.JsonSlurper
 import org.apache.http.HttpEntity
 import org.apache.http.NameValuePair

@@ -1,4 +1,4 @@
-package doop.gradle
+package org.clyze.doop.gradle
 
 import org.gradle.util.ConfigureUtil
 

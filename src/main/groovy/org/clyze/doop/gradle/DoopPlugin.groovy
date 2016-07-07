@@ -1,6 +1,6 @@
-package doop.gradle
+package org.clyze.doop.gradle
 
-import doop.web.client.Helper
+import org.clyze.doop.web.client.Helper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
