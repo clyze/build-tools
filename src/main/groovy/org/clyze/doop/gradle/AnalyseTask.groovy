@@ -28,6 +28,9 @@ class AnalyseTask extends DefaultTask {
 
         DoopExtension doop = project.extensions.doop
 
+        File jarArchive = project.file(project.tasks.findByName('jar').archivePath)
+        doop.analysis.jar = ([jarArchive] + project.configurations.runtime.files) as Set
+
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
 
