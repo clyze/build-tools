@@ -4,6 +4,7 @@ import org.clyze.doop.web.client.Helper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
@@ -20,15 +21,27 @@ class DoopPlugin implements Plugin<Project> {
     static final String TASK_SOURCES_JAR = 'sourcesJar'
     static final String TASK_ANALYSE = 'analyse'
 
+    public enum GradlePlugin {
+      Java,
+      Android
+    }
+
+    public static GradlePlugin plugin
+    
     @Override
     void apply(Project project) {
 
-        //verify that the java plugin has been applied
-        if (!project.plugins.hasPlugin('java') && !project.plugins.hasPlugin('android') && !project.plugins.hasPlugin('com.android.application')) {
-            throw new RuntimeException('One of the java/android/com.android.application plugins should be applied before Doop')
+        //verify that the appropriate plugins have been applied
+        if (project.plugins.hasPlugin('java')) {
+          plugin = GradlePlugin.Java
+        }
+        else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application')) {
+          plugin = GradlePlugin.Android
+        }
+        else {
+          throw new RuntimeException('One of the java/android/com.android.application plugins should be applied before Doop')
         }
 
-        
         //require java 1.8 or higher
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new RuntimeException("The Doop plugin requires Java 1.8 or higher")
@@ -65,9 +78,25 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
 
         //copy the project's Java compilation settings
-        JavaCompile projectDefaultTask = project.tasks.findByName("compileJava")
-        task.classpath = projectDefaultTask.classpath
-        task.source = projectDefaultTask.source
+        switch (plugin) {
+        case GradlePlugin.Java:
+          JavaCompile projectDefaultTask = project.tasks.findByName("compileJava")
+          task.classpath = projectDefaultTask.classpath
+          task.source = projectDefaultTask.source
+          break
+        case GradlePlugin.Android:
+          def tName = "assemble"
+          for (def set1 : project.android.sourceSets) {
+            if (set1.name == "main") {
+              task.source = set1.java.sourceFiles
+            }
+          }
+          if (task.source == null) {
+            throw new RuntimeException("Could not find sourceSet for task " + tName + ".")
+          }
+          task.classpath = project.files()
+          break
+        }
 
         //our custom settings
         File dest = project.extensions.doop.scavengeOutputDir
@@ -101,9 +130,25 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
 
-        task.dependsOn project.tasks.findByName('classes')
+        switch (plugin) {
+        case GradlePlugin.Java:
+          task.dependsOn project.tasks.findByName('classes')
+          break
+        case GradlePlugin.Android:
+          // This creates a circular dependency.
+          // task.dependsOn project.getTasks().findByPath('assemble')
+          break
+        }
         task.classifier = 'sources'
-        task.from project.sourceSets.main.allSource
+
+        switch (plugin) {
+        case GradlePlugin.Java:
+          task.from project.sourceSets.main.allSource
+          break
+        case GradlePlugin.Android:
+          task.from project.android.sourceSets.main
+          break
+        }
     }
 
     private void configureAnalyseTask(Project project) {
@@ -111,8 +156,17 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
 
-        task.dependsOn project.tasks.findByName('jar'),
-                       project.tasks.findByName(TASK_SOURCES_JAR),
-                       project.tasks.findByName(TASK_JCPLUGIN_ZIP)
+        switch (plugin) {
+        case GradlePlugin.Java:
+          task.dependsOn project.tasks.findByName('jar'),
+                         project.tasks.findByName(TASK_SOURCES_JAR),
+                         project.tasks.findByName(TASK_JCPLUGIN_ZIP)
+          break
+        case GradlePlugin.Android:
+          // task.dependsOn project.getTasks().findByPath('assemble'),
+          //                project.getTasks().findByPath(TASK_SOURCES_JAR),
+          //                project.getTasks().findByPath(TASK_JCPLUGIN_ZIP)
+          break
+        }
     }
 }
