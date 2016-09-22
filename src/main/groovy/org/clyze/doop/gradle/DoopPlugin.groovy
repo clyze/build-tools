@@ -24,10 +24,11 @@ class DoopPlugin implements Plugin<Project> {
     void apply(Project project) {
 
         //verify that the java plugin has been applied
-        if (!project.plugins.hasPlugin('java')) {
-            throw new RuntimeException('The java plugin should be applied before Doop')
+        if (!project.plugins.hasPlugin('java') && !project.plugins.hasPlugin('android') && !project.plugins.hasPlugin('com.android.application')) {
+            throw new RuntimeException('One of the java/android/com.android.application plugins should be applied before Doop')
         }
 
+        
         //require java 1.8 or higher
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new RuntimeException("The Doop plugin requires Java 1.8 or higher")
