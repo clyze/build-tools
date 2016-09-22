@@ -4,7 +4,6 @@ import org.clyze.doop.web.client.Helper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
@@ -163,9 +162,9 @@ class DoopPlugin implements Plugin<Project> {
                          project.tasks.findByName(TASK_JCPLUGIN_ZIP)
           break
         case GradlePlugin.Android:
-          // task.dependsOn project.getTasks().findByPath('assemble'),
-          //                project.getTasks().findByPath(TASK_SOURCES_JAR),
-          //                project.getTasks().findByPath(TASK_JCPLUGIN_ZIP)
+          task.dependsOn project.getTasks().findByPath('assemble'),
+                         project.getTasks().findByPath(TASK_SOURCES_JAR),
+                         project.getTasks().findByPath(TASK_JCPLUGIN_ZIP)
           break
         }
     }
