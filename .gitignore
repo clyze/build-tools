@@ -1,0 +1,7 @@
+#gradle dirs
+/.gradle
+/build/
+
+#intellij idea files
+/.idea
+/doop-gradle-plugin.iml
