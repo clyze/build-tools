@@ -38,7 +38,7 @@ class AnalyseTask extends DefaultTask {
           throw new RuntimeException("Doop plugin error: No 'jar' task exists in Android.")
           break
         }
-        doop.analysis.jar = ([jarArchive] + project.configurations.runtime.files) as Set
+        doop.analysis.inputFiles = ([jarArchive] + project.configurations.runtime.files) as Set
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
@@ -103,9 +103,9 @@ class AnalyseTask extends DefaultTask {
                     builder.addPart("projectVersion", new StringBody(doop.projectVersion))
 
                     //process the jars
-                    Set<File> jars = doop.analysis.jar
-                    println "Submitting jars: ${jars}"
-                    Helper.addFilesToMultiPart("jar", jars.toList(), builder)
+                    Set<File> inputFiles = doop.analysis.inputFiles
+                    println "Submitting input files: ${inputFiles}"
+                    Helper.addFilesToMultiPart("inputFiles", inputFiles.toList(), builder)
 
                     //process the sources
                     println "Submitting sources: ${sources}"

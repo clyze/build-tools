@@ -5,6 +5,6 @@ package org.clyze.doop.gradle
 class AnalysisConfig {
     String id
     String name = 'context-insensitive'
-    Set<File> jar
+    Set<File> inputFiles
     Map<String, Object> options
 }
