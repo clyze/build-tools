@@ -1,5 +1,8 @@
-apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+    id 'maven-publish'
+}
 
 group = 'org.clyze'
 version = '1.0-SNAPSHOT'
@@ -27,8 +30,7 @@ repositories {
 configurations.compile.resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
 
 dependencies {
-    compile gradleApi(),
-            localGroovy(),
+    compile localGroovy(),
             "commons-cli:commons-cli:1.2"
 
     compile("org.clyze:doop-jcplugin:1.0-SNAPSHOT") {
@@ -42,6 +44,15 @@ dependencies {
     }
 
     runtime "org.codehaus.groovy:groovy-all:2.4.7"
+}
+
+gradlePlugin {
+    plugins {
+        doopPlugin {
+            id = "org.clyze.doop-gradle-plugin"
+            implementationClass = "org.clyze.doop.gradle.DoopPlugin"
+        }
+    }
 }
 
 publishing {
