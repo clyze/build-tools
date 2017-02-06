@@ -145,7 +145,7 @@ class DoopPlugin implements Plugin<Project> {
           task.from project.sourceSets.main.allSource
           break
         case GradlePlugin.Android:
-          task.from project.android.sourceSets.main
+          task.from "src/main/java"
           break
         }
     }
