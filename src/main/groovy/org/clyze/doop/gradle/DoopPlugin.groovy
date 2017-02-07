@@ -105,10 +105,94 @@ class DoopPlugin implements Plugin<Project> {
         task.destinationDir = new File(dest as File, "classes")
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs = ['-processorpath', processorPath, '-Xplugin:TypeInfoPlugin ' + jsonOutput]
+        if (plugin == GradlePlugin.Android) {
+            // In Android, we augent the classpath in order to find
+            // the Android API and other needed code. To find what is
+            // needed to add to the classpath, we must scan metadata
+            // such as the SDK version or the compile dependencies
+            // (e.g. to find uses of the support libraries). Thus the
+            // code below doesn't run now; it runs after all tasks
+            // have been configured ("afterEvaluate").
+            project.afterEvaluate {
+                // Read properties from build.gradle.
+
+                def androidVersion = project.android.compileSdkVersion
+                if (androidVersion == null)
+                    throw new RuntimeException("No android.compileSdkVersion found in buid.gradle.")
+
+                DoopExtension doop = project.extensions.doop
+                def subprojectName = doop.subprojectName
+                if (subprojectName == null)
+                    throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+                def appBuildHome = "${project.rootDir}/${subprojectName}/build"
+
+                def buildType = doop.buildType
+                if (buildType == null)
+                    throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+
+                def annotationsVersion = doop.annotationsVersion
+                if (annotationsVersion == null)
+                    throw new RuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
+
+                // Find locations of the Android SDK and the project build path.
+                def androidSdkHome = findSDK(project)
+                // Add to classpath: android.jar/layoutlib.jar (core
+                // OS API), the annotations JAR, and the location of
+                // R*.class files.
+                def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
+                                   "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
+                                   "${androidSdkHome}/extras/android/m2repository/com/android/support/support-annotations/${annotationsVersion}/support-annotations-${annotationsVersion}.jar",
+                                   "${project.rootDir}/${subprojectName}/R-class"
+                                  ]
+
+                def deps = []
+                project.configurations.each { conf ->
+                    // println "    Configuration: ${conf.name}"
+                    conf.allDependencies.each { dep ->
+                        def group = dep.group
+                            if (group == "com.android.support") {
+                                def name = dep.name
+                                def version = dep.version
+                                // println("Found dependency: " + group + ", " + name + ", " + version)
+                                deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
+                            }
+                            else
+                                throw new RuntimeException("DoopPlugin error: cannot handle dependency from group ${group}")
+                    }
+                }
+                androidJars.addAll(deps.toSet().toList())
+                // Check if all parts of the new classpath exist.
+                androidJars.each {
+                    if (!(new File(it)).exists())
+                        println("DoopPlugin warning: classpath entry to add does not exist: " + it)
+                }
+                task.options.compilerArgs << "-cp"
+                task.options.compilerArgs << androidJars.join(":")
+                println(task.options.compilerArgs)
+            }
+        }
 
         task.doFirst {
             jsonOutput.mkdirs()
         }
+    }
+
+    // Find the location of the Android SDK. Assumes it is given as
+    // entry 'sdk.dir' in file 'local.properties' of the project.
+    private String findSDK(Project project) {
+        def rootDir = project.rootDir
+        def localProperties = new File(rootDir, "local.properties")
+        if (localProperties.exists()) {
+            Properties properties = new Properties()
+            localProperties.withInputStream { instr ->
+              properties.load(instr)
+            }
+            def sdkDir = properties.getProperty('sdk.dir')
+            // println("Android SDK = " + sdkDir)
+            return sdkDir
+        }
+        else
+            throw new RuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
     }
 
     private void configureJCPluginZipTask(Project project) {

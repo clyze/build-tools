@@ -12,6 +12,9 @@ class DoopExtension {
     String password
     String projectName
     String projectVersion
+    String subprojectName
+    String buildType
+    String annotationsVersion
     File scavengeOutputDir
     AnalysisConfig analysis = new AnalysisConfig()
 
