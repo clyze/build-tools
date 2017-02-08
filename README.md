@@ -1,3 +1,27 @@
+## Running the 'analyse' task on a Java application ##
+
+Assume a Java application that can be built by OpenJDK and has a
+build.gradle.
+
+Step 1. Put these lines in build.gradle:
+
+```
+apply plugin: 'doop'
+...
+doop {
+  host = ...
+  port = ...
+  username = ...
+  password = ...
+}
+```
+
+Step 2. Run the analyse task:
+
+```
+gradle analyse
+```
+
 ## Running the 'analyse' task on an Android app ##
 
 Assume an Android Studio project with the following structure:
