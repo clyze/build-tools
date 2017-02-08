@@ -37,54 +37,58 @@ public class AndroidPlatform implements Platform {
             if (androidVersion == null)
                 throw new RuntimeException("No android.compileSdkVersion found in buid.gradle.")
 
-                DoopExtension doop = project.extensions.doop
-                def subprojectName = doop.subprojectName
-                if (subprojectName == null)
-                    throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
-                def appBuildHome = "${project.rootDir}/${subprojectName}/build"
+            DoopExtension doop = project.extensions.doop
+            def subprojectName = doop.subprojectName
+            if (subprojectName == null)
+                throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+            def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
-                def buildType = doop.buildType
-                if (buildType == null)
-                    throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+            def buildType = doop.buildType
+            if (buildType == null)
+                throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
 
-                def annotationsVersion = doop.annotationsVersion
-                if (annotationsVersion == null)
-                    throw new RuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
+            def annotationsVersion = doop.annotationsVersion
+            if (annotationsVersion == null)
+                throw new RuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
 
-                // Find locations of the Android SDK and the project build path.
-                def androidSdkHome = findSDK(project)
-                // Add to classpath: android.jar/layoutlib.jar (core
-                // OS API), the annotations JAR, and the location of
-                // R*.class files.
-                def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
-                                   "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
-                                   "${androidSdkHome}/extras/android/m2repository/com/android/support/support-annotations/${annotationsVersion}/support-annotations-${annotationsVersion}.jar",
-                                   "${appBuildHome}/intermediates/classes/${buildType}"]
+            // Find locations of the Android SDK and the project build path.
+            def androidSdkHome = findSDK(project)
+            // Add to classpath: android.jar/layoutlib.jar (core
+            // OS API), the annotations JAR, and the location of
+            // R*.class files.
+            def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
+                               "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
+                               "${androidSdkHome}/extras/android/m2repository/com/android/support/support-annotations/${annotationsVersion}/support-annotations-${annotationsVersion}.jar",
+                               "${appBuildHome}/intermediates/classes/${buildType}"]
 
-                def deps = []
-                project.configurations.each { conf ->
-                    // println "Configuration: ${conf.name}"
-                    conf.allDependencies.each { dep ->
-                        def group = dep.group
-                        if (group == "com.android.support") {
-                            def name = dep.name
-                            def version = dep.version
-                            // println("Found dependency: " + group + ", " + name + ", " + version)
-                            deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
-                        }
-                        else
-                            throw new RuntimeException("AndroidPlatform error: cannot handle dependency from group ${group}")
+            def deps = []
+            project.configurations.each { conf ->
+                // println "Configuration: ${conf.name}"
+                conf.allDependencies.each { dep ->
+                    def group = dep.group
+                    if (group == "com.android.support") {
+                        def name = dep.name
+                        def version = dep.version
+                        // println("Found dependency: " + group + ", " + name + ", " + version)
+                        deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
                     }
+                    else
+                        throw new RuntimeException("AndroidPlatform error: cannot handle dependency from group ${group}")
                 }
-                androidJars.addAll(deps.toSet().toList())
-                // Check if all parts of the new classpath exist.
-                androidJars.each {
-                    if (!(new File(it)).exists())
-                        println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
-                }
-                task.options.compilerArgs << "-cp"
-                task.options.compilerArgs << androidJars.join(":")
-                // println(task.options.compilerArgs)
+            }
+            androidJars.addAll(deps.toSet().toList())
+            // Check if all parts of the new classpath exist.
+            androidJars.each {
+                if (!(new File(it)).exists())
+                    println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
+            }
+            task.options.compilerArgs << "-cp"
+            task.options.compilerArgs << androidJars.join(":")
+            // println(task.options.compilerArgs)
+
+            // Update location of class files for JAR task.
+            Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
+            jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
 
                 // Update location of class files for JAR task.
                 Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
@@ -93,7 +97,7 @@ public class AndroidPlatform implements Platform {
         }
     }
 
-        // Find the location of the Android SDK. Assumes it is given as
+    // Find the location of the Android SDK. Assumes it is given as
     // entry 'sdk.dir' in file 'local.properties' of the project.
     private String findSDK(Project project) {
         def rootDir = project.rootDir
