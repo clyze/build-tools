@@ -126,9 +126,13 @@ public class AndroidPlatform implements Platform {
             throw new RuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
     }
 
-    public void createDependency(Project project, Task task) {
-        // This creates a circular dependency.
-        // task.dependsOn project.getTasks().findByPath('assemble')
+
+    // To build the sources, the R.java files must be generated. This
+    // dependency is recorded after basic project configuration.
+    public void createSourcesJarDependency(Project project, Task task) {
+	project.afterEvaluate {
+	    task.dependsOn project.tasks.findByName('assembleDebug')
+	}
     }
 
     public void gatherSources(Project project, Task task) {
