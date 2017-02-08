@@ -43,7 +43,7 @@ public class AndroidPlatform implements Platform {
 
             def androidVersion = project.android.compileSdkVersion
             if (androidVersion == null)
-                throw new RuntimeException("No android.compileSdkVersion found in buid.gradle.")
+                throw new RuntimeException("No android.compileSdkVersion found in build.gradle.")
 
             DoopExtension doop = project.extensions.doop
             def subprojectName = doop.subprojectName
