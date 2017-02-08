@@ -15,7 +15,7 @@ public class JavaPlatform implements Platform {
     // No metadata is read.
     public void markMetadataToFix(Project project, Task task) { }
 
-    public void createDependency(Project project, Task task) {
+    public void createSourcesJarDependency(Project project, Task task) {
         task.dependsOn project.tasks.findByName('classes')
     }
 

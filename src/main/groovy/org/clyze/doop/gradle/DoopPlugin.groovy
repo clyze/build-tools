@@ -108,7 +108,7 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
 
-        platform.createDependency(project, task)
+        platform.createSourcesJarDependency(project, task)
         task.classifier = 'sources'
 
         platform.gatherSources(project, task)
