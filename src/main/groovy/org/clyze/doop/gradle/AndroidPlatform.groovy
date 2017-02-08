@@ -37,6 +37,8 @@ public class AndroidPlatform implements Platform {
     //
     // 3. It sets the location of the auto-generated R.java in the
     // sources JAR task.
+    //
+    // 4. Creates dynamic dependencies of Doop tasks.
     public void markMetadataToFix(Project project, Task task) {
         project.afterEvaluate {
             // Read properties from build.gradle.
@@ -105,6 +107,19 @@ public class AndroidPlatform implements Platform {
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
             sourcesJarTask.from("${appBuildHome}/generated/source/r/${buildType}")
 
+	    def assembleTaskDep
+	    switch (buildType) {
+	    case 'debug':
+	        assembleTaskDep = 'assembleDebug'
+		break
+	    case 'release':
+	        assembleTaskDep = 'assembleRelease'
+		break
+	    }
+
+	    // Create dependency on source JAR task in order to create
+	    // the R.java files.
+	    sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
         }
     }
 
@@ -128,13 +143,14 @@ public class AndroidPlatform implements Platform {
             throw new RuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
     }
 
+    public void createScavengeDependency(Project project, Task task) {
+        task.dependsOn project.tasks.findByName(TASK_ASSEMBLE)
+    }
 
-    // To build the sources, the R.java files must be generated. This
-    // dependency is recorded after basic project configuration.
+    // This method is empty; the dependency is recorded in
+    // markMetadataToFix(). The reason is that 'assemble' creates a
+    // circular dependency and thus we use 'assemble{Debug,Release}'.
     public void createSourcesJarDependency(Project project, Task task) {
-	project.afterEvaluate {
-	    task.dependsOn project.tasks.findByName('assembleDebug')
-	}
     }
 
     public void gatherSources(Project project, Task task) {
@@ -149,6 +165,7 @@ public class AndroidPlatform implements Platform {
         Jar task = project.tasks.create(TASK_CODE_JAR, Jar)
         task.description = 'Generates the code jar'
         task.group = DoopPlugin.DOOP_GROUP
+        task.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
     }
 
     public String jarTaskName() { return TASK_CODE_JAR; }

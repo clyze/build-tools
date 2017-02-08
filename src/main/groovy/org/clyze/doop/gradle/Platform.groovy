@@ -13,6 +13,7 @@ import org.gradle.api.Task
 interface Platform {
   void copyCompilationSettings(Project project, Task task);
   void markMetadataToFix(Project project, Task task);
+  void createScavengeDependency(Project project, Task task);
   void createSourcesJarDependency(Project project, Task task);
   void gatherSources(Project project, Task task);
   void configureCodeJarTask(Project project);
