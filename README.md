@@ -10,13 +10,13 @@ Project
     +-- build.gradle
 ```
 
-1. Update local.properties to point to the Android SDK:
+Step 1. Update local.properties to point to the Android SDK:
 
 ```
 sdk.dir=/home/user/Android/Sdk
 ```
 
-2. Put these lines in Application/build.gradle:
+Step 2. Put these lines in Application/build.gradle:
 
 ```
 apply plugin: 'doop'
@@ -28,13 +28,13 @@ doop {
 }
 ```
 
-3. In directory "Project", generate R.java and class files:
+Step 3. In directory "Project", generate R.java and class files:
 
 ```
 ./gradlew assemble
 ```
 
-4. Compile R.java to a custom directory under the "Application"
+Step 4. Compile R.java to a custom directory under the "Application"
 directory:
 
 ```
@@ -43,7 +43,7 @@ mkdir -p R-class
 javac -d R-class build/generated/source/r/debug/com/example/android/camera2basic/R.java
 ```
 
-5. In directory "Project", run the scavenge task:
+Step 5. In directory "Project", run the scavenge task:
 
 ```
 ./gradlew :Application:scavenge
