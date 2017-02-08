@@ -17,6 +17,7 @@ class DoopPlugin implements Plugin<Project> {
     static final String DOOP_GROUP = "Doop"
     static final String TASK_SCAVENGE = 'scavenge'
     static final String TASK_JCPLUGIN_ZIP = 'jcpluginZip'
+    static final String TASK_CODE_JAR = 'codeJar'
     static final String TASK_SOURCES_JAR = 'sourcesJar'
     static final String TASK_ANALYSE = 'analyse'
 
@@ -57,6 +58,7 @@ class DoopPlugin implements Plugin<Project> {
         configureJCPluginZipTask(project)
         configureSourceJarTask(project)
         configureAnalyseTask(project)
+        configureCodeJarTask(project)
 
         //update the project's artifacts
         project.artifacts {
@@ -142,6 +144,7 @@ class DoopPlugin implements Plugin<Project> {
                 def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
                                    "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
                                    "${androidSdkHome}/extras/android/m2repository/com/android/support/support-annotations/${annotationsVersion}/support-annotations-${annotationsVersion}.jar",
+				   "${appBuildHome}/intermediates/classes/${buildType}/com/example/android/camera2basic",
                                    "${project.rootDir}/${subprojectName}/R-class"
                                   ]
 
@@ -169,6 +172,11 @@ class DoopPlugin implements Plugin<Project> {
                 task.options.compilerArgs << "-cp"
                 task.options.compilerArgs << androidJars.join(":")
                 println(task.options.compilerArgs)
+
+                // Update location of class files for JAR task.
+                Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
+                jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
+
             }
         }
 
@@ -231,6 +239,16 @@ class DoopPlugin implements Plugin<Project> {
         case GradlePlugin.Android:
           task.from "src/main/java"
           break
+        }
+    }
+
+    // Analogous to configureSourceJarTask, needed for Android, where
+    // no JAR task exist in the Android gradle plugin.
+    private void configureCodeJarTask(Project project) {
+        if (plugin == GradlePlugin.Android) {
+            Jar task = project.tasks.create(TASK_CODE_JAR, Jar)
+            task.description = 'Generates the code jar'
+            task.group = DOOP_GROUP
         }
     }
 
