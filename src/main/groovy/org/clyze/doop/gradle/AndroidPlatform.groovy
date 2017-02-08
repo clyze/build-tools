@@ -90,9 +90,9 @@ public class AndroidPlatform implements Platform {
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
             jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
 
-                // Update location of class files for JAR task.
-                Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
-                jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
+            // Add auto-generated R.java.
+            Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
+            sourcesJarTask.from("${appBuildHome}/generated/source/r/${buildType}")
 
         }
     }
