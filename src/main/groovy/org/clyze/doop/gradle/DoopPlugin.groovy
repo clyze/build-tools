@@ -83,7 +83,7 @@ class DoopPlugin implements Plugin<Project> {
         task.destinationDir = new File(dest as File, "classes")
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs = ['-processorpath', processorPath, '-Xplugin:TypeInfoPlugin ' + jsonOutput]
-        platform.fixClasspath(project, task)
+        platform.markMetadataToFix(project, task)
 
         task.doFirst {
             jsonOutput.mkdirs()

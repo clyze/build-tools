@@ -22,14 +22,22 @@ public class AndroidPlatform implements Platform {
         task.classpath = project.files()
     }
 
-    // In Android, we augent the classpath in order to find the
-    // Android API and other needed code. To find what is needed to
-    // add to the classpath, we must scan metadata such as the SDK
-    // version or the compile dependencies (e.g. to find uses of the
-    // support libraries). Thus the code below doesn't run now; it
-    // runs after all tasks have been configured ("afterEvaluate").
-    // This method also affects the code JAR task.
-    public void fixClasspath(Project project, Task task) {
+    // Reads properties from local.properties and build.gradle and
+    // fills in infromation needed when on Android. The code below is
+    // scheduled to run after all tasks have been configured
+    // ("afterEvaluate") and does the following:
+    //
+    // 1. It augments the classpath in order to find the Android API
+    // and other needed code. To find what is needed, it scans
+    // metadata such as the SDK version or the compile dependencies
+    // (e.g. to find uses of the support libraries).
+    //
+    // 2. It sets the location of the class files needed by the code
+    // JAR task.
+    //
+    // 3. It sets the location of the auto-generated R.java in the
+    // sources JAR task.
+    public void markMetadataToFix(Project project, Task task) {
         project.afterEvaluate {
             // Read properties from build.gradle.
 
@@ -129,7 +137,7 @@ public class AndroidPlatform implements Platform {
     // Analogous to configureSourceJarTask(), needed for Android,
     // where no JAR task exists in the Android gradle plugin. The task
     // is not fully created here; its inputs are set "afterEvaluate"
-    // (see method fixClasspath() above).
+    // (see method markMetadataToFix() above).
     public void configureCodeJarTask(Project project) {
         Jar task = project.tasks.create(TASK_CODE_JAR, Jar)
         task.description = 'Generates the code jar'

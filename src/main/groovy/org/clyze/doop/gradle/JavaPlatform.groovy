@@ -12,8 +12,8 @@ public class JavaPlatform implements Platform {
         task.source = projectDefaultTask.source
     }
 
-    // No classpath manipulation is done.
-    public void fixClasspath(Project project, Task task) { }
+    // No metadata is read.
+    public void markMetadataToFix(Project project, Task task) { }
 
     public void createDependency(Project project, Task task) {
         task.dependsOn project.tasks.findByName('classes')

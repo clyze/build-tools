@@ -12,7 +12,7 @@ import org.gradle.api.Task
 
 interface Platform {
   void copyCompilationSettings(Project project, Task task);
-  void fixClasspath(Project project, Task task);
+  void markMetadataToFix(Project project, Task task);
   void createDependency(Project project, Task task);
   void gatherSources(Project project, Task task);
   void configureCodeJarTask(Project project);
