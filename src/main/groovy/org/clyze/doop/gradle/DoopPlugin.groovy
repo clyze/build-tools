@@ -51,8 +51,8 @@ class DoopPlugin implements Plugin<Project> {
         configureScavengeTask(project)
         configureJCPluginZipTask(project)
         configureSourceJarTask(project)
-        configureAnalyseTask(project)
         platform.configureCodeJarTask(project)
+        configureAnalyseTask(project)
 
         //update the project's artifacts
         project.artifacts {
