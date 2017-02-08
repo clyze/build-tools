@@ -151,8 +151,6 @@ public class AndroidPlatform implements Platform {
         task.group = DoopPlugin.DOOP_GROUP
     }
 
-    public String buildTaskName() { return TASK_ASSEMBLE; }
-
     public String jarTaskName() { return TASK_CODE_JAR; }
 
     public Set inputFiles(Project project, File jarArchive) {

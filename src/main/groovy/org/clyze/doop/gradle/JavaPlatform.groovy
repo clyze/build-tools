@@ -27,8 +27,6 @@ public class JavaPlatform implements Platform {
     // provides 'jar'.
     public void configureCodeJarTask(Project project) { }
 
-    public String buildTaskName() { return 'jar'; }
-
     public String jarTaskName() { return 'jar'; }
 
     public Set inputFiles(Project project, File jarArchive) {

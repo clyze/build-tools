@@ -119,7 +119,7 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
 
-        task.dependsOn project.getTasks().findByName(platform.buildTaskName()),
+        task.dependsOn project.getTasks().findByName(platform.jarTaskName()),
                        project.getTasks().findByName(TASK_SOURCES_JAR),
                        project.getTasks().findByName(TASK_JCPLUGIN_ZIP)
     }

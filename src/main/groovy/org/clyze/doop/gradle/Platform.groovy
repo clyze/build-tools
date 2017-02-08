@@ -16,7 +16,6 @@ interface Platform {
   void createSourcesJarDependency(Project project, Task task);
   void gatherSources(Project project, Task task);
   void configureCodeJarTask(Project project);
-  String buildTaskName();
   String jarTaskName();
   Set inputFiles(Project project, File jarArchive);
 }
