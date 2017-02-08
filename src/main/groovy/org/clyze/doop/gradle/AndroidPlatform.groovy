@@ -54,6 +54,8 @@ public class AndroidPlatform implements Platform {
             def buildType = doop.buildType
             if (buildType == null)
                 throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+	    if ((buildType != 'debug') && (buildType != 'release'))
+		throw new RuntimeException("Property doop.buildType must be 'debug' or 'release'.")
 
             def annotationsVersion = doop.annotationsVersion
             if (annotationsVersion == null)
