@@ -59,7 +59,6 @@ public class AndroidPlatform implements Platform {
                 def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
                                    "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
                                    "${androidSdkHome}/extras/android/m2repository/com/android/support/support-annotations/${annotationsVersion}/support-annotations-${annotationsVersion}.jar",
-                                   "${appBuildHome}/intermediates/classes/${buildType}/com/example/android/camera2basic",
                                    "${project.rootDir}/${subprojectName}/R-class"]
 
                 def deps = []
