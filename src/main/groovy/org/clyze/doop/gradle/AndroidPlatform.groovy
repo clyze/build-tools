@@ -73,14 +73,14 @@ public class AndroidPlatform implements Platform {
                             deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
                         }
                         else
-                            throw new RuntimeException("DoopPlugin error: cannot handle dependency from group ${group}")
+                            throw new RuntimeException("AndroidPlatform error: cannot handle dependency from group ${group}")
                     }
                 }
                 androidJars.addAll(deps.toSet().toList())
                 // Check if all parts of the new classpath exist.
                 androidJars.each {
                     if (!(new File(it)).exists())
-                        println("DoopPlugin warning: classpath entry to add does not exist: " + it)
+                        println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
                 }
                 task.options.compilerArgs << "-cp"
                 task.options.compilerArgs << androidJars.join(":")
@@ -105,6 +105,8 @@ public class AndroidPlatform implements Platform {
             }
             def sdkDir = properties.getProperty('sdk.dir')
             // println("Android SDK = " + sdkDir)
+	    if (!(new File(sdkDir)).exists())
+		println("AndroidPlatform warning: Android SDK directory does not exist: " + sdkDir)
             return sdkDir
         }
         else
