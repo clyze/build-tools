@@ -28,20 +28,9 @@ class AnalyseTask extends DefaultTask {
 
         DoopExtension doop = project.extensions.doop
 
-        String jarTaskName
-        switch (DoopPlugin.plugin) {
-        case DoopPlugin.GradlePlugin.Java:
-          jarTaskName = 'jar'
-          break
-        case DoopPlugin.GradlePlugin.Android:
-          jarTaskName = DoopPlugin.TASK_CODE_JAR
-          break
-        }
+        String jarTaskName = DoopPlugin.platform.jarTaskName()
         File jarArchive = project.file(project.tasks.findByName(jarTaskName).archivePath)
-        if (DoopPlugin.plugin == DoopPlugin.GradlePlugin.Java)
-            doop.analysis.inputFiles = ([jarArchive] + project.configurations.runtime.files) as Set
-        else
-            doop.analysis.inputFiles = [jarArchive] as Set
+        doop.analysis.inputFiles = DoopPlugin.platform.inputFiles(project, jarArchive)
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
