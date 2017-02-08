@@ -2,10 +2,10 @@ plugins {
     id 'java-gradle-plugin'
     id 'groovy'
     id 'maven-publish'
+    id 'net.researchgate.release' version '2.4.0'
 }
 
 group = 'org.clyze'
-version = '1.0-SNAPSHOT'
 
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
@@ -15,6 +15,9 @@ task wrapper(type: Wrapper) {
 }
 
 repositories {
+
+    mavenLocal()
+
     mavenCentral()
 
     maven {
@@ -23,25 +26,23 @@ repositories {
             password artifactory_password
         }
 
-        url "${artifactory_contextUrl}/libs-snapshot"
+        url "${artifactory_contextUrl}/plast"
     }
 }
 
-configurations.compile.resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+//configurations.compile.resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
 
 dependencies {
     compile localGroovy(),
             "commons-cli:commons-cli:1.2"
 
-    compile("org.clyze:doop-jcplugin:1.0-SNAPSHOT") {
-        changing = true
+    compile("org.clyze:clue-client:1.+") {
+        exclude module: "groovy-all"
+    }
+    compile("org.clyze:doop-jcplugin:1.+") {
         exclude module: "groovy-all"
     }
 
-    compile("org.clyze:jdoop-client:1.0-SNAPSHOT") {
-        changing = true
-        exclude module: "groovy-all"
-    }
 
     runtime "org.codehaus.groovy:groovy-all:2.4.7"
 }
@@ -75,3 +76,9 @@ publishing {
         }
     }
 }
+
+release {
+    //use the defaults, see https://github.com/researchgate/gradle-release
+}
+
+afterReleaseBuild.dependsOn publish
