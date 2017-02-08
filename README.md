@@ -32,13 +32,7 @@ doop {
 }
 ```
 
-Step 3. In directory "Project", generate R.java and class files:
-
-```
-./gradlew assemble
-```
-
-Step 4. Run the analyse task:
+Step 3. In directory "Project", run the analyse task:
 
 ```
 ./gradlew :Application:analyse
