@@ -84,7 +84,7 @@ public class AndroidPlatform implements Platform {
                 }
                 task.options.compilerArgs << "-cp"
                 task.options.compilerArgs << androidJars.join(":")
-                println(task.options.compilerArgs)
+                // println(task.options.compilerArgs)
 
                 // Update location of class files for JAR task.
                 Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
