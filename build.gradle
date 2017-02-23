@@ -31,7 +31,9 @@ repositories {
     }
 }
 
-//configurations.compile.resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+}
 
 dependencies {
     compile localGroovy(),
