@@ -21,13 +21,17 @@ repositories {
     mavenCentral()
 
     maven {
+        url "${artifactory_contextUrl}/plast-public"
+    }
 
-        url "${artifactory_contextUrl}/plast"
+    maven {
 
         credentials {
             username artifactory_user
             password artifactory_password
         }
+
+        url "${artifactory_contextUrl}/plast-private"
     }
 }
 
