@@ -83,7 +83,7 @@ class AnalyseTask extends DefaultTask {
     private static RestCommandBase<String> createPostCommand(DoopExtension doop, File sources, File jcPluginMetadata,
                                                            Closure authenticator) {
         return new RestCommandBase<String>(
-            endPoint: "analyses",
+            endPoint: "family/doop",
             requestBuilder: { String url ->
                 HttpPost post = new HttpPost(url)
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create()
