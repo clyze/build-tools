@@ -186,7 +186,7 @@ class AnalyseTask extends DefaultTask {
     }
 
     private static String createAnalysisPageURL(String host, int port, String postedId, String token = null) {
-        return "http://$host:$port/clue/main.html" + (token ? "?t=$token" : "") + "#show/$postedId"
+        return "http://$host:$port/clue/main.html" + (token ? "?t=$token" : "") + "#/analyses/$postedId"
     }
 
     private static void openBrowser(String url) {
