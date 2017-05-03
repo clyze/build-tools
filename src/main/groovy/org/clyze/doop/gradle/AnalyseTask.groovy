@@ -71,7 +71,11 @@ class AnalyseTask extends DefaultTask {
 
             if (autoLoginToken) {
                 println "Sit back and relax while we analyse your code..."
-                openBrowser(analysisPageURL)
+                try {
+                    openBrowser(analysisPageURL)
+                } catch(Exception e) {
+                    println "Analysis has been posted to the server, please visit $analysisPageURL"
+                }
             }
             else {
                 println "Visit $analysisPageURL"
