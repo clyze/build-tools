@@ -61,3 +61,35 @@ Step 3. In directory "Project", run the analyze task:
 ```
 ./gradlew :Application:analyze
 ```
+
+## Using HPROF information ##
+
+To add HPROF information, these steps are required:
+
+Step 1. Run the progam using an HPROF agent to produce the heap dump
+(e.g., java.hprof). In JVM, this can be done as follows:
+
+```
+java -agentlib:hprof=heap=dump,format=b,depth=8 Program.jar
+```
+
+In Android, for some App/Activity, generation of HPROF data differs:
+
+```
+adb shell am start --track-allocation App/Activity
+```
+
+and the convert the HPROF file using hprof-conv (found in the Android
+SDK):
+
+```
+hprof-conv original.hprof java.hprof
+```
+
+Step 2. Zip java.hprof to produce java.hprof.zip.
+
+Step 3. In the 'doop' section in build.gradle, add this line:
+
+```
+hprof = 'java.hprof.zip'
+```

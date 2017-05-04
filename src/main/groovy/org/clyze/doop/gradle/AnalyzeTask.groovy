@@ -34,15 +34,18 @@ class AnalyzeTask extends DefaultTask {
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
+        File hprof = null
+        if (doop.hprof != null)
+            hprof = new File(doop.hprof)
 
         println "Connecting to server at ${doop.host}:${doop.port}"
         String token = createLoginCommand(doop).execute(doop.host, doop.port)
 
         println "Submitting ${doop.projectName} version ${doop.projectVersion} for ${doop.analysis.name} analysis"
-        postAndStartAnalysis(doop, sources, jcPluginMetadata, token)
+        postAndStartAnalysis(doop, sources, jcPluginMetadata, hprof, token)
     }
 
-    private static void postAndStartAnalysis(DoopExtension doop, File sources, File jcPluginMetadata, String token) {
+    private static void postAndStartAnalysis(DoopExtension doop, File sources, File jcPluginMetadata, File hprof, String token) {
 
         def authenticator = {String h, int p, HttpUriRequest request ->
             //send the token with the request
@@ -51,7 +54,7 @@ class AnalyzeTask extends DefaultTask {
 
         String autoLoginToken = null
 
-        RestCommandBase<String> postAnalysis = createPostCommand(doop, sources, jcPluginMetadata, authenticator)
+        RestCommandBase<String> postAnalysis = createPostCommand(doop, sources, jcPluginMetadata, hprof, authenticator)
         String postedId = postAnalysis.execute(doop.host, doop.port)
         println "The analysis has been submitted successfully: $postedId."
 
@@ -85,7 +88,7 @@ class AnalyzeTask extends DefaultTask {
     }
 
     private static RestCommandBase<String> createPostCommand(DoopExtension doop, File sources, File jcPluginMetadata,
-                                                           Closure authenticator) {
+							     File hprof, Closure authenticator) {
         return new RestCommandBase<String>(
             endPoint: "family/doop",
             requestBuilder: { String url ->
@@ -110,6 +113,12 @@ class AnalyzeTask extends DefaultTask {
                     //process the jcPluginMetadata
                     println "Submitting jcplugin metadata: ${jcPluginMetadata}"
                     Helper.addFilesToMultiPart("jcPluginMetadata", [jcPluginMetadata], builder)
+
+                    //process the HPROF file
+                    if (hprof != null) {
+                        println "Submitting HPROF: ${hprof}"
+                        Helper.addFilesToMultiPart("ANALYZE_MEMORY_DUMP", [hprof], builder)
+                    }
 
                     //process the options
                     Map<String, Object> options = doop.analysis.options

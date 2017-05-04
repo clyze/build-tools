@@ -16,6 +16,7 @@ class DoopExtension {
     String buildType
     String annotationsVersion
     File scavengeOutputDir
+    String hprof
     AnalysisConfig analysis = new AnalysisConfig()
 
     def analysis(Closure cl) {
