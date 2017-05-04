@@ -18,7 +18,7 @@ class DoopPlugin implements Plugin<Project> {
     static final String TASK_SCAVENGE = 'scavenge'
     static final String TASK_JCPLUGIN_ZIP = 'jcpluginZip'
     static final String TASK_SOURCES_JAR = 'sourcesJar'
-    static final String TASK_ANALYSE = 'analyse'
+    static final String TASK_ANALYSE = 'analyze'
 
     static Platform platform
     

@@ -1,4 +1,4 @@
-## Running the 'analyse' task on a Java application ##
+## Running the 'analyze' task on a Java application ##
 
 Assume a Java application that can be built by OpenJDK and has a
 build.gradle.
@@ -16,13 +16,13 @@ doop {
 }
 ```
 
-Step 2. Run the analyse task:
+Step 2. Run the analyze task:
 
 ```
-gradle analyse
+gradle analyze
 ```
 
-## Running the 'analyse' task on an Android app ##
+## Running the 'analyze' task on an Android app ##
 
 Assume an Android Studio project with the following structure:
 
@@ -56,8 +56,8 @@ doop {
 }
 ```
 
-Step 3. In directory "Project", run the analyse task:
+Step 3. In directory "Project", run the analyze task:
 
 ```
-./gradlew :Application:analyse
+./gradlew :Application:analyze
 ```

@@ -24,7 +24,7 @@ import java.util.List
 class AnalyzeTask extends DefaultTask {
 
     @TaskAction
-    void analyse() {
+    void analyze() {
 
         DoopExtension doop = project.extensions.doop
 
@@ -70,7 +70,7 @@ class AnalyzeTask extends DefaultTask {
         start.onSuccess = { HttpEntity ent ->
 
             if (autoLoginToken) {
-                println "Sit back and relax while we analyse your code..."
+                println "Sit back and relax while we analyze your code..."
                 try {
                     openBrowser(analysisPageURL)
                 } catch(Exception e) {
