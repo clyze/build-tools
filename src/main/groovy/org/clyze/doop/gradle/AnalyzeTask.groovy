@@ -21,7 +21,7 @@ import java.util.List
 /**
  * Created by saiko on 28/7/2015.
  */
-class AnalyseTask extends DefaultTask {
+class AnalyzeTask extends DefaultTask {
 
     @TaskAction
     void analyse() {

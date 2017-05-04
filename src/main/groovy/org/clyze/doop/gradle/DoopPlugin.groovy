@@ -52,7 +52,7 @@ class DoopPlugin implements Plugin<Project> {
         configureJCPluginZipTask(project)
         configureSourceJarTask(project)
         platform.configureCodeJarTask(project)
-        configureAnalyseTask(project)
+        configureAnalyzeTask(project)
 
         //update the project's artifacts
         project.artifacts {
@@ -115,8 +115,8 @@ class DoopPlugin implements Plugin<Project> {
         platform.gatherSources(project, task)
     }
 
-    private void configureAnalyseTask(Project project) {
-        AnalyseTask task = project.tasks.create(TASK_ANALYSE, AnalyseTask)
+    private void configureAnalyzeTask(Project project) {
+        AnalyzeTask task = project.tasks.create(TASK_ANALYSE, AnalyzeTask)
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
 
