@@ -1,7 +1,7 @@
 package org.clyze.doop.gradle
 
-import org.clyze.doop.web.client.Helper
-import org.clyze.doop.web.client.RestCommandBase
+import org.clyze.client.web.Helper
+import org.clyze.client.web.RestCommandBase
 import groovy.json.JsonSlurper
 import org.apache.http.HttpEntity
 import org.apache.http.NameValuePair
@@ -87,72 +87,24 @@ class AnalyzeTask extends DefaultTask {
         start.execute(doop.host, doop.port)
     }
 
-    private static RestCommandBase<String> createPostCommand(DoopExtension doop, File sources, File jcPluginMetadata,
-							     File hprof, Closure authenticator) {
-        return new RestCommandBase<String>(
-            endPoint: "family/doop",
-            requestBuilder: { String url ->
-                HttpPost post = new HttpPost(url)
-                MultipartEntityBuilder builder = MultipartEntityBuilder.create()
-                //submit a null id for the analysis to make the server generate one automatically
-                Helper.buildPostRequest(builder, null, doop.analysis.name) {
+    private static RestCommandBase<String> createPostCommand(DoopExtension doop, 
+                                                             File sources, 
+                                                             File jcPluginMetadata,
+                                                             File hprof, 
+                                                             Closure authenticator) {
 
-                    //process the project name and version
-                    builder.addPart("projectName", new StringBody(doop.projectName))
-                    builder.addPart("projectVersion", new StringBody(doop.projectVersion))
-
-                    //process the jars
-                    Set<File> inputFiles = doop.analysis.inputFiles
-                    println "Submitting input files: ${inputFiles}"
-                    Helper.addFilesToMultiPart("inputFiles", inputFiles.toList(), builder)
-
-                    //process the sources
-                    println "Submitting sources: ${sources}"
-                    Helper.addFilesToMultiPart("sources", [sources], builder)
-
-                    //process the jcPluginMetadata
-                    println "Submitting jcplugin metadata: ${jcPluginMetadata}"
-                    Helper.addFilesToMultiPart("jcPluginMetadata", [jcPluginMetadata], builder)
-
-                    //process the HPROF file
-                    if (hprof != null) {
-                        println "Submitting HPROF: ${hprof}"
-                        Helper.addFilesToMultiPart("ANALYZE_MEMORY_DUMP", [hprof], builder)
-                    }
-
-                    //process the options
-                    Map<String, Object> options = doop.analysis.options
-                    println "Submitting options: ${options}"
-                    options.each { Map.Entry<String, Object> entry ->
-                        String optionId = entry.getKey().toUpperCase()
-                        Object value = entry.getValue()
-                        if (value) {
-                            if (optionId == "DYNAMIC") {
-                                List<File> dynamicFiles = (value as List<String>).each { String file ->
-                                    return project.file(file)
-                                }
-
-                                Helper.addFilesToMultiPart("DYNAMIC", dynamicFiles, builder)
-                            }
-                            else if (Helper.isFileOption(optionId)) {
-                                Helper.addFilesToMultiPart(optionId, [project.file(value)], builder)
-                            }
-                            else {
-                                builder.addPart(optionId, new StringBody(value as String))
-                            }
-                        }
-                    }
-                }
-                HttpEntity entity = builder.build()
-                post.setEntity(entity)
-                return post
-            },
-            onSuccess: { HttpEntity entity ->
-                def json = new JsonSlurper().parse(entity.getContent(), "UTF-8")
-                return json.id
-            },
-            authenticator: authenticator
+        RestCommandBase<String> command = Helper.createPostDoopAnalysisCommand(
+            doop.analysis.name,
+            doop.projectName,
+            doop.projectVersion,
+            doop.analysis.inputFiles,
+            sources,
+            jcPluginMetadata,
+            hprof,
+            doop.analysis.options
         )
+        command.authenticator = authenticator
+        return command
     }
 
     private static RestCommandBase<String> createAutoLoginTokenCommand(Closure authenticator) {
@@ -170,32 +122,13 @@ class AnalyzeTask extends DefaultTask {
     }
 
     private static RestCommandBase<Void> createStartCommand(String id, Closure authenticator) {
-        return new RestCommandBase<Void>(
-            endPoint: "analyses",
-            requestBuilder: {String url ->
-                return new HttpPut("${url}/${id}/action/start")
-            },
-            authenticator: authenticator
-        )
+        RestCommandBase<Void> command = Helper.createStartCommand(id)
+        command.authenticator = authenticator
+        return command
     }
 
     private static RestCommandBase<String> createLoginCommand(DoopExtension doop) {
-        return new RestCommandBase<String>(
-            endPoint: "authenticate",
-            authenticationRequired: false,
-            requestBuilder: { String url ->
-                HttpPost post = new HttpPost(url)
-                List<NameValuePair> params = new ArrayList<>(2)
-                params.add(new BasicNameValuePair("username", doop.username))
-                params.add(new BasicNameValuePair("password", doop.password))
-                post.setEntity(new UrlEncodedFormEntity(params))
-                return post
-            },
-            onSuccess: { HttpEntity entity ->
-                def json = new JsonSlurper().parse(entity.getContent(), "UTF-8")
-                return json.token
-            }
-        )
+        return Helper.createLoginCommand(doop.username, doop.password)        
     }
 
     private static String createAnalysisPageURL(String host, int port, String postedId, String token = null) {
