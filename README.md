@@ -86,7 +86,8 @@ SDK):
 hprof-conv original.hprof java.hprof
 ```
 
-Step 2. Zip java.hprof to produce java.hprof.zip.
+Step 2. Zip java.hprof to produce java.hprof.zip. (This step is
+optional, you can upload the java.hprof file but it might be big.)
 
 Step 3. In the 'doop' section in build.gradle, add this line:
 
