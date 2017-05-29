@@ -4,12 +4,12 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 
-public class AndroidPlatform implements Platform {
+class AndroidPlatform implements Platform {
 
     static final String TASK_CODE_JAR = 'codeJar'
     static final String TASK_ASSEMBLE = 'assemble'
 
-    public void copyCompilationSettings(Project project, Task task) {
+    void copyCompilationSettings(Project project, Task task) {
         def tName = TASK_ASSEMBLE
         for (def set1 : project.android.sourceSets) {
             if (set1.name == "main") {
@@ -39,7 +39,7 @@ public class AndroidPlatform implements Platform {
     // sources JAR task.
     //
     // 4. Creates dynamic dependencies of Doop tasks.
-    public void markMetadataToFix(Project project, Task task) {
+    void markMetadataToFix(Project project, Task task) {
         project.afterEvaluate {
             // Read properties from build.gradle.
 
@@ -56,8 +56,8 @@ public class AndroidPlatform implements Platform {
             def buildType = doop.buildType
             if (buildType == null)
                 throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
-	    if ((buildType != 'debug') && (buildType != 'release'))
-		throw new RuntimeException("Property doop.buildType must be 'debug' or 'release'.")
+            if ((buildType != 'debug') && (buildType != 'release'))
+                throw new RuntimeException("Property doop.buildType must be 'debug' or 'release'.")
 
             def annotationsVersion = doop.annotationsVersion
             if (annotationsVersion == null)
@@ -83,8 +83,7 @@ public class AndroidPlatform implements Platform {
                         def version = dep.version
                         // println("Found dependency: " + group + ", " + name + ", " + version)
                         deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
-                    }
-                    else
+                    } else
                         throw new RuntimeException("AndroidPlatform error: cannot handle dependency from group ${group}")
                 }
             }
@@ -107,19 +106,19 @@ public class AndroidPlatform implements Platform {
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
             sourcesJarTask.from("${appBuildHome}/generated/source/r/${buildType}")
 
-	    def assembleTaskDep
-	    switch (buildType) {
-	    case 'debug':
-	        assembleTaskDep = 'assembleDebug'
-		break
-	    case 'release':
-	        assembleTaskDep = 'assembleRelease'
-		break
-	    }
+            def assembleTaskDep
+            switch (buildType) {
+                case 'debug':
+                    assembleTaskDep = 'assembleDebug'
+                    break
+                case 'release':
+                    assembleTaskDep = 'assembleRelease'
+                    break
+            }
 
-	    // Create dependency on source JAR task in order to create
-	    // the R.java files.
-	    sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
+            // Create dependency on source JAR task in order to create
+            // the R.java files.
+            sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
         }
     }
 
@@ -131,29 +130,28 @@ public class AndroidPlatform implements Platform {
         if (localProperties.exists()) {
             Properties properties = new Properties()
             localProperties.withInputStream { instr ->
-              properties.load(instr)
+                properties.load(instr)
             }
             def sdkDir = properties.getProperty('sdk.dir')
             // println("Android SDK = " + sdkDir)
-	    if (!(new File(sdkDir)).exists())
-		println("AndroidPlatform warning: Android SDK directory does not exist: " + sdkDir)
+            if (!(new File(sdkDir)).exists())
+                println("AndroidPlatform warning: Android SDK directory does not exist: " + sdkDir)
             return sdkDir
-        }
-        else
+        } else
             throw new RuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
     }
 
-    public void createScavengeDependency(Project project, Task task) {
+    void createScavengeDependency(Project project, Task task) {
         task.dependsOn project.tasks.findByName(TASK_ASSEMBLE)
     }
 
     // This method is empty; the dependency is recorded in
     // markMetadataToFix(). The reason is that 'assemble' creates a
     // circular dependency and thus we use 'assemble{Debug,Release}'.
-    public void createSourcesJarDependency(Project project, Task task) {
+    void createSourcesJarDependency(Project project, Task task) {
     }
 
-    public void gatherSources(Project project, Task task) {
+    void gatherSources(Project project, Task task) {
         task.from "src/main/java"
     }
 
@@ -161,16 +159,16 @@ public class AndroidPlatform implements Platform {
     // where no JAR task exists in the Android gradle plugin. The task
     // is not fully created here; its inputs are set "afterEvaluate"
     // (see method markMetadataToFix() above).
-    public void configureCodeJarTask(Project project) {
+    void configureCodeJarTask(Project project) {
         Jar task = project.tasks.create(TASK_CODE_JAR, Jar)
         task.description = 'Generates the code jar'
         task.group = DoopPlugin.DOOP_GROUP
         task.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
     }
 
-    public String jarTaskName() { return TASK_CODE_JAR; }
+    String jarTaskName() { return TASK_CODE_JAR }
 
-    public Set inputFiles(Project project, File jarArchive) {
-        return [jarArchive] as Set;
+    Set inputFiles(Project project, File jarArchive) {
+        return [jarArchive] as Set
     }
 }

@@ -1,26 +1,16 @@
 package org.clyze.doop.gradle
 
-import org.clyze.client.web.Helper
-import org.clyze.client.web.RestCommandBase
 import groovy.json.JsonSlurper
 import org.apache.http.HttpEntity
-import org.apache.http.NameValuePair
-import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.methods.HttpPut
 import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.entity.mime.MultipartEntityBuilder
-import org.apache.http.entity.mime.content.StringBody
-import org.apache.http.message.BasicNameValuePair
+import org.clyze.client.web.Helper
+import org.clyze.client.web.RestCommandBase
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 import java.awt.*
-import java.util.List
 
-/**
- * Created by saiko on 28/7/2015.
- */
 class AnalyzeTask extends DefaultTask {
 
     @TaskAction
@@ -30,7 +20,7 @@ class AnalyzeTask extends DefaultTask {
 
         String jarTaskName = DoopPlugin.platform.jarTaskName()
         File jarArchive = project.file(project.tasks.findByName(jarTaskName).archivePath)
-        doop.analysis.inputFiles = DoopPlugin.platform.inputFiles(project, jarArchive)
+        doop.options.inputs = DoopPlugin.platform.inputFiles(project, jarArchive)
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
@@ -41,7 +31,7 @@ class AnalyzeTask extends DefaultTask {
         println "Connecting to server at ${doop.host}:${doop.port}"
         String token = createLoginCommand(doop).execute(doop.host, doop.port)
 
-        println "Submitting ${doop.projectName} version ${doop.projectVersion} for ${doop.analysis.name} analysis"
+        println "Submitting ${doop.projectName} version ${doop.projectVersion} for ${doop.options.analysis} analysis"
         postAndStartAnalysis(doop, sources, jcPluginMetadata, hprof, token)
     }
 
@@ -94,14 +84,14 @@ class AnalyzeTask extends DefaultTask {
                                                              Closure authenticator) {
 
         RestCommandBase<String> command = Helper.createPostDoopAnalysisCommand(
-            doop.analysis.name,
+            doop.options.analysis, // id
             doop.projectName,
             doop.projectVersion,
-            doop.analysis.inputFiles,
+            doop.options.inputs,
             sources,
             jcPluginMetadata,
             hprof,
-            doop.analysis.options
+            doop.options
         )
         command.authenticator = authenticator
         return command

@@ -2,9 +2,6 @@ package org.clyze.doop.gradle
 
 import org.gradle.util.ConfigureUtil
 
-/**
- * Created by saiko on 28/7/2015.
- */
 class DoopExtension {
     String host
     int port
@@ -17,9 +14,9 @@ class DoopExtension {
     String annotationsVersion
     File scavengeOutputDir
     String hprof
-    AnalysisConfig analysis = new AnalysisConfig()
+    Map<String, Object> options
 
-    def analysis(Closure cl) {
-        ConfigureUtil.configure(cl, analysis)
+    def options(Closure cl) {
+        ConfigureUtil.configure(cl, options)
     }
 }

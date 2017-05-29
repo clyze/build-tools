@@ -1,6 +1,6 @@
 package org.clyze.doop.gradle
 
-import org.clyze.doop.web.client.Helper
+import org.clyze.client.web.Helper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -64,7 +64,7 @@ class DoopPlugin implements Plugin<Project> {
         project.extensions.doop.projectName = project.name
         project.extensions.doop.projectVersion = project.version?.toString()
         project.extensions.doop.scavengeOutputDir = project.file("build/scavenge")
-        project.extensions.doop.analysis.options = Helper.createDefaultOptions()
+        project.extensions.doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive']
     }
 
     private void configureScavengeTask(Project project) {
