@@ -168,7 +168,5 @@ class AndroidPlatform implements Platform {
 
     String jarTaskName() { return TASK_CODE_JAR }
 
-    Set inputFiles(Project project, File jarArchive) {
-        return [jarArchive] as Set
-    }
+    List inputFiles(Project project, File jarArchive) { [jarArchive] }
 }

@@ -18,5 +18,5 @@ interface Platform {
   void gatherSources(Project project, Task task)
   void configureCodeJarTask(Project project)
   String jarTaskName()
-  Set inputFiles(Project project, File jarArchive)
+  List inputFiles(Project project, File jarArchive)
 }

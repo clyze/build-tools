@@ -31,7 +31,7 @@ class JavaPlatform implements Platform {
 
     String jarTaskName() { return 'jar'; }
 
-    Set inputFiles(Project project, File jarArchive) {
-        return ([jarArchive] + project.configurations.runtime.files) as Set;
+    List inputFiles(Project project, File jarArchive) {
+        [jarArchive] + project.configurations.runtime.files
     }
 }
