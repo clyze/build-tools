@@ -71,13 +71,15 @@ class AndroidPlatform implements Platform {
                 // println "Configuration: ${conf.name}"
                 conf.allDependencies.each { dep ->
                     def group = dep.group
+                    if (group == null)
+                        return
                     if (group == "com.android.support") {
                         def name = dep.name
                         def version = dep.version
                         // println("Found dependency: " + group + ", " + name + ", " + version)
                         deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
                     } else
-                        throw new RuntimeException("AndroidPlatform error: cannot handle dependency from group ${group}")
+                        println("AndroidPlatform: ignoring dependency from group ${group}")
                 }
             }
             androidJars.addAll(deps.toSet().toList())
