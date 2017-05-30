@@ -84,10 +84,8 @@ class AnalyzeTask extends DefaultTask {
                                                              Closure authenticator) {
 
         RestCommandBase<String> command = Helper.createPostDoopAnalysisCommand(
-            doop.options.analysis, // id
             doop.projectName,
             doop.projectVersion,
-            doop.options.inputs,
             sources,
             jcPluginMetadata,
             hprof,
