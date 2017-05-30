@@ -48,17 +48,10 @@ class AndroidPlatform implements Platform {
                 throw new RuntimeException("No android.compileSdkVersion found in build.gradle.")
 
             DoopExtension doop = project.extensions.doop
-            def subprojectName = doop.subprojectName
-            if (subprojectName == null)
-                throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+            def subprojectName = getSubprojectName(doop)
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
-            def buildType = doop.buildType
-            if (buildType == null)
-                throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
-            if ((buildType != 'debug') && (buildType != 'release'))
-                throw new RuntimeException("Property doop.buildType must be 'debug' or 'release'.")
-
+            def buildType = checkAndGetBuildType(doop)
             def annotationsVersion = doop.annotationsVersion
             if (annotationsVersion == null)
                 throw new RuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
@@ -169,4 +162,34 @@ class AndroidPlatform implements Platform {
     String jarTaskName() { return TASK_CODE_JAR }
 
     List inputFiles(Project project, File jarArchive) { [jarArchive] }
+
+    String getClasspath(Project project) {
+	// Unfortunately, ScriptHandler.CLASSPATH_CONFIGURATION is not
+	// a real task in the Android Gradle plugin and we have to use
+	// a lower-level way to read the classpath.
+	def cLoader = project.buildscript.getClassLoader()
+	if (cLoader instanceof URLClassLoader) {
+	    URLClassLoader cl = (URLClassLoader)cLoader
+	    return cl.getURLs().collect().join(File.pathSeparator).replaceAll('file://', '')
+	} else {
+	    throw new RuntimeException('AndroidPlatform: cannot get classpath for jcplugin')
+	}
+    }
+
+    String checkAndGetBuildType(DoopExtension doop) {
+	def buildType = doop.buildType
+	if (buildType == null) {
+	    throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+	} else if ((buildType != 'debug') && (buildType != 'release')) {
+	    throw new RuntimeException("Property doop.buildType must be 'debug' or 'release'.")
+	}
+	return buildType
+    }
+
+    String getSubprojectName(DoopExtension doop) {
+	if (doop.subprojectName == null)
+	    throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+	else
+	    return doop.subprojectName
+    }
 }

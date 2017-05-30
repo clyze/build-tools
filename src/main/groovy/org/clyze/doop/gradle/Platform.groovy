@@ -19,4 +19,5 @@ interface Platform {
   void configureCodeJarTask(Project project)
   String jarTaskName()
   List inputFiles(Project project, File jarArchive)
+  String getClasspath(Project project)
 }

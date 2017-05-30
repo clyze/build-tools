@@ -4,7 +4,6 @@ import org.clyze.client.web.Helper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
@@ -77,9 +76,7 @@ class DoopPlugin implements Plugin<Project> {
 
         // Our custom settings.
         File dest = project.extensions.doop.scavengeOutputDir
-        def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
-        //TODO: Filter-out not required jars
-        String processorPath = buildScriptConf.collect().join(File.pathSeparator)
+        String processorPath = platform.getClasspath(project)
         task.destinationDir = new File(dest as File, "classes")
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs = ['-processorpath', processorPath, '-Xplugin:TypeInfoPlugin ' + jsonOutput]

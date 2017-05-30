@@ -2,6 +2,7 @@ package org.clyze.doop.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.compile.JavaCompile
 
 class JavaPlatform implements Platform {
@@ -33,5 +34,11 @@ class JavaPlatform implements Platform {
 
     List inputFiles(Project project, File jarArchive) {
         [jarArchive] + project.configurations.runtime.files
+    }
+
+    String getClasspath(Project project) {
+        def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
+        //TODO: Filter-out not required jars
+        return buildScriptConf.collect().join(File.pathSeparator)
     }
 }
