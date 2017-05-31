@@ -36,8 +36,8 @@ class AndroidPlatform implements Platform {
     // 2. It sets the location of the class files needed by the code
     // JAR task.
     //
-    // 3. It sets the location of the auto-generated R.java in the
-    // sources JAR task.
+    // 3. It sets the location of the auto-generated Java sources in
+    // the sources JAR task.
     //
     // 4. Creates dynamic dependencies of Doop tasks.
     void markMetadataToFix(Project project, Task task) {
