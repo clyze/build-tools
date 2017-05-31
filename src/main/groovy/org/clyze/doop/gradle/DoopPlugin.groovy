@@ -17,7 +17,7 @@ class DoopPlugin implements Plugin<Project> {
     static final String TASK_SCAVENGE = 'scavenge'
     static final String TASK_JCPLUGIN_ZIP = 'jcpluginZip'
     static final String TASK_SOURCES_JAR = 'sourcesJar'
-    static final String TASK_ANALYSE = 'analyze'
+    static final String TASK_ANALYZE = 'analyze'
 
     static Platform platform
     
@@ -113,7 +113,7 @@ class DoopPlugin implements Plugin<Project> {
     }
 
     private void configureAnalyzeTask(Project project) {
-        AnalyzeTask task = project.tasks.create(TASK_ANALYSE, AnalyzeTask)
+        AnalyzeTask task = project.tasks.create(TASK_ANALYZE, AnalyzeTask)
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
 

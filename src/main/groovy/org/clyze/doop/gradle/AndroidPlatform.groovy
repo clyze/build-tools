@@ -171,15 +171,14 @@ class AndroidPlatform implements Platform {
             throw new RuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
     }
 
-    void createScavengeDependency(Project project, Task task) {
-        task.dependsOn project.tasks.findByName(TASK_ASSEMBLE)
+    void createScavengeDependency(Project project, JavaCompile scavengeTask) {
+        scavengeTask.dependsOn project.tasks.findByName(TASK_ASSEMBLE)
     }
 
     // This method is empty; the dependency is recorded in
     // markMetadataToFix(). The reason is that 'assemble' creates a
     // circular dependency and thus we use 'assemble{Debug,Release}'.
-    void createSourcesJarDependency(Project project, Task task) {
-    }
+    void createSourcesJarDependency(Project project, Jar sourcesJarTask) {}
 
     void gatherSources(Project project, Task task) {
         task.from "src/main/java"
@@ -190,10 +189,10 @@ class AndroidPlatform implements Platform {
     // is not fully created here; its inputs are set "afterEvaluate"
     // (see method markMetadataToFix() above).
     void configureCodeJarTask(Project project) {
-        Jar task = project.tasks.create(TASK_CODE_JAR, Jar)
-        task.description = 'Generates the code jar'
-        task.group = DoopPlugin.DOOP_GROUP
-        task.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
+        Jar codeJarTask = project.tasks.create(TASK_CODE_JAR, Jar)
+        codeJarTask.description = 'Generates the code jar'
+        codeJarTask.group = DoopPlugin.DOOP_GROUP
+        codeJarTask.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
     }
 
     String jarTaskName() { return TASK_CODE_JAR }

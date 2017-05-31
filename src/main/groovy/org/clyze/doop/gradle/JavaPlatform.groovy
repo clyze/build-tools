@@ -3,6 +3,7 @@ package org.clyze.doop.gradle
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
 class JavaPlatform implements Platform {
@@ -16,10 +17,10 @@ class JavaPlatform implements Platform {
     // No metadata is read.
     void markMetadataToFix(Project project, JavaCompile scavengeTask) {}
 
-    void createScavengeDependency(Project project, Task task) {}
+    void createScavengeDependency(Project project, JavaCompile scavengeTask) {}
 
-    void createSourcesJarDependency(Project project, Task task) {
-        task.dependsOn project.tasks.findByName('classes')
+    void createSourcesJarDependency(Project project, Jar sourcesJarTask) {
+        sourcesJarTask.dependsOn project.tasks.findByName('classes')
     }
 
     void gatherSources(Project project, Task task) {
