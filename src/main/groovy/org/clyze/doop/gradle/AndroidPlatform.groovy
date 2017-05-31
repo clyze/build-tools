@@ -99,7 +99,7 @@ class AndroidPlatform implements Platform {
             // Add auto-generated R.java files (app R.java + other
             // R.java files, e.g. of android.support packages).
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
-            sourcesJarTask.from("${appBuildHome}/generated/source/r/${buildType}")
+            sourcesJarTask.from("${appBuildHome}/generated/source").include("**/${buildType}/**/*.java")
 
             def assembleTaskDep
             switch (buildType) {
