@@ -89,7 +89,7 @@ class AndroidPlatform implements Platform {
                     println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
             }
             task.options.compilerArgs << "-cp"
-            task.options.compilerArgs << androidJars.join(":")
+            task.options.compilerArgs << androidJars.join(File.pathSeparator)
             // println(task.options.compilerArgs)
 
             // Update location of class files for JAR task.
