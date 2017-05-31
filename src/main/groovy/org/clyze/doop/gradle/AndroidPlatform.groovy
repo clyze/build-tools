@@ -1,5 +1,6 @@
 package org.clyze.doop.gradle
 
+import groovy.io.FileType
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
@@ -96,10 +97,8 @@ class AndroidPlatform implements Platform {
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
             jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
 
-            // Add auto-generated R.java files (app R.java + other
-            // R.java files, e.g. of android.support packages).
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
-            sourcesJarTask.from("${appBuildHome}/generated/source").include("**/${buildType}/**/*.java")
+            addGeneratedSources(appBuildHome, buildType, sourcesJarTask)
 
             def assembleTaskDep
             switch (buildType) {
@@ -114,6 +113,38 @@ class AndroidPlatform implements Platform {
             // Create dependency on source JAR task in order to create
             // the R.java files.
             sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
+        }
+    }
+
+    static String baseName(File file) {
+        return file.name.replaceFirst(~/\.[^\.]+$/, '')
+    }
+
+    static String extension(String name) {
+        return name.substring(name.lastIndexOf('.') + 1, name.size())
+    }
+
+    // Add auto-generated Java files (for example, app R.java, other
+    // R.java files, or classes in android.support packages).
+    static void addGeneratedSources(String appBuildHome, String buildType,
+                                    Task sourcesJarTask) {
+        def generatedSources = "${appBuildHome}/generated/source"
+        new File(generatedSources).eachFile (FileType.DIRECTORIES) { dir ->
+            dir.eachFile (FileType.DIRECTORIES) { bPath ->
+                if (baseName(bPath) == buildType) {
+                    // Add subdirectories containing .java files.
+                    def containsJava = false
+                    bPath.eachFileRecurse (FileType.FILES) { f ->
+                        def fName = f.name
+                        if (extension(fName) == "java")
+                            containsJava = true
+                    }
+                    if (containsJava) {
+                        println "Adding generated Java sources in ${bPath}"
+                        sourcesJarTask.from bPath.getAbsolutePath()
+                    }
+                }
+            }
         }
     }
 
