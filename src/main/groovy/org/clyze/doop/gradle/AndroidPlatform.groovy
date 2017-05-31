@@ -198,7 +198,16 @@ class AndroidPlatform implements Platform {
     String jarTaskName() { return TASK_CODE_JAR }
 
     List inputFiles(Project project) {
-        def apks = project.tasks.findByName("packageDebug").outputs.files
+        def packageTask
+        switch (checkAndGetBuildType(project.extensions.doop)) {
+        case 'debug':
+            packageTask = 'packageDebug'
+            break
+        case 'release':
+            packageTask = 'packageRelease'
+            break
+        }
+        def apks = project.tasks.findByName(packageTask).outputs.files
                           .findAll { extension(it.name) == 'apk' }
         return apks.toList()
     }
