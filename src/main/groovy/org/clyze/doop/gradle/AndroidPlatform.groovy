@@ -228,4 +228,15 @@ class AndroidPlatform implements Platform {
 	else
 	    return doop.subprojectName
     }
+
+    File getCodeArchive(Project project) {
+        def apks = project.tasks.findByName("packageDebug").outputs.files
+                   .findAll { extension(it.name) == 'apk' }
+        def numApks = apks.size()
+        if (numApks != 1) {
+            throw new RuntimeException("The project should create a single .apk, not ${numApks}: ${apks}")
+        } else {
+            return apks[0]
+        }
+    }
 }

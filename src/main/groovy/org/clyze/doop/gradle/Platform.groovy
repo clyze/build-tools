@@ -22,4 +22,5 @@ interface Platform {
   String jarTaskName()
   List inputFiles(Project project, File jarArchive)
   String getClasspath(Project project)
+  File getCodeArchive(Project project)
 }

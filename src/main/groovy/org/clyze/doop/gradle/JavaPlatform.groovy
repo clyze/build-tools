@@ -42,4 +42,10 @@ class JavaPlatform implements Platform {
         //TODO: Filter-out not required jars
         return buildScriptConf.collect().join(File.pathSeparator)
     }
+
+    File getCodeArchive(Project project) {
+        String jarTaskName = DoopPlugin.platform.jarTaskName()
+        return project.file(project.tasks.findByName(jarTaskName).archivePath)
+    }
+
 }

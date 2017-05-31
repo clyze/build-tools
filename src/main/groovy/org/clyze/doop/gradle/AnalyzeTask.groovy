@@ -18,9 +18,8 @@ class AnalyzeTask extends DefaultTask {
 
         DoopExtension doop = project.extensions.doop
 
-        String jarTaskName = DoopPlugin.platform.jarTaskName()
-        File jarArchive = project.file(project.tasks.findByName(jarTaskName).archivePath)
-        doop.options.inputs = DoopPlugin.platform.inputFiles(project, jarArchive)
+        File codeArchive = DoopPlugin.platform.getCodeArchive(project)
+        doop.options.inputs = DoopPlugin.platform.inputFiles(project, codeArchive)
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
