@@ -97,8 +97,10 @@ class AndroidPlatform implements Platform {
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
             jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
 
+            def sourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
-            addGeneratedSources(appBuildHome, buildType, sourcesJarTask)
+            sourceDirs.each { dir -> sourcesJarTask.from dir}
+            task.source(sourceDirs)
 
             def assembleTaskDep
             switch (buildType) {
@@ -124,10 +126,10 @@ class AndroidPlatform implements Platform {
         return name.substring(name.lastIndexOf('.') + 1, name.size())
     }
 
-    // Add auto-generated Java files (for example, app R.java, other
-    // R.java files, or classes in android.support packages).
-    static void addGeneratedSources(String appBuildHome, String buildType,
-                                    Task sourcesJarTask) {
+    // Add auto-generated Java files (examples are the app's R.java,
+    // other R.java files, and classes in android.support packages).
+    static List findGeneratedSourceDirs(String appBuildHome, String buildType) {
+        def sourceDirs = []
         def generatedSources = "${appBuildHome}/generated/source"
         new File(generatedSources).eachFile (FileType.DIRECTORIES) { dir ->
             dir.eachFile (FileType.DIRECTORIES) { bPath ->
@@ -140,12 +142,13 @@ class AndroidPlatform implements Platform {
                             containsJava = true
                     }
                     if (containsJava) {
-                        println "Adding generated Java sources in ${bPath}"
-                        sourcesJarTask.from bPath.getAbsolutePath()
+                        println "Found generated Java sources in ${bPath}"
+                        sourceDirs << bPath.getAbsolutePath()
                     }
                 }
             }
         }
+        return sourceDirs
     }
 
     // Find the location of the Android SDK. Assumes it is given as
