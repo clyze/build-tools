@@ -20,7 +20,6 @@ interface Platform {
   void gatherSources(Project project, Task task)
   void configureCodeJarTask(Project project)
   String jarTaskName()
-  List inputFiles(Project project, File jarArchive)
+  List inputFiles(Project project)
   String getClasspath(Project project)
-  File getCodeArchive(Project project)
 }

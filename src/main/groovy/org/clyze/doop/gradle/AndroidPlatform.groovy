@@ -197,7 +197,11 @@ class AndroidPlatform implements Platform {
 
     String jarTaskName() { return TASK_CODE_JAR }
 
-    List inputFiles(Project project, File jarArchive) { [jarArchive] }
+    List inputFiles(Project project) {
+        def apks = project.tasks.findByName("packageDebug").outputs.files
+                          .findAll { extension(it.name) == 'apk' }
+        return apks.toList()
+    }
 
     String getClasspath(Project project) {
 	// Unfortunately, ScriptHandler.CLASSPATH_CONFIGURATION is not
@@ -227,16 +231,5 @@ class AndroidPlatform implements Platform {
 	    throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
 	else
 	    return doop.subprojectName
-    }
-
-    File getCodeArchive(Project project) {
-        def apks = project.tasks.findByName("packageDebug").outputs.files
-                   .findAll { extension(it.name) == 'apk' }
-        def numApks = apks.size()
-        if (numApks != 1) {
-            throw new RuntimeException("The project should create a single .apk, not ${numApks}: ${apks}")
-        } else {
-            return apks[0]
-        }
     }
 }

@@ -33,8 +33,9 @@ class JavaPlatform implements Platform {
 
     String jarTaskName() { return 'jar'; }
 
-    List inputFiles(Project project, File jarArchive) {
-        [jarArchive] + project.configurations.runtime.files
+    List inputFiles(Project project) {
+        def jar = project.file(project.tasks.findByName(jarTaskName()).archivePath)
+        return [jar] + project.configurations.runtime.files
     }
 
     String getClasspath(Project project) {
@@ -42,10 +43,4 @@ class JavaPlatform implements Platform {
         //TODO: Filter-out not required jars
         return buildScriptConf.collect().join(File.pathSeparator)
     }
-
-    File getCodeArchive(Project project) {
-        String jarTaskName = DoopPlugin.platform.jarTaskName()
-        return project.file(project.tasks.findByName(jarTaskName).archivePath)
-    }
-
 }
