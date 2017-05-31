@@ -138,7 +138,7 @@ class AndroidPlatform implements Platform {
                     def containsJava = false
                     bPath.eachFileRecurse (FileType.FILES) { f ->
                         def fName = f.name
-                        if (extension(fName) == "java")
+                        if ((!containsJava) && extension(fName) == "java")
                             containsJava = true
                     }
                     if (containsJava) {
