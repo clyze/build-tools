@@ -39,7 +39,7 @@ class AndroidPlatform implements Platform {
     // 3. It sets the location of the auto-generated Java sources in
     // the sources JAR task.
     //
-    // 4. Creates dynamic dependencies of Doop tasks.
+    // 4. It creates dynamic dependencies of Doop tasks.
     void markMetadataToFix(Project project, Task task) {
         project.afterEvaluate {
             // Read properties from build.gradle.
