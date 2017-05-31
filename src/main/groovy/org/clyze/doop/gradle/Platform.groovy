@@ -2,6 +2,7 @@ package org.clyze.doop.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.compile.JavaCompile
 
 /**
  * The Java platform used: plain Java or Android. Each platform is
@@ -12,7 +13,7 @@ import org.gradle.api.Task
 
 interface Platform {
   void copyCompilationSettings(Project project, Task task)
-  void markMetadataToFix(Project project, Task task)
+  void markMetadataToFix(Project project, JavaCompile scavengeTask)
   void createScavengeDependency(Project project, Task task)
   void createSourcesJarDependency(Project project, Task task)
   void gatherSources(Project project, Task task)

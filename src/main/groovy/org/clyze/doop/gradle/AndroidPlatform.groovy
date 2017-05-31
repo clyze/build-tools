@@ -4,6 +4,7 @@ import groovy.io.FileType
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.JavaCompile
 
 class AndroidPlatform implements Platform {
 
@@ -40,7 +41,7 @@ class AndroidPlatform implements Platform {
     // the sources JAR task.
     //
     // 4. It creates dynamic dependencies of Doop tasks.
-    void markMetadataToFix(Project project, Task task) {
+    void markMetadataToFix(Project project, JavaCompile scavengeTask) {
         project.afterEvaluate {
             // Read properties from build.gradle.
 
@@ -89,18 +90,18 @@ class AndroidPlatform implements Platform {
                 if (!(new File(it)).exists())
                     println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
             }
-            task.options.compilerArgs << "-cp"
-            task.options.compilerArgs << androidJars.join(File.pathSeparator)
-            // println(task.options.compilerArgs)
+            scavengeTask.options.compilerArgs << "-cp"
+            scavengeTask.options.compilerArgs << androidJars.join(File.pathSeparator)
+            // println(scavengeTask.options.compilerArgs)
 
             // Update location of class files for JAR task.
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
             jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
 
-            def sourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
+            def genSourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
-            sourceDirs.each { dir -> sourcesJarTask.from dir}
-            task.source(sourceDirs)
+            genSourceDirs.each { dir -> sourcesJarTask.from dir}
+            scavengeTask.source(genSourceDirs)
 
             def assembleTaskDep
             switch (buildType) {
@@ -129,7 +130,7 @@ class AndroidPlatform implements Platform {
     // Add auto-generated Java files (examples are the app's R.java,
     // other R.java files, and classes in android.support packages).
     static List findGeneratedSourceDirs(String appBuildHome, String buildType) {
-        def sourceDirs = []
+        def genSourceDirs = []
         def generatedSources = "${appBuildHome}/generated/source"
         new File(generatedSources).eachFile (FileType.DIRECTORIES) { dir ->
             dir.eachFile (FileType.DIRECTORIES) { bPath ->
@@ -143,12 +144,12 @@ class AndroidPlatform implements Platform {
                     }
                     if (containsJava) {
                         println "Found generated Java sources in ${bPath}"
-                        sourceDirs << bPath.getAbsolutePath()
+                        genSourceDirs << bPath.getAbsolutePath()
                     }
                 }
             }
         }
-        return sourceDirs
+        return genSourceDirs
     }
 
     // Find the location of the Android SDK. Assumes it is given as

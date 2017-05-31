@@ -14,7 +14,7 @@ class JavaPlatform implements Platform {
     }
 
     // No metadata is read.
-    void markMetadataToFix(Project project, Task task) {}
+    void markMetadataToFix(Project project, JavaCompile scavengeTask) {}
 
     void createScavengeDependency(Project project, Task task) {}
 
