@@ -7,6 +7,7 @@ class DoopExtension {
     int port
     String username
     String password
+    String orgName
     String projectName
     String projectVersion
     String subprojectName

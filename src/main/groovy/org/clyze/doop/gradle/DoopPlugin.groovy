@@ -60,6 +60,7 @@ class DoopPlugin implements Plugin<Project> {
     }
 
     private void configureDefaults(Project project) {
+        project.extensions.doop.orgName = project.group
         project.extensions.doop.projectName = project.name
         project.extensions.doop.projectVersion = project.version?.toString()
         project.extensions.doop.scavengeOutputDir = project.file("build/scavenge")
