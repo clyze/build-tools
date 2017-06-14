@@ -181,7 +181,13 @@ class AndroidPlatform implements Platform {
     void createSourcesJarDependency(Project project, Jar sourcesJarTask) {}
 
     void gatherSources(Project project, Task task) {
-        task.from "src/main/java"
+        // Check if the Maven convention is followed for the sources.
+        String srcMaven = "src/main/java"
+        if ((new File(srcMaven)).exists()) {
+            task.from srcMaven
+        } else {
+            task.from "src/"
+        }
     }
 
     // Analogous to configureSourceJarTask(), needed for Android,
