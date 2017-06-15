@@ -68,7 +68,7 @@ class AndroidPlatform implements Platform {
             def subprojectName = getSubprojectName(doop)
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
-            def buildType = checkAndGetBuildType(doop)
+            String buildType = checkAndGetBuildType(doop)
             def annotationsVersion = doop.annotationsVersion
             if (annotationsVersion == null)
                 throw new RuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
@@ -124,7 +124,7 @@ class AndroidPlatform implements Platform {
 
             def genSourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
-            gatherSourcesAfterEvaluate(project, sourcesJarTask)
+            gatherSourcesAfterEvaluate(project, sourcesJarTask, buildType)
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
             scavengeTask.source(genSourceDirs)
 
@@ -207,7 +207,7 @@ class AndroidPlatform implements Platform {
 
     void gatherSources(Project project, Jar sourcesJarTask) {}
 
-    void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask) {
+    void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String buildType) {
         String subprojectName = getSubprojectName(project.extensions.doop)
         String appPath = "${project.rootDir}/${subprojectName}"
 
@@ -229,6 +229,11 @@ class AndroidPlatform implements Platform {
         if ((new File("${appPath}/${srcAndroidTestMaven}")).exists()) {
             println "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
             sourcesJarTask.from srcAndroidTestMaven
+        }
+        String manifest = "${appPath}/build/intermediates/manifests/full/${buildType}/AndroidManifest.xml"
+        if ((new File(manifest)).exists()) {
+            println "Using manifest for sources JAR: ${manifest}"
+            sourcesJarTask.from manifest
         }
     }
 
