@@ -104,8 +104,8 @@ class AndroidPlatform implements Platform {
                     } else if (ignoredGroups.contains(group)) {
                         // do nothing
                     } else {
-			deps << resolveExternalDependency(project, dep)
-		    }
+                        deps << resolveExternalDependency(project, dep)
+                    }
                 }
             }
             androidJars.addAll(deps.toSet().toList())
