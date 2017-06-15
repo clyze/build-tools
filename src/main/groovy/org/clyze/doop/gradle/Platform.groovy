@@ -17,7 +17,7 @@ interface Platform {
   void markMetadataToFix(Project project, JavaCompile scavengeTask)
   void createScavengeDependency(Project project, JavaCompile scavengeTask)
   void createSourcesJarDependency(Project project, Jar sourcesJarTask)
-  void gatherSources(Project project, Task task)
+  void gatherSources(Project project, Jar sourcesJarTask)
   void configureCodeJarTask(Project project)
   String jarTaskName()
   List inputFiles(Project project)

@@ -23,8 +23,8 @@ class JavaPlatform implements Platform {
         sourcesJarTask.dependsOn project.tasks.findByName('classes')
     }
 
-    void gatherSources(Project project, Task task) {
-        task.from project.sourceSets.main.allSource
+    void gatherSources(Project project, Jar sourcesJarTask) {
+        sourcesJarTask.from project.sourceSets.main.allSource
     }
 
     // No code JAR task is created, the 'java' gradle plugin already

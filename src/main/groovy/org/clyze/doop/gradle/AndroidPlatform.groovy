@@ -124,6 +124,7 @@ class AndroidPlatform implements Platform {
 
             def genSourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
+            gatherSourcesAfterEvaluate(project, sourcesJarTask)
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
             scavengeTask.source(genSourceDirs)
 
@@ -204,13 +205,30 @@ class AndroidPlatform implements Platform {
     // circular dependency and thus we use 'assemble{Debug,Release}'.
     void createSourcesJarDependency(Project project, Jar sourcesJarTask) {}
 
-    void gatherSources(Project project, Task task) {
+    void gatherSources(Project project, Jar sourcesJarTask) {}
+
+    void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask) {
+        String subprojectName = getSubprojectName(project.extensions.doop)
+        String appPath = "${project.rootDir}/${subprojectName}"
+
         // Check if the Maven convention is followed for the sources.
         String srcMaven = "src/main/java"
-        if ((new File(srcMaven)).exists()) {
-            task.from srcMaven
+        if ((new File("${appPath}/${srcMaven}")).exists()) {
+            println "Using Maven-style source directories: ${srcMaven}"
+            sourcesJarTask.from srcMaven
         } else {
-            task.from "src/"
+            println "Using sources: src/"
+            sourcesJarTask.from "src/"
+        }
+        String srcTestMaven = "src/test/java"
+        if ((new File("${appPath}/${srcTestMaven}")).exists()) {
+            println "Using Maven-style test directories: ${srcTestMaven}"
+            sourcesJarTask.from srcTestMaven
+        }
+        String srcAndroidTestMaven = "src/androidTest/java"
+        if ((new File("${appPath}/${srcAndroidTestMaven}")).exists()) {
+            println "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
+            sourcesJarTask.from srcAndroidTestMaven
         }
     }
 
