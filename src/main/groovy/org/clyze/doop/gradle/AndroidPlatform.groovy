@@ -12,15 +12,24 @@ class AndroidPlatform implements Platform {
     static final String TASK_ASSEMBLE = 'assemble'
 
     void copyCompilationSettings(Project project, Task task) {
+        task.classpath = project.files()
+    }
+
+    // This must happen afteEvaluate()
+    void copySourceSettings(Project project, Task task) {
         for (def set1 : project.android.sourceSets) {
             if (set1.name == "main") {
-                task.source = set1.java.sourceFiles
+                def srcFiles = set1.java.sourceFiles
+                if (srcFiles.size() == 0) {
+                    throwRuntimeException("No Java source files found")
+                } else {
+                    task.source = srcFiles
+                }
             }
         }
         if (task.source == null) {
             throw new RuntimeException("Could not find sourceSet")
         }
-        task.classpath = project.files()
     }
 
     // Reads properties from local.properties and build.gradle and
@@ -40,8 +49,15 @@ class AndroidPlatform implements Platform {
     // the sources JAR task.
     //
     // 4. It creates dynamic dependencies of Doop tasks.
+    //
+    // 5. It copies the source file location from the configured
+    // Android sourceSet.
+    //
     void markMetadataToFix(Project project, JavaCompile scavengeTask) {
         project.afterEvaluate {
+
+            copySourceSettings(project, scavengeTask)
+
             // Read properties from build.gradle.
 
             def androidVersion = project.android.compileSdkVersion
@@ -246,4 +262,14 @@ class AndroidPlatform implements Platform {
 	else
 	    return doop.subprojectName
     }
+
+    // Throws a runtime exception with a message. The message is also
+    // shown in the standard output. This utility helps debugging as
+    // Gradle may report a different exception (e.g. the usual
+    // IllegalStateException "buildToolsVersion is not specified").
+    static void throwRuntimeException(String errMsg) {
+        println errMsg
+        throw new RuntimeException(errMsg)
+    }
+
 }
