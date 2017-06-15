@@ -95,8 +95,9 @@ class AndroidPlatform implements Platform {
                         def version = dep.version
                         // println("Found dependency: " + group + ", " + name + ", " + version)
                         deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
-                    } else
-                        println("AndroidPlatform: ignoring dependency from group ${group}")
+                    } else {
+			deps << resolveExternalDependency(project, dep)
+		    }
                 }
             }
             androidJars.addAll(deps.toSet().toList())
@@ -272,4 +273,67 @@ class AndroidPlatform implements Platform {
         throw new RuntimeException(errMsg)
     }
 
+    private String resolveExternalDependency(Project project, def dep) {
+        String group = dep.group
+        String name = dep.name
+        String version = dep.version
+
+        String extDepsDir = getExtDepsDir(project)
+        String depDir = "${extDepsDir}/${group}/${name}/${version}"
+        String classesJar = "${depDir}/classes.jar"
+
+        // If the dependency exists, return it.
+        if ((new File(classesJar)).exists()) {
+            println "Using dependency ${group}:${name}:${version}: ${classesJar}"
+            return classesJar
+        }
+
+        // Otherwise, resolve the dependency.
+        try {
+            // Generate subdirectory to contain the dependency.
+            (new File(depDir)).mkdirs()
+
+            // Download AAR file.
+            File localAAR = new File("${depDir}/${name}-${version}.aar")
+            String aarURL = genMavenURL(group, name, version)
+            println "Downloading ${aarURL}..."
+            localAAR.newOutputStream() << new URL(aarURL).openStream()
+
+            // Decompress AAR and find its classes.jar.
+            boolean classesJarFound = false
+            def zipFile = new java.util.zip.ZipFile(localAAR)
+            zipFile.entries().each {
+                if (it.getName() == 'classes.jar') {
+                    File cj = new File(classesJar)
+                    cj.newOutputStream() << zipFile.getInputStream(it)
+                    println "Resolved dependency ${group}:${name}:${version}: ${classesJar}"
+                    classesJarFound = true
+                }
+            }
+            if (classesJarFound) {
+                return classesJar
+            } else {
+                println "No classes.jar found for dependency ${group}:${name}:${version}."
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace()
+            throwRuntimeException("AndroidPlatform: Cannot resolve external dependency ${group}:${name}:${version} using maven.org")
+        }
+        throwRuntimeException("AndroidPlatform: could not find dependency ${group}:${name}:${version}")
+    }
+
+    private String genMavenURL(String group, String name, String version) {
+        String groupPath = group.replaceAll('\\.', '/')
+        return "http://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.aar"
+    }
+
+    private String getExtDepsDir(Project project) {
+        String subprojectName = getSubprojectName(project.extensions.doop)
+        String dirName = "${project.rootDir}/${subprojectName}/extdeps"
+        File extDepsDir = new File(dirName)
+        if (!extDepsDir.exists()) {
+            extDepsDir.mkdir()
+        }
+        return dirName
+    }
 }
