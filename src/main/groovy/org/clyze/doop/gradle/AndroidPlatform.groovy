@@ -90,11 +90,19 @@ class AndroidPlatform implements Platform {
                     def group = dep.group
                     if (group == null)
                         return
+
+                    List ignoredGroups = [
+                        "com.android.support.test.espresso",
+                        "com.android.support.constraint",
+                        "junit"
+                    ]
                     if (group == "com.android.support") {
                         def name = dep.name
                         def version = dep.version
                         // println("Found dependency: " + group + ", " + name + ", " + version)
                         deps << "${appBuildHome}/intermediates/exploded-aar/${group}/${name}/${version}/jars/classes.jar"
+                    } else if (ignoredGroups.contains(group)) {
+                        // do nothing
                     } else {
 			deps << resolveExternalDependency(project, dep)
 		    }
