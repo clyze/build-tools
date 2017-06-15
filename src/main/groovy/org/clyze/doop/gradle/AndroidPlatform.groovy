@@ -12,14 +12,13 @@ class AndroidPlatform implements Platform {
     static final String TASK_ASSEMBLE = 'assemble'
 
     void copyCompilationSettings(Project project, Task task) {
-        def tName = TASK_ASSEMBLE
         for (def set1 : project.android.sourceSets) {
             if (set1.name == "main") {
                 task.source = set1.java.sourceFiles
             }
         }
         if (task.source == null) {
-            throw new RuntimeException("Could not find sourceSet for task " + tName + ".")
+            throw new RuntimeException("Could not find sourceSet")
         }
         task.classpath = project.files()
     }
