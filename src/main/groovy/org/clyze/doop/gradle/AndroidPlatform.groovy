@@ -213,12 +213,15 @@ class AndroidPlatform implements Platform {
 
         // Check if the Maven convention is followed for the sources.
         String srcMaven = "src/main/java"
+        String srcSimple = "src/"
         if ((new File("${appPath}/${srcMaven}")).exists()) {
             println "Using Maven-style source directories: ${srcMaven}"
             sourcesJarTask.from srcMaven
+        } else if ((new File("${appPath}/${srcSimple}")).exists()) {
+            println "Using sources: ${srcSimple}"
+            sourcesJarTask.from srcSimple
         } else {
-            println "Using sources: src/"
-            sourcesJarTask.from "src/"
+            throwRuntimeException("Could not find source directory")
         }
         String srcTestMaven = "src/test/java"
         if ((new File("${appPath}/${srcTestMaven}")).exists()) {
