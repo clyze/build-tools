@@ -28,7 +28,7 @@ class AndroidPlatform implements Platform {
             }
         }
         if (task.source == null) {
-            throw new RuntimeException("Could not find sourceSet")
+            throwRuntimeException("Could not find sourceSet")
         }
     }
 
@@ -62,7 +62,7 @@ class AndroidPlatform implements Platform {
 
             def androidVersion = project.android.compileSdkVersion
             if (androidVersion == null)
-                throw new RuntimeException("No android.compileSdkVersion found in build.gradle.")
+                throwRuntimeException("No android.compileSdkVersion found in build.gradle.")
 
             DoopExtension doop = project.extensions.doop
             def subprojectName = getSubprojectName(doop)
@@ -71,7 +71,7 @@ class AndroidPlatform implements Platform {
             String buildType = checkAndGetBuildType(doop)
             def annotationsVersion = doop.annotationsVersion
             if (annotationsVersion == null)
-                throw new RuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
+                throwRuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
 
             // Find locations of the Android SDK and the project build path.
             def androidSdkHome = findSDK(project)
@@ -193,7 +193,7 @@ class AndroidPlatform implements Platform {
                 println("AndroidPlatform warning: Android SDK directory does not exist: " + sdkDir)
             return sdkDir
         } else
-            throw new RuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
+            throwRuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
     }
 
     void createScavengeDependency(Project project, JavaCompile scavengeTask) {
@@ -277,23 +277,23 @@ class AndroidPlatform implements Platform {
 	    URLClassLoader cl = (URLClassLoader)cLoader
 	    return cl.getURLs().collect().join(File.pathSeparator).replaceAll('file://', '')
 	} else {
-	    throw new RuntimeException('AndroidPlatform: cannot get classpath for jcplugin')
+	    throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin')
 	}
     }
 
     String checkAndGetBuildType(DoopExtension doop) {
 	def buildType = doop.buildType
 	if (buildType == null) {
-	    throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+	    throwRuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
 	} else if ((buildType != 'debug') && (buildType != 'release')) {
-	    throw new RuntimeException("Property doop.buildType must be 'debug' or 'release'.")
+	    throwRuntimeException("Property doop.buildType must be 'debug' or 'release'.")
 	}
 	return buildType
     }
 
     String getSubprojectName(DoopExtension doop) {
 	if (doop.subprojectName == null)
-	    throw new RuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+	    throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
 	else
 	    return doop.subprojectName
     }
