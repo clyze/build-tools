@@ -29,7 +29,7 @@ class DoopPlugin implements Plugin<Project> {
             platform = new JavaPlatform()
         }
         else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application')) {
-            platform = new AndroidPlatform()
+            platform = new AndroidPlatform(project)
         }
         else {
             throw new RuntimeException('One of the java/android/com.android.application plugins should be applied before Doop')
