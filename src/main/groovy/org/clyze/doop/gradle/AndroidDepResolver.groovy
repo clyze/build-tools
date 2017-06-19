@@ -34,7 +34,7 @@ class AndroidDepResolver {
         String extDepsDir = getExtDepsDir()
         String depDir = "${extDepsDir}/${group}/${name}/${version}"
         String classesJar = "${depDir}/classes.jar"
-        String pom = null
+        String pom = "${depDir}/${name}-${version}.pom"
 
         // If the dependency exists, use it.
         if ((new File(classesJar)).exists()) {
@@ -46,7 +46,7 @@ class AndroidDepResolver {
                 (new File(depDir)).mkdirs()
 
                 if (localAndroidDeps.contains(group)) {
-                    pom = resolveAndroidDep(depDir, group, name, version, classesJar)
+                    resolveAndroidDep(depDir, group, name, version, classesJar, pomLocal)
                 } else {
                     // TODO: pom.xml for external dependencies
                     resolveExtDep(depDir, group, name, version, classesJar)
@@ -63,7 +63,7 @@ class AndroidDepResolver {
         // TODO: resolveAndroid/ExtDep should also download the pom.xml (and assume that it is empty when not found, showing just a warning)
         // ret << getPomDependencies(project, "path/of/pom.xml")
         // TODO: read .pom file of dependency
-        if (pom != null) {
+        if ((new File(pom)).exists()) {
             println "Reading ${pom}..."
             def xml = new XmlSlurper().parse(new File(pom))
             xml.dependencies.children().each { dep ->
@@ -76,8 +76,7 @@ class AndroidDepResolver {
                 }
             }
         } else {
-            // TODO: this always shows up for already resolved depedencies.
-            println "No pom file found for dependency: ${name}"
+            println "Warning: no pom file found for dependency: ${name}"
         }
         return ret
 
@@ -104,11 +103,9 @@ class AndroidDepResolver {
     // Resolves an Android dependency by finding its .aar/.jar in the
     // local Android SDK installation. Parameter 'classesJar' is the
     // name of the .jar file that will contain the classes of the
-    // dependency after this method finishes. The return value is the
-    // path of the dependency's .pom file, to be used for recursive
-    // resolution of dependencies.
-    private String resolveAndroidDep(String depDir, String group, String name,
-                                     String version, String classesJar) {
+    // dependency after this method finishes.
+    private void resolveAndroidDep(String depDir, String group, String name,
+                                   String version, String classesJar, String pom) {
         String sdkHome = findSDK(project)
         String groupPath = group.replaceAll('\\.', '/')
 
@@ -120,7 +117,6 @@ class AndroidDepResolver {
         String path4 = "${sdkHome}/extras/m2repository/${groupPath}/${name}/${version}"
 
         String pomPath = null
-        String pomName = "${name}-${version}.pom"
         File aarPath1 = new File("${path1}/${name}-${version}.aar")
         File aarPath2 = new File("${path2}/${name}-${version}.aar")
         String jarPath3 = "${path3}/${name}-${version}.jar"
@@ -141,10 +137,8 @@ class AndroidDepResolver {
         } else {
             throwRuntimeException("Cannot find Android dependency: ${group}:${name}:${version}, tried: ${aarPath1}, ${aarPath2}, ${jarPath3}")
         }
-        String pomLocal = "${depDir}/${pomName}"
-        copyFile("${pomPath}/${name}-${version}.pom", pomLocal)
+        copyFile("${pomPath}/${name}-${version}.pom", pom)
         println "Resolved Android artifact ${group}:${name}:${version}"
-        return pomLocal
     }
 
     private static void copyFile(String src, String dst) {
