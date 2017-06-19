@@ -12,7 +12,6 @@ class DoopExtension {
     String projectVersion
     String subprojectName
     String buildType
-    String annotationsVersion
     File scavengeOutputDir
     String hprof
     Map<String, Object> options

@@ -75,18 +75,13 @@ class AndroidPlatform implements Platform {
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
             String buildType = checkAndGetBuildType(doop)
-            def annotationsVersion = doop.annotationsVersion
-            if (annotationsVersion == null)
-                throwRuntimeException("Please set doop.annotationsVersion to the version of the annotations package used (e.g. '24.1.1').")
 
             // Find locations of the Android SDK and the project build path.
             def androidSdkHome = findSDK(project)
-            // Add to classpath: android.jar/layoutlib.jar (core
-            // OS API), the annotations JAR, and the location of
-            // R*.class files.
+            // Add to classpath: android.jar/layoutlib.jar (core OS
+            // API) and the location of R*.class files.
             def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
                                "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
-                               "${androidSdkHome}/extras/android/m2repository/com/android/support/support-annotations/${annotationsVersion}/support-annotations-${annotationsVersion}.jar",
                                "${appBuildHome}/intermediates/classes/${buildType}"]
 
             Set<String> deps = new HashSet<>()
