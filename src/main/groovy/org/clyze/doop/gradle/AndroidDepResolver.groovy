@@ -59,10 +59,7 @@ class AndroidDepResolver {
 
         ret << classesJar
 
-        // throwRuntimeException("TODO: use ${pom}")
-        // TODO: resolveAndroid/ExtDep should also download the pom.xml (and assume that it is empty when not found, showing just a warning)
-        // ret << getPomDependencies(project, "path/of/pom.xml")
-        // TODO: read .pom file of dependency
+        // Read pom to resolve the dependencies of this dependency.
         if ((new File(pom)).exists()) {
             println "Reading ${pom}..."
             def xml = new XmlSlurper().parse(new File(pom))
