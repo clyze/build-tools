@@ -43,4 +43,8 @@ class JavaPlatform implements Platform {
         //TODO: Filter-out not required jars
         return buildScriptConf.collect().join(File.pathSeparator)
     }
+
+    String getProjectName(Project project) {
+	return project.name
+    }
 }

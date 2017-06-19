@@ -299,4 +299,17 @@ class AndroidPlatform implements Platform {
         throw new RuntimeException(errMsg)
     }
 
+    // Android projects may have project.name be the default name of
+    // the 'app' directory, so we use the group name too.
+    String getProjectName(Project project) {
+        String group = project.group
+        String name = project.name
+        boolean noGroup = (group == null) || (group.length() == 0)
+        boolean noName = (name == null) || (name.length() == 0)
+        if (noGroup) {
+            return noName? "unnamed_Android_app" : name
+        } else {
+            return noName? group : "${group}_${name}"
+        }
+    }
 }

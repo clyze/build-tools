@@ -61,7 +61,7 @@ class DoopPlugin implements Plugin<Project> {
 
     private void configureDefaults(Project project) {
         project.extensions.doop.orgName = project.group
-        project.extensions.doop.projectName = project.name
+        project.extensions.doop.projectName = platform.getProjectName(project)
         project.extensions.doop.projectVersion = project.version?.toString()
         project.extensions.doop.scavengeOutputDir = project.file("build/scavenge")
         project.extensions.doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive']
