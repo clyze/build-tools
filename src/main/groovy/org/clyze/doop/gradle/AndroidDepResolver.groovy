@@ -46,7 +46,7 @@ class AndroidDepResolver {
                 (new File(depDir)).mkdirs()
 
                 if (localAndroidDeps.contains(group)) {
-                    resolveAndroidDep(depDir, group, name, version, classesJar, pomLocal)
+                    resolveAndroidDep(depDir, group, name, version, classesJar, pom)
                 } else {
                     // TODO: pom.xml for external dependencies
                     resolveExtDep(depDir, group, name, version, classesJar)
