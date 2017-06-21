@@ -173,19 +173,22 @@ class AndroidPlatform implements Platform {
     // entry 'sdk.dir' in file 'local.properties' of the project.
     public static String findSDK(Project project) {
         def rootDir = project.rootDir
-        def localProperties = new File(rootDir, "local.properties")
+        def localProp = "local.properties"
+        def localProperties = new File(rootDir, localProp)
         if (localProperties.exists()) {
             Properties properties = new Properties()
             localProperties.withInputStream { instr ->
                 properties.load(instr)
             }
-            def sdkDir = properties.getProperty('sdk.dir')
+            def property = 'sdk.dir'
+            def sdkDir = properties.getProperty(property)
             // println("Android SDK = " + sdkDir)
             if (!(new File(sdkDir)).exists())
-                println("AndroidPlatform warning: Android SDK directory does not exist: " + sdkDir)
+                println("AndroidPlatform warning: Android SDK directory (${property} in ${localProp}) does not exist: " + sdkDir)
             return sdkDir
-        } else
-            throwRuntimeException("Please set a correct 'sdk.dir' location in file 'local.properties'.")
+        } else {
+            throw new RuntimeException("File ${localProperties.canonicalPath} does not exist.")
+        }
     }
 
     void createScavengeDependency(Project project, JavaCompile scavengeTask) {
