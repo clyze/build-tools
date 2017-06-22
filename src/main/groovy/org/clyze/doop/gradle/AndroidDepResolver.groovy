@@ -1,11 +1,8 @@
 package org.clyze.doop.gradle
 
-import org.gradle.api.Project
-import static org.clyze.doop.gradle.AndroidPlatform.*
-
 class AndroidDepResolver {
 
-    private Project project
+    private String cachedSDK = null
 
     // Some dependencies are ignored.
     static final List ignoredGroups = [
@@ -20,18 +17,14 @@ class AndroidDepResolver {
         "com.android.support.constraint"
     ]
 
-    public AndroidDepResolver(Project p) {
-        project = p
-    }
-
-    public Set<String> resolveDependency(String group, String name, String version) {
+    public static Set<String> resolveDependency(String appBuildHome, String group, String name, String version) {
         if (ignoredGroups.contains(group)) {
             println "Ignoring dependency group: ${group}"
             return null
         }
 
         Set<String> ret = [] as Set
-        String extDepsDir = getExtDepsDir()
+        String extDepsDir = getExtDepsDir(appBuildHome)
         String depDir = "${extDepsDir}/${group}/${name}/${version}"
         String classesJar = "${depDir}/classes.jar"
         String pom = "${depDir}/${name}-${version}.pom"
@@ -67,7 +60,7 @@ class AndroidDepResolver {
                 String scope = dep?.scope
                 if (scope == "compile") {
                     println "Recursively resolving dependency: ${dep.artifactId}"
-                    ret.addAll(resolveDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text()))
+                    ret.addAll(resolveDependency(appBuildHome, dep.groupId.text(), dep.artifactId.text(), dep.version.text()))
                 } else {
                     println "Ignoring ${scope} dependency: ${dep.artifactId}"
                 }
@@ -80,7 +73,7 @@ class AndroidDepResolver {
     }
     
     // Decompress AAR and find its classes.jar.
-    private void unpackClassesJarFromAAR(File localAAR, String classesJar) {
+    private static void unpackClassesJarFromAAR(File localAAR, String classesJar) {
         boolean classesJarFound = false
         def zipFile = new java.util.zip.ZipFile(localAAR)
         zipFile.entries().each {
@@ -103,7 +96,7 @@ class AndroidDepResolver {
     // dependency after this method finishes.
     private void resolveAndroidDep(String depDir, String group, String name,
                                    String version, String classesJar, String pom) {
-        String sdkHome = findSDK(project)
+        String sdkHome = getSDK()
         String groupPath = group.replaceAll('\\.', '/')
 
         // Possible locations of .aar/.jar archives in the local
@@ -149,8 +142,8 @@ class AndroidDepResolver {
     }
 
     // TODO: .pom handling.
-    private void resolveExtDep(String depDir, String group, String name,
-                               String version, String classesJar) {
+    private static void resolveExtDep(String depDir, String group, String name,
+                                      String version, String classesJar) {
 
         // Download AAR file.
         File localAAR = new File("${depDir}/${name}-${version}.aar")
@@ -166,14 +159,50 @@ class AndroidDepResolver {
         return "http://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.aar"
     }
 
-    private String getExtDepsDir() {
-        String subprojectName = getSubprojectName(project.extensions.doop)
-        String dirName = "${project.rootDir}/${subprojectName}/build/extdeps"
+    private static String getExtDepsDir(String appBuildHome) {
+        String dirName = "${appBuildHome}/extdeps"
         File extDepsDir = new File(dirName)
         if (!extDepsDir.exists()) {
             extDepsDir.mkdir()
         }
         return dirName
+    }
+
+    // Find the location of the Android SDK. Assumes it is property
+    // 'sdk.dir' in file 'local.properties' located in 'rootDir'.
+    public String findSDK(String rootDir) {
+        def localProp = "local.properties"
+        def localProperties = new File(rootDir, localProp)
+        if (localProperties.exists()) {
+            Properties properties = new Properties()
+            localProperties.withInputStream { instr ->
+                properties.load(instr)
+            }
+            def property = 'sdk.dir'
+            def sdkDir = properties.getProperty(property)
+            // println("Android SDK = " + sdkDir)
+            if (!(new File(sdkDir)).exists()) {
+                println("AndroidPlatform warning: Android SDK directory (${property} in ${localProp}) does not exist: " + sdkDir)
+            }
+            cachedSDK = sdkDir
+            return cachedSDK
+        } else {
+            throw new RuntimeException("File ${localProperties.canonicalPath} does not exist.")
+        }
+    }
+
+    private String getSDK() {
+        // If findSDK() has not been called successfully, fail.
+        return cachedSDK ?: throwRuntimeException("Internal error: SDK is null.")
+    }
+
+    // Throws a runtime exception with a message. The message is also
+    // shown in the standard output. This utility helps debugging as
+    // Gradle may report a different exception (e.g. the usual
+    // IllegalStateException "buildToolsVersion is not specified").
+    static void throwRuntimeException(String errMsg) {
+        println errMsg
+        throw new RuntimeException(errMsg)
     }
 
 }

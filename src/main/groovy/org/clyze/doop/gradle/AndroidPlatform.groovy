@@ -6,6 +6,8 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
+import static org.clyze.doop.gradle.AndroidDepResolver.*
+
 class AndroidPlatform implements Platform {
 
     static final String TASK_CODE_JAR = 'codeJar'
@@ -15,7 +17,7 @@ class AndroidPlatform implements Platform {
     private boolean runAgain
 
     public AndroidPlatform(Project project) {
-        resolver = new AndroidDepResolver(project)
+        resolver = new AndroidDepResolver()
         runAgain = false
     }
 
@@ -79,7 +81,7 @@ class AndroidPlatform implements Platform {
             String buildType = checkAndGetBuildType(doop)
 
             // Find locations of the Android SDK and the project build path.
-            def androidSdkHome = findSDK(project)
+            def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
             def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
@@ -96,7 +98,7 @@ class AndroidPlatform implements Platform {
 
                     String name = dep.name
                     String version = dep.version
-                    Set<String> depsJ = resolver.resolveDependency(group, name, version)
+                    Set<String> depsJ = resolver.resolveDependency(appBuildHome, group, name, version)
                     if (depsJ != null) {
                         deps.addAll(depsJ)
                     }
@@ -175,28 +177,6 @@ class AndroidPlatform implements Platform {
             }
         }
         return genSourceDirs
-    }
-
-    // Find the location of the Android SDK. Assumes it is given as
-    // entry 'sdk.dir' in file 'local.properties' of the project.
-    public static String findSDK(Project project) {
-        def rootDir = project.rootDir
-        def localProp = "local.properties"
-        def localProperties = new File(rootDir, localProp)
-        if (localProperties.exists()) {
-            Properties properties = new Properties()
-            localProperties.withInputStream { instr ->
-                properties.load(instr)
-            }
-            def property = 'sdk.dir'
-            def sdkDir = properties.getProperty(property)
-            // println("Android SDK = " + sdkDir)
-            if (!(new File(sdkDir)).exists())
-                println("AndroidPlatform warning: Android SDK directory (${property} in ${localProp}) does not exist: " + sdkDir)
-            return sdkDir
-        } else {
-            throw new RuntimeException("File ${localProperties.canonicalPath} does not exist.")
-        }
     }
 
     void createScavengeDependency(Project project, JavaCompile scavengeTask) {
@@ -299,15 +279,6 @@ class AndroidPlatform implements Platform {
 	    throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
 	else
 	    return doop.subprojectName
-    }
-
-    // Throws a runtime exception with a message. The message is also
-    // shown in the standard output. This utility helps debugging as
-    // Gradle may report a different exception (e.g. the usual
-    // IllegalStateException "buildToolsVersion is not specified").
-    static void throwRuntimeException(String errMsg) {
-        println errMsg
-        throw new RuntimeException(errMsg)
     }
 
     // Android projects may have project.name be the default name of
