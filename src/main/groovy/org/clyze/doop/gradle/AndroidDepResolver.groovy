@@ -1,5 +1,10 @@
 package org.clyze.doop.gradle
 
+// This class takes care of resolving dependencies on Android, using
+// the local Android SDK and maven.org. Before calling resolution, you
+// must call once findSDK(rootDir), to set the SDK path from property
+// 'sdk.dir' (read from file rootDir/local.properties).
+
 class AndroidDepResolver {
 
     private String cachedSDK = null
