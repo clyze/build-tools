@@ -6,7 +6,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
-import static org.clyze.doop.gradle.AndroidDepResolver.*
+import org.clyze.utils.AndroidDepResolver
 
 class AndroidPlatform implements Platform {
 
