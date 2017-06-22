@@ -47,4 +47,8 @@ class JavaPlatform implements Platform {
     String getProjectName(Project project) {
 	return project.name
     }
+
+    public boolean mustRunAgain() {
+        return false
+    }
 }

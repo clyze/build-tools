@@ -16,6 +16,11 @@ class AnalyzeTask extends DefaultTask {
     @TaskAction
     void analyze() {
 
+        if (DoopPlugin.platform.mustRunAgain()) {
+            println "ERROR: this looks like a first-time build, please run the 'analyze' task again."
+            return
+        }
+
         DoopExtension doop = project.extensions.doop
 
         doop.options.inputs = DoopPlugin.platform.inputFiles(project)

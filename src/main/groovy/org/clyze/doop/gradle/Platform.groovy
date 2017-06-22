@@ -23,4 +23,5 @@ interface Platform {
   List inputFiles(Project project)
   String getClasspath(Project project)
   String getProjectName(Project project)
+  boolean mustRunAgain()
 }

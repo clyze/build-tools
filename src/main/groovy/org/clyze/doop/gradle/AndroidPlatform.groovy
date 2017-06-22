@@ -12,9 +12,11 @@ class AndroidPlatform implements Platform {
     static final String TASK_ASSEMBLE = 'assemble'
 
     private AndroidDepResolver resolver
+    private boolean runAgain
 
     public AndroidPlatform(Project project) {
         resolver = new AndroidDepResolver(project)
+        runAgain = false
     }
 
     void copyCompilationSettings(Project project, Task task) {
@@ -146,10 +148,16 @@ class AndroidPlatform implements Platform {
 
     // Add auto-generated Java files (examples are the app's R.java,
     // other R.java files, and classes in android.support packages).
-    static List findGeneratedSourceDirs(String appBuildHome, String buildType) {
+    private List findGeneratedSourceDirs(String appBuildHome, String buildType) {
         def genSourceDirs = []
         def generatedSources = "${appBuildHome}/generated/source"
-        new File(generatedSources).eachFile (FileType.DIRECTORIES) { dir ->
+        File genDir = new File(generatedSources)
+        if (!genDir.exists()) {
+            println "Generated sources dir does not exist: ${generatedSources}"
+            runAgain = true
+            return []
+        }
+        genDir.eachFile (FileType.DIRECTORIES) { dir ->
             dir.eachFile (FileType.DIRECTORIES) { bPath ->
                 if (baseName(bPath) == buildType) {
                     // Add subdirectories containing .java files.
@@ -314,5 +322,9 @@ class AndroidPlatform implements Platform {
         } else {
             return noName? group : "${group}_${name}"
         }
+    }
+
+    public boolean mustRunAgain() {
+        return runAgain
     }
 }
