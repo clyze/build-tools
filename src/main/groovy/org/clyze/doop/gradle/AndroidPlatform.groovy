@@ -15,10 +15,12 @@ class AndroidPlatform implements Platform {
 
     private AndroidDepResolver resolver
     private boolean runAgain
+    private boolean isLibrary
 
     public AndroidPlatform(Project project) {
         resolver = new AndroidDepResolver()
         runAgain = false
+        isLibrary = project.plugins.hasPlugin('com.android.library')
     }
 
     void copyCompilationSettings(Project project, Task task) {
@@ -237,18 +239,28 @@ class AndroidPlatform implements Platform {
     String jarTaskName() { return TASK_CODE_JAR }
 
     List inputFiles(Project project) {
-        def packageTask
-        switch (checkAndGetBuildType(project.extensions.doop)) {
-        case 'debug':
-            packageTask = 'packageDebug'
-            break
-        case 'release':
-            packageTask = 'packageRelease'
-            break
+        String mode = checkAndGetBuildType(project.extensions.doop)
+        println "Finding input files for mode = ${mode}, isLibrary = ${isLibrary}"
+        def packageTask = null
+        if (isLibrary) {
+            if (mode.equals('debug')) {
+                packageTask = 'bundleDebug'
+            } else if (mode.equals('release')) {
+                packageTask = 'bundleRelease'
+            }
+        } else {
+            if (mode.equals('debug')) {
+                packageTask = 'packageDebug'
+            } else if (mode.equals('release')) {
+                packageTask = 'packageRelease'
+            }
         }
-        def apks = project.tasks.findByName(packageTask).outputs.files
-                          .findAll { extension(it.name) == 'apk' }
-        return apks.toList()
+        println "outputs = ${project.tasks.findByName(packageTask).outputs}"
+        println "outputs.files = ${project.tasks.findByName(packageTask).outputs.files}"
+        def ars = project.tasks.findByName(packageTask).outputs.files
+                                 .findAll { extension(it.name) == 'apk' ||
+                                            extension(it.name) == 'aar' }
+        return ars.toList()
     }
 
     String getClasspath(Project project) {
