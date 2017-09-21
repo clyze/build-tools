@@ -255,8 +255,6 @@ class AndroidPlatform implements Platform {
                 packageTask = 'packageRelease'
             }
         }
-        println "outputs = ${project.tasks.findByName(packageTask).outputs}"
-        println "outputs.files = ${project.tasks.findByName(packageTask).outputs.files}"
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
