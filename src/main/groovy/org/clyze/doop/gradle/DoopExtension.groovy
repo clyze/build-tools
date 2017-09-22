@@ -14,6 +14,7 @@ class DoopExtension {
     String buildType
     File scavengeOutputDir
     String hprof
+    List extraInputs
     Map<String, Object> options
 
     def options(Closure cl) {

@@ -107,6 +107,7 @@ class AndroidPlatform implements Platform {
                 }
             }
             androidJars.addAll(deps)
+            androidJars.addAll(getExtraInputs(project))
             // Check if all parts of the new classpath exist.
             androidJars.each {
                 if (!(new File(it)).exists())
@@ -258,7 +259,11 @@ class AndroidPlatform implements Platform {
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
-        return ars.toList()
+        return ars.toList() + getExtraInputs(project)
+    }
+
+    List getExtraInputs(Project project) {
+        return project.extensions.doop.extraInputs ?: []
     }
 
     String getClasspath(Project project) {

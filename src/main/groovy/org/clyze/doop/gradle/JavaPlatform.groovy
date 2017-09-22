@@ -38,6 +38,11 @@ class JavaPlatform implements Platform {
         return [jar] + project.configurations.runtime.files
     }
 
+    List getExtraInputs(Project project) {
+        if (project.extensions.doop.extraInputs)
+            throw new RuntimeException("Option 'extraInputs' is not implemented for plain Java yet.")
+    }
+
     String getClasspath(Project project) {
         def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
         //TODO: Filter-out not required jars
