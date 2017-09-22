@@ -95,8 +95,17 @@ class AndroidPlatform implements Platform {
                 // println "Configuration: ${conf.name}"
                 conf.allDependencies.each { dep ->
                     String group = dep.group
-                    if (group == null)
+                    if (group == null) {
                         return
+                    } else if (group.equals(project.group.toString())) {
+                        // We do not resolve dependencies whose group is
+                        // that of the current build. This means that
+                        // other subprojects in the same tree must be
+                        // separately built and their code provided using
+                        // 'extraInputs' in build.gradle's 'doop' section.
+                        println "Ignoring own dependency ${group}:${dep.name}"
+                        return
+                    }
 
                     String name = dep.name
                     String version = dep.version
