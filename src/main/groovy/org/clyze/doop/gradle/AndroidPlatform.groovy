@@ -259,7 +259,8 @@ class AndroidPlatform implements Platform {
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
-        return ars.toList() + getExtraInputs(project)
+        List extraInputFiles = getExtraInputs(project).collect { new File(it) }
+        return ars.toList() + extraInputFiles
     }
 
     List getExtraInputs(Project project) {
