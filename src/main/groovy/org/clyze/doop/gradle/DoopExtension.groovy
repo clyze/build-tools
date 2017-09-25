@@ -20,4 +20,11 @@ class DoopExtension {
     def options(Closure cl) {
         ConfigureUtil.configure(cl, options)
     }
+
+    // Check used to detect 'doop' sections in Gradle scripts.
+    public boolean definesProperties() {
+        // We don't check for 'options', as that is never empty (but
+        // initialized to defaults).
+        return (host != null) && (port != 0) && (username != null) && (password != null) && (subprojectName != null) && (buildType != null)
+    }
 }

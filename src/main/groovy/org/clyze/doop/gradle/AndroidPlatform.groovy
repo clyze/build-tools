@@ -36,8 +36,13 @@ class AndroidPlatform implements Platform {
         for (def set1 : project.android.sourceSets) {
             if (set1.name == "main") {
                 def srcFiles = set1.java.sourceFiles
-                if (srcFiles.size() == 0) {
-                    throwRuntimeException("No Java source files found")
+                // Check if no Java sources were found. This may be a
+                // user error (not specifying a 'subprojectName' in
+                // build.gradle but it can also naturally occur during
+                // the configuration of the top-level project that is
+                // just a container of sub-projects.
+                if ((srcFiles.size() == 0) && (isDefinedSubProject(project))) {
+                    throwRuntimeException("No Java source files found for subproject " + subprojectName)
                 } else {
                     task.source = srcFiles
                 }
@@ -46,6 +51,14 @@ class AndroidPlatform implements Platform {
         if (task.source == null) {
             throwRuntimeException("Could not find sourceSet")
         }
+    }
+
+    // Checks if the current project is a Gradle sub-project (with a
+    // non-"." value for doop.subprojectName in its build.gradle).
+    private static boolean isDefinedSubProject(Project project) {
+        DoopExtension doop = project.extensions.doop
+        return ((doop.subprojectName != null) &&
+                (!getSubprojectName(doop).equals(".")))
     }
 
     // Reads properties from local.properties and build.gradle and
@@ -81,6 +94,11 @@ class AndroidPlatform implements Platform {
                 throwRuntimeException("No android.compileSdkVersion found in build.gradle.")
 
             DoopExtension doop = project.extensions.doop
+            if (!doop.definesProperties()) {
+                println "No 'doop' section found in build.gradle, skipping configuration."
+                return
+            }
+
             def subprojectName = getSubprojectName(doop)
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
@@ -219,7 +237,7 @@ class AndroidPlatform implements Platform {
         } else if ((new File("${appPath}/${srcSimple}")).exists()) {
             println "Using sources: ${srcSimple}"
             sourcesJarTask.from srcSimple
-        } else {
+        } else if (isDefinedSubProject(project)) {
             throwRuntimeException("Could not find source directory")
         }
         String srcTestMaven = "src/test/java"
