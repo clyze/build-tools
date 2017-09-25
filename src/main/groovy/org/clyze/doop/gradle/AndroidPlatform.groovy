@@ -9,6 +9,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.clyze.utils.AndroidDepResolver
 import static org.clyze.utils.AndroidDepResolver.throwRuntimeException
 
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classloader.ClasspathUtil
+
 class AndroidPlatform implements Platform {
 
     static final String TASK_CODE_JAR = 'codeJar'
@@ -282,11 +285,19 @@ class AndroidPlatform implements Platform {
         // a real task in the Android Gradle plugin and we have to use
         // a lower-level way to read the classpath.
         def cLoader = project.buildscript.getClassLoader()
+        def cpList = null
         if (cLoader instanceof URLClassLoader) {
             URLClassLoader cl = (URLClassLoader)cLoader
-            return cl.getURLs().collect().join(File.pathSeparator).replaceAll('file://', '')
+            cpList = cl.getURLs()
         } else {
-            throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin')
+            ClassPath cp = ClasspathUtil.getClasspath(cLoader);
+            cpList = cp.getAsURIs()
+        }
+
+        if (cpList != null) {
+            return cpList.collect().join(File.pathSeparator).replaceAll('file://', '')
+        } else {
+            throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin, cLoader is ' + cLoader)
         }
     }
 
