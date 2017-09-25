@@ -278,26 +278,26 @@ class AndroidPlatform implements Platform {
     }
 
     String getClasspath(Project project) {
-	// Unfortunately, ScriptHandler.CLASSPATH_CONFIGURATION is not
-	// a real task in the Android Gradle plugin and we have to use
-	// a lower-level way to read the classpath.
-	def cLoader = project.buildscript.getClassLoader()
-	if (cLoader instanceof URLClassLoader) {
-	    URLClassLoader cl = (URLClassLoader)cLoader
-	    return cl.getURLs().collect().join(File.pathSeparator).replaceAll('file://', '')
-	} else {
-	    throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin')
-	}
+        // Unfortunately, ScriptHandler.CLASSPATH_CONFIGURATION is not
+        // a real task in the Android Gradle plugin and we have to use
+        // a lower-level way to read the classpath.
+        def cLoader = project.buildscript.getClassLoader()
+        if (cLoader instanceof URLClassLoader) {
+            URLClassLoader cl = (URLClassLoader)cLoader
+            return cl.getURLs().collect().join(File.pathSeparator).replaceAll('file://', '')
+        } else {
+            throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin')
+        }
     }
 
     String checkAndGetBuildType(DoopExtension doop) {
-	def buildType = doop.buildType
-	if (buildType == null) {
-	    throwRuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
-	} else if ((buildType != 'debug') && (buildType != 'release')) {
-	    throwRuntimeException("Property doop.buildType must be 'debug' or 'release'.")
-	}
-	return buildType
+        def buildType = doop.buildType
+        if (buildType == null) {
+            throwRuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+        } else if ((buildType != 'debug') && (buildType != 'release')) {
+            throwRuntimeException("Property doop.buildType must be 'debug' or 'release'.")
+        }
+        return buildType
     }
 
     public static String getSubprojectName(DoopExtension doop) {
