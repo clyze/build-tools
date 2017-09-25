@@ -7,6 +7,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
 import org.clyze.utils.AndroidDepResolver
+import static org.clyze.utils.AndroidDepResolver.throwRuntimeException
 
 class AndroidPlatform implements Platform {
 
