@@ -23,7 +23,7 @@ class AnalyzeTask extends DefaultTask {
             return
         }
 
-        doop.options.inputs = p.inputFiles(project)
+        doop.options.inputs = p.inputFiles(project) + p.getDependencies()
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]

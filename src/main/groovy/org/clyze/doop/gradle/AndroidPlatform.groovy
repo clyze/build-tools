@@ -20,11 +20,13 @@ class AndroidPlatform implements Platform {
     private AndroidDepResolver resolver
     private boolean runAgain
     private boolean isLibrary
+    private Set<File> cachedDeps
 
     public AndroidPlatform(Project project) {
+        cachedDeps = new HashSet<>()
+        isLibrary = project.plugins.hasPlugin('com.android.library')
         resolver = new AndroidDepResolver()
         runAgain = false
-        isLibrary = project.plugins.hasPlugin('com.android.library')
     }
 
     void copyCompilationSettings(Project project, Task task) {
@@ -51,6 +53,15 @@ class AndroidPlatform implements Platform {
         if (task.source == null) {
             throwRuntimeException("Could not find sourceSet")
         }
+    }
+
+    public Set<File> getDependencies() {
+        for (File f : cachedDeps) {
+            if (!f.exists()) {
+                throwRuntimeException("Dependency ${f} does not exist!")
+            }
+        }
+        return cachedDeps
     }
 
     // Checks if the current project is a Gradle sub-project (with a
@@ -108,9 +119,9 @@ class AndroidPlatform implements Platform {
             def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
-            def androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
-                               "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
-                               "${appBuildHome}/intermediates/classes/${buildType}"]
+            Set<String> androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
+                                       "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
+                                       "${appBuildHome}/intermediates/classes/${buildType}"]
 
             Set<String> deps = new HashSet<>()
             project.configurations.each { conf ->
@@ -147,6 +158,8 @@ class AndroidPlatform implements Platform {
             scavengeTask.options.compilerArgs << "-cp"
             scavengeTask.options.compilerArgs << androidJars.join(File.pathSeparator)
             // println(scavengeTask.options.compilerArgs)
+
+            cachedDeps.addAll(deps.collect { new File(it) })
 
             // Update location of class files for JAR task.
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)

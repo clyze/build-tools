@@ -43,6 +43,11 @@ class JavaPlatform implements Platform {
             throw new RuntimeException("Option 'extraInputs' is not implemented for plain Java yet.")
     }
 
+    public Set<File> getDependencies() {
+        println "Warning: dependency posting not yet implemented for plain Java."
+        return new HashSet()
+    }
+
     String getClasspath(Project project) {
         def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
         //TODO: Filter-out not required jars
