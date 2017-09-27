@@ -38,7 +38,7 @@ class JavaPlatform implements Platform {
         return [jar] + project.configurations.runtime.files
     }
 
-    List getExtraInputs(Project project) {
+    List<File> getExtraInputs(Project project) {
         if (project.extensions.doop.extraInputs)
             throw new RuntimeException("Option 'extraInputs' is not implemented for plain Java yet.")
     }

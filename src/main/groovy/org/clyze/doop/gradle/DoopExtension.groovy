@@ -17,6 +17,8 @@ class DoopExtension {
     List extraInputs
     Map<String, Object> options
 
+    Platform platform
+
     def options(Closure cl) {
         ConfigureUtil.configure(cl, options)
     }

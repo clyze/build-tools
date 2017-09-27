@@ -138,7 +138,7 @@ class AndroidPlatform implements Platform {
                 }
             }
             androidJars.addAll(deps)
-            androidJars.addAll(getExtraInputs(project))
+            androidJars.addAll(getExtraInputs(project).collect { it.getAbsolutePath() })
             // Check if all parts of the new classpath exist.
             androidJars.each {
                 if (!(new File(it)).exists())
@@ -290,12 +290,21 @@ class AndroidPlatform implements Platform {
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
-        List extraInputFiles = getExtraInputs(project).collect { new File(it) }
+        List<File> extraInputFiles = getExtraInputs(project)
         return ars.toList() + extraInputFiles
     }
 
-    List getExtraInputs(Project project) {
-        return project.extensions.doop.extraInputs ?: []
+    List<File> getExtraInputs(Project project) {
+        List<String> extraInputs = project.extensions.doop.extraInputs ?: []
+        List<File> foundInputs = []
+        for (String fName : extraInputs) {
+            File f = new File("${project.rootDir}/${fName}")
+            if (!f.exists()) {
+                throwRuntimeException("Could not find extra input ${f.getAbsolutePath()}")
+            }
+            foundInputs << f
+        }
+        return foundInputs
     }
 
     String getClasspath(Project project) {

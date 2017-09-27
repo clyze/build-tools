@@ -16,14 +16,14 @@ class AnalyzeTask extends DefaultTask {
     @TaskAction
     void analyze() {
 
-        if (DoopPlugin.platform.mustRunAgain()) {
+        DoopExtension doop = project.extensions.doop
+        Platform p = doop.platform
+        if (p.mustRunAgain()) {
             println "ERROR: this looks like a first-time build, please run the 'analyze' task again."
             return
         }
 
-        DoopExtension doop = project.extensions.doop
-
-        doop.options.inputs = DoopPlugin.platform.inputFiles(project)
+        doop.options.inputs = p.inputFiles(project)
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]

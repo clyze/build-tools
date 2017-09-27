@@ -19,29 +19,29 @@ class DoopPlugin implements Plugin<Project> {
     static final String TASK_SOURCES_JAR = 'sourcesJar'
     static final String TASK_ANALYZE = 'analyze'
 
-    static Platform platform
-    
     @Override
     void apply(Project project) {
-
-        //verify that the appropriate plugins have been applied
-        if (project.plugins.hasPlugin('java')) {
-            platform = new JavaPlatform()
-        }
-        else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
-            platform = new AndroidPlatform(project)
-        }
-        else {
-            throw new RuntimeException('One of these plugins should be applied before Doop: java, android, com.android.application, com.android.library')
-        }
 
         //require java 1.8 or higher
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new RuntimeException("The Doop plugin requires Java 1.8 or higher")
         }
 
+        Platform platform0
+        //verify that the appropriate plugins have been applied
+        if (project.plugins.hasPlugin('java')) {
+            println "Project platform: Java"
+            platform0 = new JavaPlatform()
+        } else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
+            println "Project platform: Android"
+            platform0 = new AndroidPlatform(project)
+        } else {
+            throw new RuntimeException('One of these plugins should be applied before Doop: java, android, com.android.application, com.android.library')
+        }
+
         //create the doop extension
         project.extensions.create('doop', DoopExtension)
+        project.extensions.doop.platform = platform0
 
         //set the default values
         configureDefaults(project)
@@ -50,7 +50,7 @@ class DoopPlugin implements Plugin<Project> {
         configureScavengeTask(project)
         configureJCPluginZipTask(project)
         configureSourceJarTask(project)
-        platform.configureCodeJarTask(project)
+        platform(project).configureCodeJarTask(project)
         configureAnalyzeTask(project)
 
         //update the project's artifacts
@@ -59,12 +59,17 @@ class DoopPlugin implements Plugin<Project> {
         }
     }
 
+    Platform platform(Project project) {
+        return project.extensions.doop.platform
+    }
+
     private void configureDefaults(Project project) {
-        project.extensions.doop.orgName = project.group
-        project.extensions.doop.projectName = platform.getProjectName(project)
-        project.extensions.doop.projectVersion = project.version?.toString()
-        project.extensions.doop.scavengeOutputDir = project.file("build/scavenge")
-        project.extensions.doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive-plusplus']
+        DoopExtension doop = project.extensions.doop
+        doop.orgName = project.group
+        doop.projectName = platform(project).getProjectName(project)
+        doop.projectVersion = project.version?.toString()
+        doop.scavengeOutputDir = project.file("build/scavenge")
+        doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive-plusplus']
     }
 
     private void configureScavengeTask(Project project) {
@@ -73,16 +78,16 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
 
         // Copy the project's Java compilation settings.
-        platform.copyCompilationSettings(project, task)
+        platform(project).copyCompilationSettings(project, task)
 
         // Our custom settings.
         File dest = project.extensions.doop.scavengeOutputDir
-        String processorPath = platform.getClasspath(project)
+        String processorPath = platform(project).getClasspath(project)
         task.destinationDir = new File(dest as File, "classes")
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs = ['-processorpath', processorPath, '-Xplugin:TypeInfoPlugin ' + jsonOutput]
-        platform.createScavengeDependency(project, task)
-        platform.markMetadataToFix(project, task)
+        platform(project).createScavengeDependency(project, task)
+        platform(project).markMetadataToFix(project, task)
 
         task.doFirst {
             jsonOutput.mkdirs()
@@ -107,10 +112,10 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
 
-        platform.createSourcesJarDependency(project, task)
+        platform(project).createSourcesJarDependency(project, task)
         task.classifier = 'sources'
 
-        platform.gatherSources(project, task)
+        platform(project).gatherSources(project, task)
     }
 
     private void configureAnalyzeTask(Project project) {
@@ -118,7 +123,7 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
 
-        task.dependsOn project.getTasks().findByName(platform.jarTaskName()),
+        task.dependsOn project.getTasks().findByName(platform(project).jarTaskName()),
                        project.getTasks().findByName(TASK_SOURCES_JAR),
                        project.getTasks().findByName(TASK_JCPLUGIN_ZIP)
     }
