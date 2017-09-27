@@ -300,7 +300,7 @@ class AndroidPlatform implements Platform {
         for (String fName : extraInputs) {
             File f = new File("${project.rootDir}/${fName}")
             if (!f.exists()) {
-                throwRuntimeException("Could not find extra input ${f.getAbsolutePath()}")
+                println "Could not find extra input ${f.getAbsolutePath()}"
             }
             foundInputs << f
         }
