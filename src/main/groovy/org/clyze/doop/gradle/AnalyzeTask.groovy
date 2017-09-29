@@ -28,9 +28,39 @@ class AnalyzeTask extends DefaultTask {
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
         File hprof = null
-        if (doop.hprof != null)
+        if (doop.hprof != null) {
             hprof = new File(doop.hprof)
+        }
 
+        // Optionally save the data to be posted to the server, so
+        // that they can be reused in the future (see main() below).
+        if (doop.cachePost) {
+            String tmpDir = java.nio.file.Files.createTempDirectory("").toString()
+            println "Caching output to ${tmpDir}"
+
+            def copyToTmp = { File f ->
+                File newFile = new File("${tmpDir}/${f.name}")
+                newFile << f.bytes
+                newFile
+            }
+
+            // Replace all files with their copies.
+            doop.options.inputs = doop.options.inputs.collect { copyToTmp(it) }
+            if (sources          != null) { sources          = copyToTmp(sources)          }
+            if (jcPluginMetadata != null) { jcPluginMetadata = copyToTmp(jcPluginMetadata) }
+            if (hprof            != null) { hprof            = copyToTmp(sources)          }
+
+            // Save remaining information.
+            String tmpFileName = "${tmpDir}/analysis.json"
+            println "Writing ${tmpFileName}..."
+            new File(tmpFileName) << doop.toCacheJson(sources, jcPluginMetadata, hprof)
+            println "Analysis submission data saved in ${tmpDir}"
+        }
+
+        connectPostAndStartAnalysis(doop, sources, jcPluginMetadata, hprof)
+    }
+
+    public static void connectPostAndStartAnalysis(DoopExtension doop, File sources, File jcPluginMetadata, File hprof) {
         println "Connecting to server at ${doop.host}:${doop.port}"
         String token = createLoginCommand(doop).execute(doop.host, doop.port)
 
@@ -145,5 +175,24 @@ class AnalyzeTask extends DefaultTask {
                     """.stripIndent()
         }
         Desktop.getDesktop().browse(html.toURI())
+    }
+
+    // Entry point to call when replaying a previously posted
+    // analysis. Example:
+    //   ./gradlew runMain -Pargs="/tmp/1486846789163549904"
+    public static void main(String[] args) {
+        if (args.size() != 1) {
+            println "Usage: AnalyzeTask path-of-analysis-directory"
+            System.exit(0)
+        }
+
+        String path = args[0]
+        println "Reading state from ${path}..."
+        def deserialized = DoopExtension.fromCacheJson(path)
+        File sources = deserialized["sources"]
+        File hprof = deserialized["hprof"]
+        File jcPluginMetadata = deserialized["jcPluginMetadata"]
+        DoopExtension doop = deserialized["doop"]
+        connectPostAndStartAnalysis(doop, sources, jcPluginMetadata, hprof)
     }
 }
