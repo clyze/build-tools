@@ -34,7 +34,7 @@ class DoopPlugin implements Plugin<Project> {
             platform0 = new JavaPlatform()
         } else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
             println "Project platform: Android"
-            platform0 = new AndroidPlatform(project)
+            platform0 = new AndroidPlatform(project.plugins.hasPlugin('com.android.library'))
         } else {
             throw new RuntimeException('One of these plugins should be applied before Doop: java, android, com.android.application, com.android.library')
         }

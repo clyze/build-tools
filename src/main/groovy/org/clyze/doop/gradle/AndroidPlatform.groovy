@@ -22,9 +22,9 @@ class AndroidPlatform implements Platform {
     private boolean isLibrary
     private Set<File> cachedDeps
 
-    public AndroidPlatform(Project project) {
+    public AndroidPlatform(boolean lib) {
         cachedDeps = new HashSet<>()
-        isLibrary = project.plugins.hasPlugin('com.android.library')
+        isLibrary = lib
         resolver = new AndroidDepResolver()
         runAgain = false
     }
