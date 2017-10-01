@@ -84,7 +84,7 @@ release {
 
 afterReleaseBuild.dependsOn publish
 
-task runMain(type: JavaExec, dependsOn: 'classes') {
+task replayPost(type: JavaExec, dependsOn: 'classes') {
     main = 'org.clyze.doop.gradle.AnalyzeTask'
     classpath = sourceSets.main.runtimeClasspath
     if(project.hasProperty("args")) {

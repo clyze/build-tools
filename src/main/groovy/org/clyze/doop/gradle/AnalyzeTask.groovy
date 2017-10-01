@@ -179,10 +179,11 @@ class AnalyzeTask extends DefaultTask {
 
     // Entry point to call when replaying a previously posted
     // analysis. Example:
-    //   ./gradlew runMain -Pargs="/tmp/1486846789163549904"
+    //   ./gradlew replayPost -Pargs="/tmp/1486846789163549904"
     public static void main(String[] args) {
-        if (args.size() != 1) {
-            println "Usage: AnalyzeTask path-of-analysis-directory"
+        if (args.size() == 0) {
+            println "Usage: AnalyzeTask path-of-state-directory"
+            println "Replay posting of an analysis to the server."
             System.exit(0)
         }
 
