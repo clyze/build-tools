@@ -194,6 +194,32 @@ class AnalyzeTask extends DefaultTask {
         File hprof = deserialized["hprof"]
         File jcPluginMetadata = deserialized["jcPluginMetadata"]
         DoopExtension doop = deserialized["doop"]
+
+        // Optionally read properties from ~/.gradle/gradle.properties.
+        String homeDir = System.getProperty("user.home")
+        if (homeDir != null) {
+            String propertiesFileName = "${homeDir}/.gradle/gradle.properties"
+            println propertiesFileName
+            File propertiesFile = new File(propertiesFileName)
+            if (propertiesFile.exists()) {
+                println "Reading connection information from ${propertiesFile.getCanonicalPath()}"
+                Properties properties = new Properties()
+                propertiesFile.withInputStream {
+                    properties.load(it)
+                }
+                def readProperty = { String name ->
+                    String readVal = properties.getProperty(name)
+                    if (readVal != null) {
+                        println "Found ${name} = ${readVal}"
+                    }
+                    readVal
+                }
+                doop.username = readProperty("clue_user")             ?: doop.username
+                doop.password = readProperty("clue_password")         ?: doop.password
+                doop.host     = readProperty("clue_host")             ?: doop.host
+                doop.port     = readProperty("clue_port").toInteger() ?: doop.port
+            }
+        }
         connectPostAndStartAnalysis(doop, sources, jcPluginMetadata, hprof)
     }
 }
