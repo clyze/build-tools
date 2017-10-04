@@ -11,6 +11,8 @@ class DoopExtension {
     String orgName
     String projectName
     String projectVersion
+    String rating
+    String ratingCount
     String subprojectName
     String buildType
     File scavengeOutputDir
@@ -34,7 +36,7 @@ class DoopExtension {
 
     public PostState newPostState(File sources, File jcPluginMetadata, File hprof) {
         return new PostState(host, port, username, password, orgName,
-                             projectName, projectVersion, options, sources,
-                             jcPluginMetadata, hprof)
+                             projectName, projectVersion, rating, ratingCount,
+                             options, sources, jcPluginMetadata, hprof)
     }
 }
