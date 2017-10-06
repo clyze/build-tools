@@ -21,10 +21,8 @@ class AnalyzeTask extends DefaultTask {
 
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
-        File hprof = null
-        if (doop.hprof != null) {
-            hprof = new File(doop.hprof)
-        }
+        // The HPROF input is optional.
+        File hprof = doop.hprof != null ? new File(doop.hprof) : null
 
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
         Helper.postAndStartAnalysis(ps, doop.cachePost)
