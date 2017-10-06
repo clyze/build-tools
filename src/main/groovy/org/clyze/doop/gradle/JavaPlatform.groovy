@@ -39,11 +39,6 @@ class JavaPlatform implements Platform {
         return [jar] + project.configurations.runtime.files + extraInputFiles
     }
 
-    public Set<File> getDependencies() {
-        println "Warning: dependency posting not yet implemented for plain Java."
-        return new HashSet()
-    }
-
     String getClasspath(Project project) {
         def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
         //TODO: Filter-out not required jars

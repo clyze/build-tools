@@ -24,7 +24,7 @@ class AnalyzeTask extends DefaultTask {
         File hprof = doop.hprof != null ? new File(doop.hprof) : null
 
         // Rewrite 'inputs' field to generate the post state.
-        doop.options.inputs = p.inputFiles(project) + p.getDependencies()
+        doop.options.inputs = p.inputFiles(project)
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
         Helper.postAndStartAnalysis(ps, doop.cachePost)
     }

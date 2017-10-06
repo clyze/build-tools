@@ -55,15 +55,6 @@ class AndroidPlatform implements Platform {
         }
     }
 
-    public Set<File> getDependencies() {
-        for (File f : cachedDeps) {
-            if (!f.exists()) {
-                throwRuntimeException("Dependency ${f} does not exist!")
-            }
-        }
-        return cachedDeps
-    }
-
     // Checks if the current project is a Gradle sub-project (with a
     // non-"." value for doop.subprojectName in its build.gradle).
     private static boolean isDefinedSubProject(Project project) {
@@ -305,7 +296,16 @@ class AndroidPlatform implements Platform {
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
         List<File> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
-        return ars.toList() + extraInputFiles
+        return ars.toList() + getDependencies() + extraInputFiles
+    }
+
+    private Set<File> getDependencies() {
+        for (File f : cachedDeps) {
+            if (!f.exists()) {
+                throwRuntimeException("Dependency ${f} does not exist!")
+            }
+        }
+        return cachedDeps
     }
 
     String getClasspath(Project project) {
