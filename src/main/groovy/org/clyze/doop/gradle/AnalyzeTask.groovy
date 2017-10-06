@@ -17,16 +17,18 @@ class AnalyzeTask extends DefaultTask {
             return
         }
 
-        doop.options.inputs = p.inputFiles(project) + p.getDependencies()
-
+        // We expect sources/jcPluginMetadata to always exist.
         File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
         // The HPROF input is optional.
         File hprof = doop.hprof != null ? new File(doop.hprof) : null
 
+        // Rewrite 'inputs' field to generate the post state.
+        doop.options.inputs = p.inputFiles(project) + p.getDependencies()
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
         Helper.postAndStartAnalysis(ps, doop.cachePost)
     }
+
 
     // Entry point to call when replaying a previously posted
     // analysis. Example:
