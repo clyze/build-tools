@@ -17,7 +17,10 @@ class DoopExtension {
     String buildType
     File scavengeOutputDir
     String hprof
-    List extraInputs
+    // Extra inputs, as a list of paths relative to the project root
+    // directory. Can be used to add dependency JARs whose resolutions
+    // has failed or extra code.
+    List<String> extraInputs
     Map<String, Object> options
     boolean cachePost = false
 
