@@ -24,6 +24,5 @@ interface Platform {
   String getClasspath(Project project)
   String getProjectName(Project project)
   boolean mustRunAgain()
-  List<File> getExtraInputs(Project project)
   Set<File> getDependencies()
 }

@@ -35,12 +35,8 @@ class JavaPlatform implements Platform {
 
     List inputFiles(Project project) {
         def jar = project.file(project.tasks.findByName(jarTaskName()).archivePath)
-        return [jar] + project.configurations.runtime.files
-    }
-
-    List<File> getExtraInputs(Project project) {
-        if (project.extensions.doop.extraInputs)
-            throw new RuntimeException("Option 'extraInputs' is not implemented for plain Java yet.")
+        List<File> extraInputFiles = project.extensions.doop.getExtraInputFiles(project.rootDir)
+        return [jar] + project.configurations.runtime.files + extraInputFiles
     }
 
     public Set<File> getDependencies() {

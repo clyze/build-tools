@@ -149,7 +149,7 @@ class AndroidPlatform implements Platform {
                 }
             }
             androidJars.addAll(deps)
-            androidJars.addAll(getExtraInputs(project).collect { it.getAbsolutePath() })
+            androidJars.addAll(doop.getExtraInputFiles(project.rootDir).collect { it.getAbsolutePath() })
             // Check if all parts of the new classpath exist.
             androidJars.each {
                 if (!(new File(it)).exists())
@@ -284,7 +284,8 @@ class AndroidPlatform implements Platform {
     String jarTaskName() { return TASK_CODE_JAR }
 
     List inputFiles(Project project) {
-        String mode = checkAndGetBuildType(project.extensions.doop)
+        DoopExtension doop = project.extensions.doop
+        String mode = checkAndGetBuildType(doop)
         println "Finding input files for mode = ${mode}, isLibrary = ${isLibrary}"
         def packageTask = null
         if (isLibrary) {
@@ -303,21 +304,8 @@ class AndroidPlatform implements Platform {
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
-        List<File> extraInputFiles = getExtraInputs(project)
+        List<File> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return ars.toList() + extraInputFiles
-    }
-
-    List<File> getExtraInputs(Project project) {
-        List<String> extraInputs = project.extensions.doop.extraInputs ?: []
-        List<File> foundInputs = []
-        for (String fName : extraInputs) {
-            File f = new File("${project.rootDir}/${fName}")
-            if (!f.exists()) {
-                println "Could not find extra input ${f.getAbsolutePath()}"
-            }
-            foundInputs << f
-        }
-        return foundInputs
     }
 
     String getClasspath(Project project) {
