@@ -28,7 +28,7 @@ class JavaPlatform implements Platform {
 
             String convPath = doop.convertUTF8Dir
             if (convPath != null) {
-                println "Converting UTF-8 in ${convPath}..."
+                println "Converting to UTF-8 in ${convPath}..."
                 SourceProcessor sp = new SourceProcessor()
                 sp.process(new File(convPath), true)
             }
