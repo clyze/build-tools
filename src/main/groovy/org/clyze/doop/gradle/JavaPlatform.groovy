@@ -15,16 +15,29 @@ class JavaPlatform implements Platform {
         task.source = projectDefaultTask.source
     }
 
-    // No metadata is read.
+    /** Things to do last are:
+     *
+     * - Optional UTF-8 conversion ('convertUTF8Dir' Doop parameter).
+     *
+     * - Feed extra inputs to the scavenge task ('extraInputs' Doop
+     *   parameter).
+     */
     void markMetadataToFix(Project project, JavaCompile scavengeTask) {
         project.afterEvaluate {
-            String convPath = project.extensions.doop.convertUTF8Dir
+            DoopExtension doop = project.extensions.doop
+
+            String convPath = doop.convertUTF8Dir
             if (convPath != null) {
                 println "Converting UTF-8 in ${convPath}..."
                 SourceProcessor sp = new SourceProcessor()
                 sp.process(new File(convPath), true)
-            } else {
-                println "convPath = null..."
+            }
+
+            List<File> extras = doop.getExtraInputFiles(project.rootDir)
+            if (extras != null && extras.size() > 0) {
+                String extraCp = extras.collect { it.getAbsolutePath() }.join(File.pathSeparator)
+                scavengeTask.options.compilerArgs << "-cp"
+                scavengeTask.options.compilerArgs << extraCp
             }
         }
     }
