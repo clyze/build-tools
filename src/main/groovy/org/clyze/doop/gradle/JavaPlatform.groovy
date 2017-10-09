@@ -18,14 +18,11 @@ class JavaPlatform implements Platform {
     // No metadata is read.
     void markMetadataToFix(Project project, JavaCompile scavengeTask) {
         project.afterEvaluate {
-            // DoopExtension doop = project.extensions.doop
             String convPath = project.extensions.doop.convertUTF8Dir
-            // String x = doop.buildType
-            // println x
             if (convPath != null) {
                 println "Converting UTF-8 in ${convPath}..."
                 SourceProcessor sp = new SourceProcessor()
-                Map<String, Object> sourceInfo = sp.process(new File(convPath), true)
+                sp.process(new File(convPath), true)
             } else {
                 println "convPath = null..."
             }
