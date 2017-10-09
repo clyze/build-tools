@@ -87,7 +87,7 @@ class DoopPlugin implements Plugin<Project> {
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs = ['-processorpath', processorPath, '-Xplugin:TypeInfoPlugin ' + jsonOutput]
         platform(project).createScavengeDependency(project, task)
-        platform(project).markMetadataToFix(project, task)
+        platform(project).markMetadataToFix(project)
 
         task.doFirst {
             jsonOutput.mkdirs()
@@ -111,8 +111,6 @@ class DoopPlugin implements Plugin<Project> {
         Jar task = project.tasks.create(TASK_SOURCES_JAR, Jar)
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
-
-        platform(project).createSourcesJarDependency(project, task)
         task.classifier = 'sources'
 
         platform(project).gatherSources(project, task)

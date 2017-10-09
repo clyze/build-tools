@@ -15,6 +15,7 @@ class DoopExtension {
     String ratingCount
     String subprojectName
     String buildType
+    String useSourcesJar
     File scavengeOutputDir
     String hprof
     // Extra inputs, as a list of paths relative to the project root

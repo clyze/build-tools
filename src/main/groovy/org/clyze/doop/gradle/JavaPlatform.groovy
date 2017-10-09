@@ -6,6 +6,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.clyze.client.SourceProcessor
+import static org.clyze.doop.gradle.DoopPlugin.*
 
 class JavaPlatform implements Platform {
 
@@ -21,8 +22,11 @@ class JavaPlatform implements Platform {
      *
      * - Feed extra inputs to the scavenge task ('extraInputs' Doop
      *   parameter).
+     *
+     * - Set up 'sourcesJar' task according to 'useSourcesJar' parameter.
+     *
      */
-    void markMetadataToFix(Project project, JavaCompile scavengeTask) {
+    void markMetadataToFix(Project project) {
         project.afterEvaluate {
             DoopExtension doop = project.extensions.doop
 
@@ -36,17 +40,22 @@ class JavaPlatform implements Platform {
             List<File> extras = doop.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
                 String extraCp = extras.collect { it.getAbsolutePath() }.join(File.pathSeparator)
+                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
+            }
+
+            String sourcesJar = doop.useSourcesJar
+            if (sourcesJar != null) {
+                println "No setup for '${TASK_SOURCES_JAR}' task, using: ${sourcesJar}"
+            } else {
+                Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
+                sourcesJarTask.dependsOn project.tasks.findByName('build')
             }
         }
     }
 
     void createScavengeDependency(Project project, JavaCompile scavengeTask) {}
-
-    void createSourcesJarDependency(Project project, Jar sourcesJarTask) {
-        sourcesJarTask.dependsOn project.tasks.findByName('classes')
-    }
 
     void gatherSources(Project project, Jar sourcesJarTask) {
         sourcesJarTask.from project.sourceSets.main.allSource

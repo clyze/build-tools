@@ -14,9 +14,8 @@ import org.gradle.api.tasks.bundling.Jar
 
 interface Platform {
   void copyCompilationSettings(Project project, Task task)
-  void markMetadataToFix(Project project, JavaCompile scavengeTask)
+  void markMetadataToFix(Project project)
   void createScavengeDependency(Project project, JavaCompile scavengeTask)
-  void createSourcesJarDependency(Project project, Jar sourcesJarTask)
   void gatherSources(Project project, Jar sourcesJarTask)
   void configureCodeJarTask(Project project)
   String jarTaskName()

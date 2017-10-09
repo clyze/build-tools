@@ -18,7 +18,16 @@ class AnalyzeTask extends DefaultTask {
         }
 
         // We expect sources/jcPluginMetadata to always exist.
-        File sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
+        File sources
+        String sourcesJar = doop.useSourcesJar
+        if (sourcesJar != null) {
+            sources = new File(sourcesJar)
+            if (!sources.exists()) {
+                printn "ERROR: sources JAR ${sourcesJar} does not exist."
+            }
+        } else {
+            sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
+        }
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
         // The HPROF input is optional.
         File hprof = doop.hprof != null ? new File(doop.hprof) : null

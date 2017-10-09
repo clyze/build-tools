@@ -5,12 +5,12 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
-
-import org.clyze.utils.AndroidDepResolver
-import static org.clyze.utils.AndroidDepResolver.throwRuntimeException
-
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classloader.ClasspathUtil
+
+import static org.clyze.doop.gradle.DoopPlugin.*
+import org.clyze.utils.AndroidDepResolver
+import static org.clyze.utils.AndroidDepResolver.throwRuntimeException
 
 class AndroidPlatform implements Platform {
 
@@ -84,9 +84,10 @@ class AndroidPlatform implements Platform {
     // 5. It copies the source file location from the configured
     // Android sourceSet.
     //
-    void markMetadataToFix(Project project, JavaCompile scavengeTask) {
+    void markMetadataToFix(Project project) {
         project.afterEvaluate {
 
+            JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
             copySourceSettings(project, scavengeTask)
 
             // Read properties from build.gradle.
@@ -157,7 +158,7 @@ class AndroidPlatform implements Platform {
             jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
 
             def genSourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
-            Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR)
+            Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
             gatherSourcesAfterEvaluate(project, sourcesJarTask, buildType)
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
             scavengeTask.source(genSourceDirs)
@@ -173,7 +174,9 @@ class AndroidPlatform implements Platform {
             }
 
             // Create dependency on source JAR task in order to create
-            // the R.java files.
+            // the R.java files. This cannot happen at an earlier
+            // stage because 'assemble' creates a
+            // circular dependency and thus we use 'assemble{Debug,Release}'.
             sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
         }
     }
@@ -221,11 +224,6 @@ class AndroidPlatform implements Platform {
         scavengeTask.dependsOn project.tasks.findByName(TASK_ASSEMBLE)
     }
 
-    // This method is empty; the dependency is recorded in
-    // markMetadataToFix(). The reason is that 'assemble' creates a
-    // circular dependency and thus we use 'assemble{Debug,Release}'.
-    void createSourcesJarDependency(Project project, Jar sourcesJarTask) {}
-
     void gatherSources(Project project, Jar sourcesJarTask) {}
 
     void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String buildType) {
@@ -268,7 +266,7 @@ class AndroidPlatform implements Platform {
     void configureCodeJarTask(Project project) {
         Jar codeJarTask = project.tasks.create(TASK_CODE_JAR, Jar)
         codeJarTask.description = 'Generates the code jar'
-        codeJarTask.group = DoopPlugin.DOOP_GROUP
+        codeJarTask.group = DOOP_GROUP
         codeJarTask.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
     }
 
