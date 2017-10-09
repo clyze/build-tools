@@ -48,7 +48,11 @@ class DoopExtension {
         List<String> extraInputs = extraInputs ?: []
         return extraInputs.collect { String fName ->
             File f = new File("${rootDir.canonicalPath}/${fName}")
-            if (!f.exists()) { println "Extra input ${f.canonicalPath} does not exist." }
+            if (!f.exists()) {
+                println "Extra input ${f.canonicalPath} does not exist."
+            } else {
+                println "Using extra input ${f.canonicalPath}"
+            }
             f
         }
     }
