@@ -23,6 +23,7 @@ class DoopExtension {
     List<String> extraInputs
     Map<String, Object> options
     boolean cachePost = false
+    String convertUTF8Dir
 
     Platform platform
 
