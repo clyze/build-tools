@@ -50,7 +50,7 @@ class JavaPlatform implements Platform {
                 println "No setup for '${TASK_SOURCES_JAR}' task, using: ${sourcesJar}"
             } else {
                 Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
-                sourcesJarTask.dependsOn project.tasks.findByName('build')
+                sourcesJarTask.dependsOn project.tasks.findByName('classes')
             }
         }
     }
