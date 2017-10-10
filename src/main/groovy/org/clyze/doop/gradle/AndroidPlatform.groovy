@@ -97,7 +97,7 @@ class AndroidPlatform implements Platform {
                 throwRuntimeException("No android.compileSdkVersion found in build.gradle.")
 
             DoopExtension doop = project.extensions.doop
-            if (!doop.definesProperties()) {
+            if (!doop.definesAndroidProperties()) {
                 println "No 'doop' section found in build.gradle, skipping configuration."
                 return
             }
