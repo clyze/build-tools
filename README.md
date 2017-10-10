@@ -143,3 +143,42 @@ doop {
     useSourcesJar = "dist/source.zip"
 }
 ```
+
+## Flags ##
+
+* String _host_: the host name of the server (e.g. `"localhost"`).
+
+* int _port_: the server port.
+
+* String _username_: the user name to use when posting the analysis to the server.
+
+* String _password_: the password to use to authenticate to the server.
+
+* String _orgName_: organization name of the artifact to post.
+
+* String _projectName_: project name of the artifact to post.
+
+* String _projectVersion_: project version of the artifact to post.
+
+* String _subprojectName_: sub-project name (used in Android apps, for
+  `app` sub-directories containing the actual app code).
+
+* String _buildType_: `"debug"` or `"release"` (used in Android apps).
+
+* String _useSourcesJar_: a sources JAR archive to be posted instead
+  of using the output of the `sourcesJar` Gradle task. Used in Ant
+  interoperability.
+
+* String _hprof_: an HPROF file to be used in the analysis by HeapDL.
+
+* List<String> _extraInputs_: extra inputs, as a list of paths
+   relative to the project root directory. This parameter can be used
+   to add dependency JARs whose resolutions has failed or extra code.
+
+* Map<String, Object> _options_: the Doop options to use.
+
+* boolean _cachePost_: cache the data before posting the analysis to
+  the server, so that it can be later replayed.
+
+* String _convertUTF8Dir_: a directory of sources that must be
+  converted to UTF-8. This parameter is supported for plain Java code.
