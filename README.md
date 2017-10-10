@@ -69,7 +69,7 @@ Step 1. Run the progam using an HPROF agent to produce the heap dump
 (e.g., java.hprof). In JVM, this can be done as follows:
 
 ```
-java -agentlib:hprof=heap=dump,format=b,depth=8 Program.jar
+java -agentlib:hprof=heap=dump,format=b,depth=8 -jar Program.jar
 ```
 
 In Android, for some App/Activity, generation of HPROF data differs:
