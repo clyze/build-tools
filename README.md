@@ -182,3 +182,6 @@ doop {
 
 * String _convertUTF8Dir_: a directory of sources that must be
   converted to UTF-8. This parameter is supported for plain Java code.
+
+* boolean _dry_: if `true`, then the artifact is not uploaded to the
+  server.

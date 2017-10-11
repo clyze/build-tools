@@ -25,6 +25,7 @@ class DoopExtension {
     Map<String, Object> options
     boolean cachePost = false
     String convertUTF8Dir
+    boolean dry
 
     Platform platform
 

@@ -35,7 +35,7 @@ class AnalyzeTask extends DefaultTask {
         // Rewrite 'inputs' field to generate the post state.
         doop.options.inputs = p.inputFiles(project)
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
-        Helper.postAndStartAnalysis(ps, doop.cachePost)
+        Helper.postAndStartAnalysis(ps, doop.cachePost, doop.dry)
     }
 
 
