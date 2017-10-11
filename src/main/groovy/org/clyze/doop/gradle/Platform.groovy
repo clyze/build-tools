@@ -19,7 +19,7 @@ interface Platform {
   void gatherSources(Project project, Jar sourcesJarTask)
   void configureCodeJarTask(Project project)
   String jarTaskName()
-  List inputFiles(Project project)
+  List<String> inputFiles(Project project)
   String getClasspath(Project project)
   String getProjectName(Project project)
   boolean mustRunAgain()

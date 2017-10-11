@@ -46,16 +46,19 @@ class DoopExtension {
                              options, sources, jcPluginMetadata, hprof)
     }
 
-    public List<File> getExtraInputFiles(File rootDir) {
-        List<String> extraInputs = extraInputs ?: []
-        return extraInputs.collect { String fName ->
-            File f = new File("${rootDir.canonicalPath}/${fName}")
-            if (!f.exists()) {
-                println "Extra input ${f.canonicalPath} does not exist."
-            } else {
-                println "Using extra input ${f.canonicalPath}"
+    public List<String> getExtraInputFiles(File rootDir) {
+        if (extraInputs == null) {
+            return []
+        } else {
+            return extraInputs.collect { String fName ->
+                File f = new File("${rootDir.canonicalPath}/${fName}")
+                if (!f.exists()) {
+                    println "Extra input ${f.canonicalPath} does not exist."
+                } else {
+                    println "Using extra input ${f.canonicalPath}"
+                }
+                f.canonicalPath
             }
-            f
         }
     }
 }

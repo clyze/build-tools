@@ -141,7 +141,7 @@ class AndroidPlatform implements Platform {
                 }
             }
             androidJars.addAll(deps)
-            androidJars.addAll(doop.getExtraInputFiles(project.rootDir).collect { it.getAbsolutePath() })
+            androidJars.addAll(doop.getExtraInputFiles(project.rootDir))
             // Check if all parts of the new classpath exist.
             androidJars.each {
                 if (!(new File(it)).exists())
@@ -272,7 +272,7 @@ class AndroidPlatform implements Platform {
 
     String jarTaskName() { return TASK_CODE_JAR }
 
-    List inputFiles(Project project) {
+    List<String> inputFiles(Project project) {
         DoopExtension doop = project.extensions.doop
         String mode = checkAndGetBuildType(doop)
         println "Finding input files for mode = ${mode}, isLibrary = ${isLibrary}"
@@ -293,17 +293,18 @@ class AndroidPlatform implements Platform {
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
-        List<File> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
+                                 .collect { it.canonicalPath }
+        List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return ars.toList() + getDependencies() + extraInputFiles
     }
 
-    private Set<File> getDependencies() {
-        for (File f : cachedDeps) {
+    private Set<String> getDependencies() {
+        return cachedDeps.collect { File f ->
             if (!f.exists()) {
                 throwRuntimeException("Dependency ${f} does not exist!")
             }
+            f.canonicalPath
         }
-        return cachedDeps
     }
 
     String getClasspath(Project project) {
