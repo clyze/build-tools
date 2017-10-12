@@ -163,7 +163,25 @@ class AndroidPlatform implements Platform {
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
             scavengeTask.source(genSourceDirs)
 
-            def assembleTaskDep
+            // Create dependency on source JAR task in order to create
+            // the R.java files. This cannot happen at an earlier
+            // stage because 'assemble' creates a circular dependency
+            // and thus we use 'assemble{Debug,Release}' (or a custom
+            // task given via the 'buildTask' parameter).
+            createSourcesJarDep(project, sourcesJarTask, buildType)
+        }
+    }
+
+    private static void createSourcesJarDep(Project project, Jar sourcesJarTask,
+                                            String buildType) {
+        DoopExtension doop = project.extensions.doop
+        String assembleTaskDep
+        String configuredBuildTask = doop.buildTask
+        if (configuredBuildTask != null) {
+            assembleTaskDep = configuredBuildTask
+        } else {
+            // If no 'buildTask' parameter has been given, use the
+            // standard Gradle tasks for Android.
             switch (buildType) {
                 case 'debug':
                     assembleTaskDep = 'assembleDebug'
@@ -172,13 +190,9 @@ class AndroidPlatform implements Platform {
                     assembleTaskDep = 'assembleRelease'
                     break
             }
-
-            // Create dependency on source JAR task in order to create
-            // the R.java files. This cannot happen at an earlier
-            // stage because 'assemble' creates a
-            // circular dependency and thus we use 'assemble{Debug,Release}'.
-            sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
         }
+        println "Using task '${assembleTaskDep}' to generate the sources JAR."
+        sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
     }
 
     static String baseName(File file) {

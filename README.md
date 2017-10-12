@@ -165,6 +165,11 @@ doop {
 
 * String _buildType_: `"debug"` or `"release"` (used in Android apps).
 
+* String _buildTask_: the name of the build task to use to generate
+  the sources JAR. If skipped, then "assembleDebug" or
+  "assembleRelease" is used. Used in Android apps to select the
+  correct "assemble" task for some flavor/variant of the app.
+
 * String _useSourcesJar_: a sources JAR archive to be posted instead
   of using the output of the `sourcesJar` Gradle task. Used in Ant
   interoperability.

@@ -15,6 +15,7 @@ class DoopExtension {
     String ratingCount
     String subprojectName
     String buildType
+    String buildTask
     String useSourcesJar
     File scavengeOutputDir
     String hprof
