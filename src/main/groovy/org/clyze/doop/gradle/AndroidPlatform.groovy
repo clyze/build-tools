@@ -106,14 +106,16 @@ class AndroidPlatform implements Platform {
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
             String buildType = checkAndGetBuildType(doop)
+            String flavor = doop.flavor
+            String flavorDir = getFlavorDir(flavor, buildType)
 
             // Find locations of the Android SDK and the project build path.
             def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
             Set<String> androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
-                                       "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
-                                       "${appBuildHome}/intermediates/classes/${buildType}"]
+                                       // "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
+                                       "${appBuildHome}/intermediates/classes/${flavorDir}"]
 
             Set<String> deps = new HashSet<>()
             project.configurations.each { conf ->
@@ -155,41 +157,36 @@ class AndroidPlatform implements Platform {
 
             // Update location of class files for JAR task.
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
-            jarTask.from("${appBuildHome}/intermediates/classes/${buildType}")
+            jarTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
 
-            def genSourceDirs = findGeneratedSourceDirs(appBuildHome, buildType)
+            def genSourceDirs = findGeneratedSourceDirs(appBuildHome, flavorDir)
             Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
-            gatherSourcesAfterEvaluate(project, sourcesJarTask, buildType)
+            gatherSourcesAfterEvaluate(project, sourcesJarTask, flavorDir)
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
             scavengeTask.source(genSourceDirs)
 
             // Create dependency on source JAR task in order to create
             // the R.java files. This cannot happen at an earlier
             // stage because 'assemble' creates a circular dependency
-            // and thus we use 'assemble{Debug,Release}' (or a custom
-            // task given via the 'buildTask' parameter).
-            createSourcesJarDep(project, sourcesJarTask, buildType)
+            // and thus we use 'assemble{Debug,Release}' (or
+            // equivalent flavor task, given via the 'flavor'
+            // parameter).
+            createSourcesJarDep(project, sourcesJarTask, flavor, buildType)
         }
     }
 
     private static void createSourcesJarDep(Project project, Jar sourcesJarTask,
-                                            String buildType) {
+                                            String flavor, String buildType) {
         DoopExtension doop = project.extensions.doop
         String assembleTaskDep
-        String configuredBuildTask = doop.buildTask
-        if (configuredBuildTask != null) {
-            assembleTaskDep = configuredBuildTask
-        } else {
-            // If no 'buildTask' parameter has been given, use the
-            // standard Gradle tasks for Android.
-            switch (buildType) {
-                case 'debug':
-                    assembleTaskDep = 'assembleDebug'
-                    break
-                case 'release':
-                    assembleTaskDep = 'assembleRelease'
-                    break
-            }
+        String flavorPart = flavor == null ? "" : flavor.capitalize()
+        switch (buildType) {
+            case 'debug':
+                assembleTaskDep = "assemble${flavorPart}Debug"
+                break
+            case 'release':
+                assembleTaskDep = "assemble${flavorPart}Release"
+                break
         }
         println "Using task '${assembleTaskDep}' to generate the sources JAR."
         sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
@@ -205,7 +202,7 @@ class AndroidPlatform implements Platform {
 
     // Add auto-generated Java files (examples are the app's R.java,
     // other R.java files, and classes in android.support packages).
-    private List findGeneratedSourceDirs(String appBuildHome, String buildType) {
+    private List findGeneratedSourceDirs(String appBuildHome, String flavorDir) {
         def genSourceDirs = []
         def generatedSources = "${appBuildHome}/generated/source"
         File genDir = new File(generatedSources)
@@ -216,8 +213,9 @@ class AndroidPlatform implements Platform {
         }
         genDir.eachFile (FileType.DIRECTORIES) { dir ->
             dir.eachFile (FileType.DIRECTORIES) { bPath ->
-                if (baseName(bPath) == buildType) {
+                if (bPath.canonicalPath.endsWith(flavorDir)) {
                     // Add subdirectories containing .java files.
+                    println "Adding sources in ${bPath}"
                     def containsJava = false
                     bPath.eachFileRecurse (FileType.FILES) { f ->
                         def fName = f.name
@@ -240,7 +238,7 @@ class AndroidPlatform implements Platform {
 
     void gatherSources(Project project, Jar sourcesJarTask) {}
 
-    void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String buildType) {
+    void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String flavorDir) {
         String subprojectName = getSubprojectName(project.extensions.doop)
         String appPath = "${project.rootDir}/${subprojectName}"
 
@@ -266,7 +264,7 @@ class AndroidPlatform implements Platform {
             println "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
             sourcesJarTask.from srcAndroidTestMaven
         }
-        String manifest = "${appPath}/build/intermediates/manifests/full/${buildType}/AndroidManifest.xml"
+        String manifest = "${appPath}/build/intermediates/manifests/full/${flavorDir}/AndroidManifest.xml"
         if ((new File(manifest)).exists()) {
             println "Using manifest for sources JAR: ${manifest}"
             sourcesJarTask.from manifest
@@ -291,19 +289,21 @@ class AndroidPlatform implements Platform {
         String mode = checkAndGetBuildType(doop)
         println "Finding input files for mode = ${mode}, isLibrary = ${isLibrary}"
         def packageTask = null
+        String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
         if (isLibrary) {
             if (mode.equals('debug')) {
-                packageTask = 'bundleDebug'
+                packageTask = "bundle${flavorPart}Debug"
             } else if (mode.equals('release')) {
-                packageTask = 'bundleRelease'
+                packageTask = "bundle${flavorPart}Release"
             }
         } else {
             if (mode.equals('debug')) {
-                packageTask = 'packageDebug'
+                packageTask = "package${flavorPart}Debug"
             } else if (mode.equals('release')) {
-                packageTask = 'packageRelease'
+                packageTask = "package${flavorPart}Release"
             }
         }
+        println "Using outputs from task ${packageTask}"
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
@@ -342,7 +342,7 @@ class AndroidPlatform implements Platform {
         }
     }
 
-    String checkAndGetBuildType(DoopExtension doop) {
+    private static String checkAndGetBuildType(DoopExtension doop) {
         def buildType = doop.buildType
         if (buildType == null) {
             throwRuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
@@ -350,6 +350,10 @@ class AndroidPlatform implements Platform {
             throwRuntimeException("Property doop.buildType must be 'debug' or 'release'.")
         }
         return buildType
+    }
+
+    private static String getFlavorDir(String flavor, String buildType) {
+        return flavor == null? "${buildType}" : "${flavor}/${buildType}"
     }
 
     public static String getSubprojectName(DoopExtension doop) {

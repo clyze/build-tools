@@ -160,16 +160,6 @@ doop {
 
 * String _projectVersion_: project version of the artifact to post.
 
-* String _subprojectName_: sub-project name (used in Android apps, for
-  `app` sub-directories containing the actual app code).
-
-* String _buildType_: `"debug"` or `"release"` (used in Android apps).
-
-* String _buildTask_: the name of the build task to use to generate
-  the sources JAR. If skipped, then "assembleDebug" or
-  "assembleRelease" is used. Used in Android apps to select the
-  correct "assemble" task for some flavor/variant of the app.
-
 * String _useSourcesJar_: a sources JAR archive to be posted instead
   of using the output of the `sourcesJar` Gradle task. Used in Ant
   interoperability.
@@ -190,3 +180,13 @@ doop {
 
 * boolean _dry_: if `true`, then the artifact is not uploaded to the
   server.
+
+### Android-specific flags ###
+
+* String _subprojectName_: sub-project name (used when an `app`
+  sub-directory contains the actual app code).
+
+* String _buildType_: `"debug"` or `"release"`.
+
+* String _flavor_: the name of the flavor to use. If not given,
+  default tasks are used (such as 'assembleDebug'/'assembleRelease').

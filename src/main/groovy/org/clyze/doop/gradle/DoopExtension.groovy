@@ -13,9 +13,6 @@ class DoopExtension {
     String projectVersion
     String rating
     String ratingCount
-    String subprojectName
-    String buildType
-    String buildTask
     String useSourcesJar
     File scavengeOutputDir
     String hprof
@@ -27,6 +24,10 @@ class DoopExtension {
     boolean cachePost = false
     String convertUTF8Dir
     boolean dry
+    // Android-only
+    String subprojectName
+    String flavor
+    String buildType
 
     Platform platform
 
