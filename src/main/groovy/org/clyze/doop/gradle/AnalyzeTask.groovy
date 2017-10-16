@@ -32,8 +32,15 @@ class AnalyzeTask extends DefaultTask {
         // The HPROF input is optional.
         File hprof = doop.hprof != null ? new File(doop.hprof) : null
 
-        // Rewrite 'inputs' field to generate the post state.
-        doop.options.inputs = p.inputFiles(project)
+        // Rewrite 'inputs' field to generate the post state. Filter
+        // out empty inputs.
+        doop.options.inputs = p.inputFiles(project).findAll { String n ->
+            boolean isEmpty = (new File(n)).length() == 0
+            if (isEmpty) {
+                println "Skipping empty file ${n}"
+            }
+            !isEmpty
+        }
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
         Helper.postAndStartAnalysis(ps, doop.cachePost, doop.dry)
     }
