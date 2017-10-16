@@ -26,6 +26,7 @@ class AndroidPlatform implements Platform {
         cachedDeps = new HashSet<>()
         isLibrary = lib
         resolver = new AndroidDepResolver()
+        resolver.setUseLatestVersion(true)
         runAgain = false
     }
 
