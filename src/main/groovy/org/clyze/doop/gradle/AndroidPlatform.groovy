@@ -27,6 +27,7 @@ class AndroidPlatform implements Platform {
         isLibrary = lib
         resolver = new AndroidDepResolver()
         resolver.setUseLatestVersion(true)
+        resolver.setResolveLatestLast(true)
         runAgain = false
     }
 
@@ -143,6 +144,8 @@ class AndroidPlatform implements Platform {
                     }
                 }
             }
+            Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
+            androidJars.addAll(deferredDeps)
             androidJars.addAll(deps)
             androidJars.addAll(doop.getExtraInputFiles(project.rootDir))
             // Check if all parts of the new classpath exist.
