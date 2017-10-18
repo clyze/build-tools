@@ -93,11 +93,6 @@ class AndroidPlatform implements Platform {
             copySourceSettings(project, scavengeTask)
 
             // Read properties from build.gradle.
-
-            def androidVersion = project.android.compileSdkVersion
-            if (androidVersion == null)
-                throwRuntimeException("No android.compileSdkVersion found in build.gradle.")
-
             DoopExtension doop = project.extensions.doop
             if (!doop.definesAndroidProperties()) {
                 println "No 'doop' section found in build.gradle, skipping configuration."
@@ -115,9 +110,11 @@ class AndroidPlatform implements Platform {
             def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
-            Set<String> androidJars = ["${androidSdkHome}/platforms/${androidVersion}/android.jar",
-                                       // "${androidSdkHome}/platforms/${androidVersion}/data/layoutlib.jar",
-                                       "${appBuildHome}/intermediates/classes/${flavorDir}"]
+            Set<String> androidJars = new HashSet<>()
+            project.android.getBootClasspath().collect {
+                androidJars << it.canonicalPath
+            }
+            androidJars << "${appBuildHome}/intermediates/classes/${flavorDir}"
 
             Set<String> deps = new HashSet<>()
             project.configurations.each { conf ->
