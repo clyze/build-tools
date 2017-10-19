@@ -72,8 +72,8 @@ class AndroidPlatform implements Platform {
     //
     // 1. It augments the classpath in order to find the Android API
     // and other needed code. To find what is needed, it scans
-    // metadata such as the SDK version or the compile dependencies
-    // (e.g. to find uses of the support libraries).
+    // metadata such as the compile dependencies (e.g. to find uses of
+    // the support libraries).
     //
     // 2. It sets the location of the class files needed by the code
     // JAR task.
