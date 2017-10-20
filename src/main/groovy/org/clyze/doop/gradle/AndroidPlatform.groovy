@@ -144,7 +144,10 @@ class AndroidPlatform implements Platform {
             Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
             scavengeJars.addAll(deferredDeps)
             scavengeJars.addAll(deps)
-            scavengeJars.addAll(doop.getExtraInputFiles(project.rootDir))
+
+            List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
+            scavengeJars.addAll(AndroidDepResolver.toJars(extraInputs))
+
             // Check if all parts of the new classpath exist.
             scavengeJars.each {
                 if (!(new File(it)).exists())
