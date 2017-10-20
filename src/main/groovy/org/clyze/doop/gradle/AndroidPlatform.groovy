@@ -110,11 +110,11 @@ class AndroidPlatform implements Platform {
             def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
-            Set<String> androidJars = new HashSet<>()
+            Set<String> scavengeJars = new HashSet<>()
             project.android.getBootClasspath().collect {
-                androidJars << it.canonicalPath
+                scavengeJars << it.canonicalPath
             }
-            androidJars << "${appBuildHome}/intermediates/classes/${flavorDir}"
+            scavengeJars << "${appBuildHome}/intermediates/classes/${flavorDir}"
 
             Set<String> deps = new HashSet<>()
             project.configurations.each { conf ->
@@ -142,16 +142,16 @@ class AndroidPlatform implements Platform {
                 }
             }
             Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
-            androidJars.addAll(deferredDeps)
-            androidJars.addAll(deps)
-            androidJars.addAll(doop.getExtraInputFiles(project.rootDir))
+            scavengeJars.addAll(deferredDeps)
+            scavengeJars.addAll(deps)
+            scavengeJars.addAll(doop.getExtraInputFiles(project.rootDir))
             // Check if all parts of the new classpath exist.
-            androidJars.each {
+            scavengeJars.each {
                 if (!(new File(it)).exists())
                     println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
             }
             scavengeTask.options.compilerArgs << "-cp"
-            scavengeTask.options.compilerArgs << androidJars.join(File.pathSeparator)
+            scavengeTask.options.compilerArgs << scavengeJars.join(File.pathSeparator)
             // println(scavengeTask.options.compilerArgs)
 
             cachedDeps.addAll(deps.collect { new File(it) })
