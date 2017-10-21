@@ -142,8 +142,9 @@ class AndroidPlatform implements Platform {
                 }
             }
             Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
-            scavengeJars.addAll(deferredDeps)
-            scavengeJars.addAll(deps)
+            scavengeJars.addAll(AndroidDepResolver.toJars(deferredDeps as List))
+
+            scavengeJars.addAll(AndroidDepResolver.toJars(deps as List))
 
             List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
             scavengeJars.addAll(AndroidDepResolver.toJars(extraInputs))
