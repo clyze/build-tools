@@ -191,7 +191,7 @@ doop {
 * String _flavor_: the name of the flavor to use. If not given,
   default tasks are used (such as 'assembleDebug'/'assembleRelease').
 
-* List _replacedByExtraInputs*: a list of string pairs of artifacts
+* List _replacedByExtraInputs_: a list of string pairs of artifacts
   that are provided by _extraInputs_ and thus should not be resolved
   by the dependency resolver (e.g. `[ [ "com.android.support",
   "appcompat-v7" ], [ "com.android.support", "recyclerview-v7" ] ]`).
