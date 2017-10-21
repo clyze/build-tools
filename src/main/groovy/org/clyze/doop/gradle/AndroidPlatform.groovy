@@ -108,6 +108,9 @@ class AndroidPlatform implements Platform {
 
             // Find locations of the Android SDK and the project build path.
             def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
+
+            resolver.ignoredArtifacts.addAll(doop.replacedByExtraInputs ?: [])
+
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
             Set<String> scavengeJars = new HashSet<>()

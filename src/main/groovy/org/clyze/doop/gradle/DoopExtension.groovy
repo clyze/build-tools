@@ -28,6 +28,9 @@ class DoopExtension {
     String subprojectName
     String flavor
     String buildType
+    // List of group-name pairs of artifacts that are resolved by
+    // extraInputs (and thus the resolver should ignore them).
+    List<List<String>> replacedByExtraInputs
 
     Platform platform
 
