@@ -305,24 +305,11 @@ class AndroidPlatform implements Platform {
 
     List<String> inputFiles(Project project) {
         DoopExtension doop = project.extensions.doop
-        String mode = checkAndGetBuildType(doop)
-        println "Finding input files for mode = ${mode}, isLibrary = ${isLibrary}"
-        def packageTask = null
+        String buildType = checkAndGetBuildType(doop)
         String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
-        if (isLibrary) {
-            if (mode.equals('debug')) {
-                packageTask = "bundle${flavorPart}Debug"
-            } else if (mode.equals('release')) {
-                packageTask = "bundle${flavorPart}Release"
-            }
-        } else {
-            if (mode.equals('debug')) {
-                packageTask = "package${flavorPart}Debug"
-            } else if (mode.equals('release')) {
-                packageTask = "package${flavorPart}Release"
-            }
-        }
-        println "Using outputs from task ${packageTask}"
+        String prefix = isLibrary? "bundle" : "package"
+        String packageTask = "${prefix}${flavorPart}${buildType.capitalize()}"
+        println "Using outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         def ars = project.tasks.findByName(packageTask).outputs.files
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
