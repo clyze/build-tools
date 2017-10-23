@@ -9,6 +9,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classloader.ClasspathUtil
 
 import static org.clyze.doop.gradle.DoopPlugin.*
+import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import static org.clyze.utils.AndroidDepResolver.throwRuntimeException
 
@@ -145,12 +146,12 @@ class AndroidPlatform implements Platform {
                 }
             }
             Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
-            scavengeJars.addAll(AndroidDepResolver.toJars(deferredDeps as List))
+            scavengeJars.addAll(AARUtils.toJars(deferredDeps as List, true))
 
-            scavengeJars.addAll(AndroidDepResolver.toJars(deps as List))
+            scavengeJars.addAll(AARUtils.toJars(deps as List, true))
 
             List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
-            scavengeJars.addAll(AndroidDepResolver.toJars(extraInputs))
+            scavengeJars.addAll(AARUtils.toJars(extraInputs, true))
 
             // Check if all parts of the new classpath exist.
             scavengeJars.each {
