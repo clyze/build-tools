@@ -272,10 +272,21 @@ class AndroidPlatform implements Platform {
             println "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
             sourcesJarTask.from srcAndroidTestMaven
         }
-        String manifest = "${appPath}/build/intermediates/manifests/full/${flavorDir}/AndroidManifest.xml"
+
+        String mDir = "${appPath}/build/intermediates/manifests"
+        if (isLibrary) {
+            addManifest("${mDir}/aapt/${flavorDir}/AndroidManifest.xml", sourcesJarTask)
+        } else {
+            addManifest("${mDir}/full/${flavorDir}/AndroidManifest.xml", sourcesJarTask)
+        }
+    }
+
+    private static void addManifest(String manifest, Jar sourcesJarTask) {
         if ((new File(manifest)).exists()) {
             println "Using manifest for sources JAR: ${manifest}"
             sourcesJarTask.from manifest
+        } else {
+            println "Error: manifest not found: ${manifest}"
         }
     }
 
