@@ -117,11 +117,11 @@ class AndroidPlatform implements Platform {
 
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
-            scavengeJars = new HashSet<>()
+            Set<String> scavengeJarsPre = new HashSet<>()
             project.android.getBootClasspath().collect {
-                scavengeJars << it.canonicalPath
+                scavengeJarsPre << it.canonicalPath
             }
-            scavengeJars << "${appBuildHome}/intermediates/classes/${flavorDir}"
+            scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
 
             Set<String> deps = new HashSet<>()
             project.configurations.each { conf ->
@@ -149,21 +149,24 @@ class AndroidPlatform implements Platform {
                 }
             }
             Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
+
+            // Populate the scavenge classpath.
+            scavengeJars = new HashSet<>()
             scavengeJars.addAll(AARUtils.toJars(deferredDeps as List, true))
-
             scavengeJars.addAll(AARUtils.toJars(deps as List, true))
-
             List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
             scavengeJars.addAll(AARUtils.toJars(extraInputs, true))
 
-            // Check if all parts of the new classpath exist.
-            scavengeJars.each {
+            // Construct scavenge classpath, checking if all parts exist.
+            Set<String> cp = new HashSet<>()
+            cp.addAll(scavengeJarsPre)
+            cp.addAll(scavengeJars)
+            cp.each {
                 if (!(new File(it)).exists())
                     println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
             }
             scavengeTask.options.compilerArgs << "-cp"
-            scavengeTask.options.compilerArgs << scavengeJars.join(File.pathSeparator)
-            // println(scavengeTask.options.compilerArgs)
+            scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
 
             cachedDeps.addAll(deps.collect { new File(it) })
 
