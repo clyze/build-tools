@@ -22,6 +22,9 @@ class AndroidPlatform implements Platform {
     private boolean runAgain
     private boolean isLibrary
     private Set<File> cachedDeps
+    // The JARs needed to call the scavenge phase. They are posted to
+    // the server when in AAR mode, but not when in APK mode.
+    private Set<String> scavengeJars
 
     public AndroidPlatform(boolean lib) {
         cachedDeps = new HashSet<>()
@@ -114,7 +117,7 @@ class AndroidPlatform implements Platform {
 
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
-            Set<String> scavengeJars = new HashSet<>()
+            scavengeJars = new HashSet<>()
             project.android.getBootClasspath().collect {
                 scavengeJars << it.canonicalPath
             }
@@ -320,12 +323,17 @@ class AndroidPlatform implements Platform {
     }
 
     private Set<String> getDependencies() {
-        return cachedDeps.collect { File f ->
+        Set<String> ret = cachedDeps.collect { File f ->
             if (!f.exists()) {
                 throwRuntimeException("Dependency ${f} does not exist!")
             }
             f.canonicalPath
         }
+        if (isLibrary && (scavengeJars != null)) {
+            // Skip any directories used in the scavenge class path.
+            ret.addAll(scavengeJars.findAll { (new File(it)).isFile() })
+        }
+        return ret
     }
 
     String getClasspath(Project project) {
