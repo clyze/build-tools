@@ -43,6 +43,8 @@ class AnalyzeTask extends DefaultTask {
         // Package all information needed to post the analysis.
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
         Helper.postAndStartAnalysis(ps, doop.cachePost, doop.dry)
+
+        p.cleanUp()
     }
 
 

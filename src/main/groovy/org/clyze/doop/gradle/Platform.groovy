@@ -23,4 +23,5 @@ interface Platform {
   String getClasspath(Project project)
   String getProjectName(Project project)
   boolean mustRunAgain()
+  void cleanUp()
 }

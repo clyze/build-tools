@@ -87,4 +87,6 @@ class JavaPlatform implements Platform {
     public boolean mustRunAgain() {
         return false
     }
+
+    public void cleanUp() { }
 }

@@ -8,6 +8,8 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classloader.ClasspathUtil
 
+import org.apache.commons.io.FileUtils
+
 import static org.clyze.doop.gradle.DoopPlugin.*
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
@@ -25,6 +27,7 @@ class AndroidPlatform implements Platform {
     // The JARs needed to call the scavenge phase. They are posted to
     // the server when in AAR mode, but not when in APK mode.
     private Set<String> scavengeJars
+    private Set<String> tmpDirs
 
     public AndroidPlatform(boolean lib) {
         cachedDeps = new HashSet<>()
@@ -152,10 +155,11 @@ class AndroidPlatform implements Platform {
 
             // Populate the scavenge classpath.
             scavengeJars = new HashSet<>()
-            scavengeJars.addAll(AARUtils.toJars(deferredDeps as List, true))
-            scavengeJars.addAll(AARUtils.toJars(deps as List, true))
+            tmpDirs = new HashSet<>()
+            scavengeJars.addAll(AARUtils.toJars(deferredDeps as List, true, tmpDirs))
+            scavengeJars.addAll(AARUtils.toJars(deps as List, true, tmpDirs))
             List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
-            scavengeJars.addAll(AARUtils.toJars(extraInputs, true))
+            scavengeJars.addAll(AARUtils.toJars(extraInputs, true, tmpDirs))
 
             // Construct scavenge classpath, checking if all parts exist.
             Set<String> cp = new HashSet<>()
@@ -397,5 +401,9 @@ class AndroidPlatform implements Platform {
 
     public boolean mustRunAgain() {
         return runAgain
+    }
+
+    public void cleanUp() {
+        tmpDirs?.each { FileUtils.deleteQuietly(new File(it)) }
     }
 }
