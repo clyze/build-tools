@@ -326,8 +326,13 @@ class AndroidPlatform implements Platform {
                                  .findAll { extension(it.name) == 'apk' ||
                                             extension(it.name) == 'aar' }
                                  .collect { it.canonicalPath }
-        List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
-        return ars.toList() + getDependencies() + extraInputFiles
+        // Only upload dependencies when in AAR mode.
+        if (isLibrary) {
+            List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
+            return ars.toList() + getDependencies() + extraInputFiles
+        } else {
+            return ars.toList()
+        }
     }
 
     private Set<String> getDependencies() {
@@ -337,7 +342,7 @@ class AndroidPlatform implements Platform {
             }
             f.canonicalPath
         }
-        if (isLibrary && (scavengeDeps != null)) {
+        if (scavengeDeps != null) {
             // Skip any directories used in the scavenge class path.
             ret.addAll(scavengeDeps.findAll { (new File(it)).isFile() })
         }
