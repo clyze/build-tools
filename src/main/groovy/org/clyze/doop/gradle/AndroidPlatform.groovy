@@ -26,7 +26,7 @@ class AndroidPlatform implements Platform {
     private Set<File> cachedDeps
     // The JARs needed to call the scavenge phase. They are posted to
     // the server when in AAR mode, but not when in APK mode.
-    private Set<String> scavengeJars
+    private Set<String> scavengeDeps
     private Set<String> tmpDirs
 
     public AndroidPlatform(boolean lib) {
@@ -154,17 +154,18 @@ class AndroidPlatform implements Platform {
             Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
 
             // Populate the scavenge classpath.
-            scavengeJars = new HashSet<>()
             tmpDirs = new HashSet<>()
-            scavengeJars.addAll(AARUtils.toJars(deferredDeps as List, true, tmpDirs))
-            scavengeJars.addAll(AARUtils.toJars(deps as List, true, tmpDirs))
             List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
-            scavengeJars.addAll(AARUtils.toJars(extraInputs, true, tmpDirs))
+
+            scavengeDeps = new HashSet<>()
+            scavengeDeps.addAll(deferredDeps)
+            scavengeDeps.addAll(deps)
+            scavengeDeps.addAll(extraInputs)
 
             // Construct scavenge classpath, checking if all parts exist.
             Set<String> cp = new HashSet<>()
             cp.addAll(scavengeJarsPre)
-            cp.addAll(scavengeJars)
+            cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
             cp.each {
                 if (!(new File(it)).exists())
                     println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
@@ -336,9 +337,9 @@ class AndroidPlatform implements Platform {
             }
             f.canonicalPath
         }
-        if (isLibrary && (scavengeJars != null)) {
+        if (isLibrary && (scavengeDeps != null)) {
             // Skip any directories used in the scavenge class path.
-            ret.addAll(scavengeJars.findAll { (new File(it)).isFile() })
+            ret.addAll(scavengeDeps.findAll { (new File(it)).isFile() })
         }
         return ret
     }
