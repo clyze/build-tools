@@ -21,22 +21,19 @@ class AndroidPlatform implements Platform {
     static final String TASK_ASSEMBLE = 'assemble'
 
     private AndroidDepResolver resolver
-    private boolean runAgain
+    private boolean runAgain = false
     private boolean isLibrary
-    private Set<File> cachedDeps
+    private Set<File> cachedDeps = new HashSet<>()
     // The JARs needed to call the scavenge phase. They are posted to
     // the server when in AAR mode, but not when in APK mode.
-    private Set<String> scavengeDeps
+    private Set<String> scavengeDeps = new HashSet<>()
     private Set<String> tmpDirs
 
     public AndroidPlatform(boolean lib) {
-        cachedDeps = new HashSet<>()
-        scavengeDeps = new HashSet<>()
         isLibrary = lib
         resolver = new AndroidDepResolver()
         resolver.setUseLatestVersion(true)
         resolver.setResolveLatestLast(true)
-        runAgain = false
     }
 
     void copyCompilationSettings(Project project, Task task) {
