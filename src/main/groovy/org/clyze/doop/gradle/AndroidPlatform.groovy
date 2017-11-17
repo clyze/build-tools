@@ -31,6 +31,7 @@ class AndroidPlatform implements Platform {
 
     public AndroidPlatform(boolean lib) {
         cachedDeps = new HashSet<>()
+        scavengeDeps = new HashSet<>()
         isLibrary = lib
         resolver = new AndroidDepResolver()
         resolver.setUseLatestVersion(true)
@@ -113,11 +114,6 @@ class AndroidPlatform implements Platform {
             String flavor = doop.flavor
             String flavorDir = getFlavorDir(flavor, buildType)
 
-            // Find locations of the Android SDK and the project build path.
-            def androidSdkHome = resolver.findSDK(project.rootDir.canonicalPath)
-
-            resolver.ignoredArtifacts.addAll(doop.replacedByExtraInputs ?: [])
-
             // Add to classpath: android.jar/layoutlib.jar (core OS
             // API) and the location of R*.class files.
             Set<String> scavengeJarsPre = new HashSet<>()
@@ -125,44 +121,13 @@ class AndroidPlatform implements Platform {
                 scavengeJarsPre << it.canonicalPath
             }
             scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
-
-            Set<String> deps = new HashSet<>()
-            project.configurations.each { conf ->
-                // println "Configuration: ${conf.name}"
-                conf.allDependencies.each { dep ->
-                    String group = dep.group
-                    if (group == null) {
-                        return
-                    } else if (group.equals(project.group.toString())) {
-                        // We do not resolve dependencies whose group is
-                        // that of the current build. This means that
-                        // other subprojects in the same tree must be
-                        // separately built and their code provided using
-                        // 'extraInputs' in build.gradle's 'doop' section.
-                        println "Ignoring own dependency ${group}:${dep.name}"
-                        return
-                    }
-
-                    String name = dep.name
-                    String version = dep.version
-                    Set<String> depsJ = resolver.resolveDependency(appBuildHome, group, name, version)
-                    if (depsJ != null) {
-                        deps.addAll(depsJ)
-                    }
-                }
-            }
-            Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
-
-            // Populate the scavenge classpath.
-            tmpDirs = new HashSet<>()
-            List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
-
-            scavengeDeps = new HashSet<>()
-            scavengeDeps.addAll(deferredDeps)
-            scavengeDeps.addAll(deps)
-            scavengeDeps.addAll(extraInputs)
+            // Resolve dependencies and calculate the scavenge
+            // classpath.
+            Set<String> deps = resolveDeps(project, appBuildHome)
+            calcScavengeDeps(project, deps)
 
             // Construct scavenge classpath, checking if all parts exist.
+            tmpDirs = new HashSet<>()
             Set<String> cp = new HashSet<>()
             cp.addAll(scavengeJarsPre)
             cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
@@ -193,6 +158,49 @@ class AndroidPlatform implements Platform {
             // parameter).
             createSourcesJarDep(project, sourcesJarTask, flavor, buildType)
         }
+    }
+
+    // Resolves the dependencies of the project.
+    private Set<String> resolveDeps(Project project, String appBuildHome) {
+        Set<String> deps = new HashSet<>()
+
+        // Find the location of the Android SDK.
+        resolver.findSDK(project.rootDir.canonicalPath)
+        // Don't resolve dependencies the user overrides.
+        resolver.ignoredArtifacts.addAll(project.extensions.doop.replacedByExtraInputs ?: [])
+
+        project.configurations.each { conf ->
+            // println "Configuration: ${conf.name}"
+            conf.allDependencies.each { dep ->
+                String group = dep.group
+                if (group == null) {
+                    return
+                } else if (group.equals(project.group.toString())) {
+                    // We do not resolve dependencies whose group is
+                    // that of the current build. This means that
+                    // other subprojects in the same tree must be
+                    // separately built and their code provided using
+                    // 'extraInputs' in build.gradle's 'doop' section.
+                    println "Ignoring own dependency ${group}:${dep.name}"
+                    return
+                }
+
+                Set<String> depsJ = resolver.resolveDependency(appBuildHome, group, dep.name, dep.version)
+                if (depsJ != null) {
+                    deps.addAll(depsJ)
+                }
+            }
+        }
+        return deps
+    }
+
+    // Calculates the scavenge dependencies of the project.
+    private void calcScavengeDeps(Project project, Set<String> deps) {
+        Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
+        List<String> extraInputs = project.extensions.doop.getExtraInputFiles(project.rootDir)
+        scavengeDeps.addAll(deferredDeps)
+        scavengeDeps.addAll(deps)
+        scavengeDeps.addAll(extraInputs)
     }
 
     private static void createSourcesJarDep(Project project, Jar sourcesJarTask,
