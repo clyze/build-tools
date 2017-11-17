@@ -21,8 +21,12 @@ class AndroidPlatform implements Platform {
     static final String TASK_ASSEMBLE = 'assemble'
 
     private AndroidDepResolver resolver
+    // Flag used to prompt the user to run again the Doop plugin when
+    // needed files have not been generated yet.
     private boolean runAgain = false
+    // Flag: true = AAR project, false = APK project.
     private boolean isLibrary
+    // The resolved dependencies, cached to be shared between methods.
     private Set<File> cachedDeps = new HashSet<>()
     // The JARs needed to call the scavenge phase. They are posted to
     // the server when in AAR mode, but not when in APK mode.
