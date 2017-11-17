@@ -79,6 +79,7 @@ publishing {
 }
 
 release {
+    failOnUnversionedFiles = false
     //use the defaults, see https://github.com/researchgate/gradle-release
 }
 
