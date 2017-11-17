@@ -122,9 +122,13 @@ class AndroidPlatform implements Platform {
             }
             scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
             // Resolve dependencies and calculate the scavenge
-            // classpath.
-            Set<String> deps = resolveDeps(project, appBuildHome)
-            calcScavengeDeps(project, deps)
+            // classpath unless the invocation was 'gradle clean'.
+            def tasks = project.gradle.startParameter.taskNames
+            Set<String> deps = new HashSet<>()
+            if ((tasks.size() != 1) || (!tasks[0].equals("clean"))) {
+                deps = resolveDeps(project, appBuildHome)
+                calcScavengeDeps(project, deps)
+            }
 
             // Construct scavenge classpath, checking if all parts exist.
             tmpDirs = new HashSet<>()
