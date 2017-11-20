@@ -98,15 +98,21 @@ class AndroidPlatform implements Platform {
     void markMetadataToFix(Project project) {
         project.afterEvaluate {
 
-            JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
-            copySourceSettings(project, scavengeTask)
-
             // Read properties from build.gradle.
             DoopExtension doop = project.extensions.doop
             if (!doop.definesAndroidProperties()) {
                 println "No 'doop' section found in build.gradle, skipping configuration."
                 return
             }
+
+            def tasks = project.gradle.startParameter.taskNames
+            if ((tasks.size() == 1) && (tasks[0].equals("clean"))) {
+                println "Single task 'clean' invoked, skipping Doop configuration."
+                return
+            }
+
+            JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
+            copySourceSettings(project, scavengeTask)
 
             def subprojectName = getSubprojectName(doop)
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
@@ -124,14 +130,9 @@ class AndroidPlatform implements Platform {
                 scavengeJarsPre << it.canonicalPath
             }
             scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
-            // Resolve dependencies and calculate the scavenge
-            // classpath unless the invocation was 'gradle clean'.
-            def tasks = project.gradle.startParameter.taskNames
-            Set<String> deps = new HashSet<>()
-            if ((tasks.size() != 1) || (!tasks[0].equals("clean"))) {
-                deps = resolveDeps(project, appBuildHome)
-                calcScavengeDeps(project, deps)
-            }
+            // Resolve dependencies and calculate the scavenge classpath.
+            Set<String> deps = resolveDeps(project, appBuildHome)
+            calcScavengeDeps(project, deps)
 
             // Construct scavenge classpath, checking if all parts exist.
             tmpDirs = new HashSet<>()
