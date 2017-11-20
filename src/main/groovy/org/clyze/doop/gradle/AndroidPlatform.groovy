@@ -115,8 +115,10 @@ class AndroidPlatform implements Platform {
             String flavor = doop.flavor
             String flavorDir = getFlavorDir(flavor, buildType)
 
-            // Add to classpath: android.jar/layoutlib.jar (core OS
-            // API) and the location of R*.class files.
+            // The scavenge classpath prefix contains Android core
+            // libraries and the location of R*.class files.  Its
+            // contents are not to be uploaded, so it is kept separate
+            // from the rest of the classpath.
             Set<String> scavengeJarsPre = new HashSet<>()
             project.android.getBootClasspath().collect {
                 scavengeJarsPre << it.canonicalPath
