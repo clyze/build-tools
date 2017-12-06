@@ -106,8 +106,12 @@ class AndroidPlatform implements Platform {
             }
 
             def tasks = project.gradle.startParameter.taskNames
-            if ((tasks.size() == 1) && (tasks[0].equals("clean"))) {
-                println "Single task 'clean' invoked, skipping Doop configuration."
+            if (!tasks.contains(TASK_CODE_JAR) &&
+                !tasks.contains(TASK_SCAVENGE) &&
+                !tasks.contains(TASK_JCPLUGIN_ZIP) &&
+                !tasks.contains(TASK_SOURCES_JAR) &&
+                !tasks.contains(TASK_ANALYZE)) {
+                println "No ${DOOP_GROUP} task invoked, skipping configuration."
                 return
             }
 
