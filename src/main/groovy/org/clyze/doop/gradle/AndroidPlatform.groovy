@@ -341,17 +341,30 @@ class AndroidPlatform implements Platform {
         String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
         String prefix = isLibrary? "bundle" : "package"
         String packageTask = "${prefix}${flavorPart}${buildType.capitalize()}"
-        println "Using outputs from task ${packageTask}, isLibrary = ${isLibrary}"
+
         def ars = project.tasks.findByName(packageTask).outputs.files
-                                 .findAll { extension(it.name) == 'apk' ||
-                                            extension(it.name) == 'aar' }
-                                 .collect { it.canonicalPath }
+                .findAll { extension(it.name) == 'apk' ||
+                extension(it.name) == 'aar' }
+        .collect { it.canonicalPath }
+
+        return ars.toList()
+    }
+
+    List<String> libraryFiles(Project project) {
+        DoopExtension doop = project.extensions.doop
+        String buildType = checkAndGetBuildType(doop)
+        String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
+        String prefix = isLibrary? "bundle" : "package"
+        String packageTask = "${prefix}${flavorPart}${buildType.capitalize()}"
+
+        println "Using outputs from task ${packageTask}, isLibrary = ${isLibrary}"
+
         // Only upload dependencies when in AAR mode.
         if (isLibrary) {
             List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
-            return ars.toList() + getDependencies() + extraInputFiles
+            return getDependencies().asList() + extraInputFiles
         } else {
-            return ars.toList()
+            return null
         }
     }
 

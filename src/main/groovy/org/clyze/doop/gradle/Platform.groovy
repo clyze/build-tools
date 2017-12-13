@@ -20,6 +20,7 @@ interface Platform {
   void configureCodeJarTask(Project project)
   String jarTaskName()
   List<String> inputFiles(Project project)
+  List<String> libraryFiles(Project project)
   String getClasspath(Project project)
   String getProjectName(Project project)
   boolean mustRunAgain()

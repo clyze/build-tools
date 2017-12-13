@@ -40,6 +40,16 @@ class AnalyzeTask extends DefaultTask {
             }
             !isEmpty
         }
+
+
+        // Filter out empty inputs.
+        doop.options.libraries = p.libraryFiles(project).findAll { String n ->
+            boolean isEmpty = (new File(n)).length() == 0
+            if (isEmpty) {
+                println "Skipping empty file ${n}"
+            }
+            !isEmpty
+        }
         // Package all information needed to post the analysis.
         PostState ps = doop.newPostState(sources, jcPluginMetadata, hprof)
         Helper.postAndStartAnalysis(ps, doop.cachePost, doop.dry)

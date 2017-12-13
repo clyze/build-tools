@@ -65,13 +65,17 @@ class JavaPlatform implements Platform {
     // provides 'jar'.
     void configureCodeJarTask(Project project) {}
 
-    String jarTaskName() { return 'jar'; }
+    String jarTaskName() { return 'jar' }
 
     List<String> inputFiles(Project project) {
         def jar = project.file(project.tasks.findByName(jarTaskName()).archivePath)
+        return [jar.canonicalPath]
+    }
+
+    List<String> libraryFiles(Project project) {
         List<String> extraInputFiles = project.extensions.doop.getExtraInputFiles(project.rootDir)
         List<String> runtimeFiles = project.configurations.runtime.files.collect { it.canonicalPath }
-        return [jar.canonicalPath] + runtimeFiles + extraInputFiles
+        return runtimeFiles + extraInputFiles
     }
 
     String getClasspath(Project project) {
