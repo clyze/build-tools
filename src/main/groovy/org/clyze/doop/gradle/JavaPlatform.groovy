@@ -37,9 +37,9 @@ class JavaPlatform implements Platform {
                 sp.process(new File(convPath), true)
             }
 
-            List<File> extras = doop.getExtraInputFiles(project.rootDir)
+            List<String> extras = doop.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
-                String extraCp = extras.collect { it.getAbsolutePath() }.join(File.pathSeparator)
+                String extraCp = extras.join(File.pathSeparator)
                 JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
