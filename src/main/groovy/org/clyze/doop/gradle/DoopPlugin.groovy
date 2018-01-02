@@ -107,8 +107,18 @@ class DoopPlugin implements Plugin<Project> {
         task.from jsonOutput
     }
 
-    private void configureSourceJarTask(Project project) {
-        Jar task = project.tasks.create(TASK_SOURCES_JAR, Jar)
+    private synchronized void configureSourceJarTask(Project project) {
+        def existing = project.tasks.findByName(TASK_SOURCES_JAR)
+        Jar task
+        if (existing == null) {
+            task = project.tasks.create(TASK_SOURCES_JAR, Jar)
+        } else if (existing instanceof Jar) {
+            // Heuristic to handle repeated configuration by Gradle.
+            println "Reusing existing task ${TASK_SOURCES_JAR}"
+            task = existing
+        } else {
+            throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
+        }
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
         task.classifier = 'sources'
