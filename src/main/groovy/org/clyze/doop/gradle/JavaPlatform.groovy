@@ -59,6 +59,12 @@ class JavaPlatform implements Platform {
 
     void gatherSources(Project project, Jar sourcesJarTask) {
         sourcesJarTask.from project.sourceSets.main.allSource
+
+        final String TEST_SOURCE_SET = "test"
+        if (project.sourceSets.hasProperty(TEST_SOURCE_SET)) {
+            println "Also adding sources from ${TEST_SOURCE_SET}"
+            sourcesJarTask.from project.sourceSets.test.allSource
+        }
     }
 
     // No code JAR task is created, the 'java' gradle plugin already
