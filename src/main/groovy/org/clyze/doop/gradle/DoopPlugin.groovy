@@ -55,7 +55,7 @@ class DoopPlugin implements Plugin<Project> {
 
         //update the project's artifacts
         project.artifacts {
-            archives project.tasks.findByName('sourcesJar')
+            archives project.tasks.findByName(TASK_SOURCES_JAR)
         }
     }
 
