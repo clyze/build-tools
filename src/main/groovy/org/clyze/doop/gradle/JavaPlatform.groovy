@@ -13,7 +13,19 @@ class JavaPlatform implements Platform {
     void copyCompilationSettings(Project project, Task task) {
         JavaCompile projectDefaultTask = project.tasks.findByName("compileJava")
         task.classpath = projectDefaultTask.classpath
-        task.source = projectDefaultTask.source
+        Set<File> source = projectDefaultTask.source.getFiles()
+
+        final String COMPILE_TEST_JAVA = "compileTestJava"
+        JavaCompile projectTestTask = project.tasks.findByName(COMPILE_TEST_JAVA)
+        if (projectTestTask != null) {
+            Set<File> testSource = projectTestTask.source.getFiles()
+            // We cannot combine the classpaths from the two tasks to create a
+            // new classpath (Gradle complains), so we must use 'extraInputs'.
+            println "WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in the build.gradle to fix missing classpath entries."
+            source.addAll(projectTestTask.source.getFiles())
+        }
+
+        task.source = project.files(source as List)
     }
 
     /** Things to do last are:

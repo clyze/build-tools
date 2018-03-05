@@ -78,12 +78,15 @@ In Android, for some App/Activity, generation of HPROF data differs:
 adb shell am start --track-allocation App/Activity
 ```
 
-and the convert the HPROF file using hprof-conv (found in the Android
+and then convert the HPROF file using hprof-conv (found in the Android
 SDK):
 
 ```
 hprof-conv original.hprof java.hprof
 ```
+
+(For more details on how to obtain an HPROF file, consult
+https://github.com/plast-lab/HeapDL)
 
 Step 2. Zip java.hprof to produce java.hprof.zip. (This step is
 optional, you can upload the java.hprof file but it might be big.)
