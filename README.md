@@ -85,8 +85,8 @@ SDK):
 hprof-conv original.hprof java.hprof
 ```
 
-(For more details on how to obtain an HPROF file, consult
-https://github.com/plast-lab/HeapDL).
+For more details on how to obtain an HPROF file to use with Doop,
+consult the [HeapDL documentation](https://github.com/plast-lab/HeapDL).
 
 Step 2. Zip java.hprof to produce java.hprof.zip. (This step is
 optional, you can upload the java.hprof file but it might be big.)
