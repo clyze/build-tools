@@ -42,7 +42,7 @@ class AnalyzeTask extends DefaultTask {
         }
 
 
-        // Filter out empty inputs.
+        // Filter out empty libraries.
         doop.options.libraries = p.libraryFiles(project).findAll { String n ->
             boolean isEmpty = (new File(n)).length() == 0
             if (isEmpty) {
