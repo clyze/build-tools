@@ -69,7 +69,7 @@ class DoopPlugin implements Plugin<Project> {
         doop.projectName = platform(project).getProjectName(project)
         doop.projectVersion = project.version?.toString()
         doop.scavengeOutputDir = project.file("build/scavenge")
-        doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive-plusplus']
+        doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive']
     }
 
     private void configureScavengeTask(Project project) {
