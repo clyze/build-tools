@@ -13,7 +13,7 @@ import org.apache.commons.io.FileUtils
 import static org.clyze.doop.gradle.DoopPlugin.*
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
-import static org.clyze.utils.AndroidDepResolver.throwRuntimeException
+import static org.clyze.utils.Helper.throwRuntimeException
 
 class AndroidPlatform implements Platform {
 
