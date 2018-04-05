@@ -30,7 +30,7 @@ class AnalyzeTask extends DefaultTask {
         }
         File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]
         // The HPROF inputs are optional.
-        List<File> hprofs = doop.hprofs != null ? doop.hprofs.each { new File(it) } : null
+        List<File> hprofs = doop.hprofs != null ? doop.hprofs.collect { new File(it) } : null
 
         // Filter out empty inputs.
         doop.options.inputs = p.inputFiles(project).findAll { String n ->
