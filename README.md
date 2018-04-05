@@ -94,7 +94,7 @@ optional, you can upload the java.hprof file but it might be big.)
 Step 3. In the 'doop' section in build.gradle, add this line:
 
 ```
-hprof = 'java.hprof.zip'
+hprofs = [ 'java.hprof.zip' ]
 ```
 
 ## Interoperability with Ant ##
@@ -167,7 +167,8 @@ doop {
   of using the output of the `sourcesJar` Gradle task. Used in Ant
   interoperability.
 
-* String _hprof_: an HPROF file to be used in the analysis by HeapDL.
+* String _hprofs_: one or more HPROF files to be used in the analysis
+  by HeapDL.
 
 * List<String> _extraInputs_: extra inputs, as a list of paths
    relative to the project root directory. This parameter can be used

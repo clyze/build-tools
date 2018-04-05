@@ -15,7 +15,7 @@ class DoopExtension {
     String ratingCount
     String useSourcesJar
     File scavengeOutputDir
-    String hprof
+    List<String> hprofs
     // Extra inputs, as a list of paths relative to the project root
     // directory. Can be used to add dependency JARs whose resolutions
     // has failed or extra code.
@@ -45,10 +45,10 @@ class DoopExtension {
         return (host != null) && (port != 0) && (username != null) && (password != null) && (subprojectName != null) && (buildType != null)
     }
 
-    public PostState newPostState(File sources, File jcPluginMetadata, File hprof) {
+    public PostState newPostState(File sources, File jcPluginMetadata, List<File> hprofs) {
         return new PostState(host, port, username, password, orgName,
                              projectName, projectVersion, rating, ratingCount,
-                             options, sources, jcPluginMetadata, hprof)
+                             options, sources, jcPluginMetadata, hprofs)
     }
 
     public List<String> getExtraInputFiles(File rootDir) {
