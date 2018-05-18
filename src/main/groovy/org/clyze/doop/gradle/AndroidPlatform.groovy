@@ -106,11 +106,11 @@ class AndroidPlatform implements Platform {
             }
 
             def tasks = project.gradle.startParameter.taskNames
-            if (!tasks.contains(TASK_CODE_JAR) &&
-                !tasks.contains(TASK_SCAVENGE) &&
-                !tasks.contains(TASK_JCPLUGIN_ZIP) &&
-                !tasks.contains(TASK_SOURCES_JAR) &&
-                !tasks.contains(TASK_ANALYZE)) {
+            if (!tasks.any {
+                    it.endsWith(TASK_CODE_JAR) || it.endsWith(TASK_SCAVENGE) ||
+                    it.endsWith(TASK_JCPLUGIN_ZIP) || it.endsWith(TASK_ANALYZE) ||
+                    it.endsWith(TASK_SOURCES_JAR)
+                }) {
                 println "No ${DOOP_GROUP} task invoked, skipping configuration."
                 return
             }
