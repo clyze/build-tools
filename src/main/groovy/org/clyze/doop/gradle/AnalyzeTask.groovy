@@ -23,7 +23,8 @@ class AnalyzeTask extends DefaultTask {
         if (sourcesJar != null) {
             sources = new File(sourcesJar)
             if (!sources.exists()) {
-                printn "ERROR: sources JAR ${sourcesJar} does not exist."
+                println "WARNING: explicit sources JAR ${sourcesJar} does not exist, no sources will be uploaded."
+                sources = null
             }
         } else {
             sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
