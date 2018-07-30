@@ -10,8 +10,8 @@ group = 'org.clyze'
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
+wrapper {
+    gradleVersion = '4.9'
 }
 
 repositories {
