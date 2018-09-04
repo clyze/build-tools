@@ -23,7 +23,7 @@ repositories {
     maven {
         url "https://raw.github.com/msridhar/maven-jars/mvn-repo"
     }
-    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-deps" }
+    maven { url "${artifactory_contextUrl}/plast-deps" }
     maven {
         credentials {
             username artifactory_user
