@@ -69,7 +69,12 @@ class DoopPlugin implements Plugin<Project> {
         doop.projectName = platform(project).getProjectName(project)
         doop.projectVersion = project.version?.toString()
         doop.scavengeOutputDir = project.file("build/scavenge")
-        doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive']
+        try {
+            doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive']
+        } catch (Exception ex) {
+            println "The Doop plugin failed to initialize."
+            doop.options = new HashMap()
+        }
     }
 
     private void configureScavengeTask(Project project) {
