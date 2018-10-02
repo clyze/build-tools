@@ -72,7 +72,7 @@ class DoopPlugin implements Plugin<Project> {
         try {
             doop.options = Helper.createDefaultOptions() << ['analysis':'context-insensitive']
         } catch (Exception ex) {
-            println "The Doop plugin failed to initialize."
+            println "The Doop plugin failed to initialize: ${ex.getMessage()}"
             doop.options = new HashMap()
         }
     }
