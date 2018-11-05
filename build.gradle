@@ -41,7 +41,7 @@ dependencies {
     compile localGroovy(),
             "commons-cli:commons-cli:1.2"
 
-    compile("org.clyze:clue-client:3.0.+") {
+    compile("org.clyze:clue-client:4+") {
         exclude module: "groovy-all"
     }
     compile("org.clyze:doop-jcplugin:2.0.+") {
@@ -83,7 +83,7 @@ publishing {
 }
 
 release {
-    failOnUnversionedFiles = false
+    //failOnUnversionedFiles = false
     //use the defaults, see https://github.com/researchgate/gradle-release
 }
 

@@ -1,6 +1,5 @@
 package org.clyze.doop.gradle
 
-import org.clyze.client.web.PostState
 import org.gradle.util.ConfigureUtil
 
 class DoopExtension {
@@ -43,12 +42,6 @@ class DoopExtension {
         // We don't check for 'options', as that is never empty (but
         // initialized to defaults).
         return (host != null) && (port != 0) && (username != null) && (password != null) && (subprojectName != null) && (buildType != null)
-    }
-
-    public PostState newPostState(File sources, File jcPluginMetadata, List<File> hprofs) {
-        return new PostState(host, port, username, password, orgName,
-                             projectName, projectVersion, rating, ratingCount,
-                             options, sources, jcPluginMetadata, hprofs)
     }
 
     public List<String> getExtraInputFiles(File rootDir) {
