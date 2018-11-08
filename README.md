@@ -199,3 +199,11 @@ doop {
   that are provided by _extraInputs_ and thus should not be resolved
   by the dependency resolver (e.g. `[ [ "com.android.support",
   "appcompat-v7" ], [ "com.android.support", "recyclerview-v7" ] ]`).
+  
+## Replay the post ##
+When invoking the plugin with the ```cachePost``` flag set to true, the ```analyze``` task will report a directory containing the post state.
+You can then trigger a replay of posting this state with the following command:
+
+```
+./gradlew replay --fromDir [path-to-dir]
+```
