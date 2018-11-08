@@ -27,38 +27,43 @@ class AnalyzeTask extends DefaultTask {
         PostState analysisPostState = newAnalysisPostState(project)
 
         if (doop.cachePost) {
-            File tmpDir = java.nio.file.Files.createTempDirectory("")
+            File tmpDir = java.nio.file.Files.createTempDirectory("").toFile()
 
-            bundlePostState.saveTo(tmpDir)
+            bundlePostState.saveTo(tmpDir)            
             if (analysisPostState.inputs) {
-                analysisPostState.saveTo(tmpDir)
+                analysisPostState.saveTo(tmpDir)                
             }
+            println "Saved post state in $tmpDir"
         }
 
         if (!doop.dry) {            
-            println "Connecting to server at ${doop.host}:${doop.port}"
-            Remote remote = Remote.at(doop.host, doop.port)
-
-            println "Logging in as ${doop.username}"
-            remote.login(doop.username, doop.password)        
-
-            println "Submitting bundle..."
-            String bundleId = remote.createDoopBundle(bundlePostState)
-
-            println "Done (new bundle $bundleId)."
-
-            if (analysisPostState.inputs) {
-                println "Creating new analysis of bundle $bundleId..."
-                String analysisId = remote.createAnalysis(bundleId, analysisPostState)
-                println "Done. Starting it..."
-                remote.executeAnalysisAction(bundleId, analysisId, 'start')                
-                println "Analysis has been started, waiting..."
-                String status = remote.waitForAnalysisStatus(["FINISHED", "ERROR"] as Set, bundleId, analysisId, 120)
-                println "Analysis state: $status"
-            }            
+            doPost(doop, bundlePostState, analysisPostState)
         }        
 
         p.cleanUp()
+    }
+
+    static void doPost(DoopExtension doop, PostState bundlePostState, PostState analysisPostState) {
+        println "Connecting to server at ${doop.host}:${doop.port}"
+        Remote remote = Remote.at(doop.host, doop.port)
+
+        println "Logging in as ${doop.username}"
+        remote.login(doop.username, doop.password)        
+
+        println "Submitting bundle..."
+        String bundleId = remote.createDoopBundle(bundlePostState)
+
+        println "Done (new bundle $bundleId)."
+
+        if (analysisPostState.inputs) {
+            println "Creating new analysis of bundle $bundleId..."
+            String analysisId = remote.createAnalysis(bundleId, analysisPostState)
+            println "Done. Starting it..."
+            remote.executeAnalysisAction(bundleId, analysisId, 'start')                
+            println "Analysis has been started, waiting..."
+            String status = remote.waitForAnalysisStatus(["FINISHED", "ERROR"] as Set, bundleId, analysisId, 120)
+            println "Analysis state: $status"
+        }            
     }
 
     //A PostState for preserving all the information required to replay a bundle post
@@ -81,7 +86,7 @@ class AnalyzeTask extends DefaultTask {
         */
         DoopExtension doop = project.extensions.doop
         Platform p = doop.platform
-        PostState ps = new PostState()
+        PostState ps = new PostState(id:"bundle")
 
         //app_regex
         addStringInputFromDoopExtensionOption(ps, doop, "APP_REGEX", "app_regex")        
@@ -113,7 +118,7 @@ class AnalyzeTask extends DefaultTask {
         addStringInputFromDoopExtensionOption(ps, doop, "MAIN_CLASS", "main_class")        
 
         //platform
-        ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")
+        ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_7")
 
         //project_name
         ps.addStringInput("PROJECT_NAME", doop.projectName)
@@ -144,7 +149,7 @@ class AnalyzeTask extends DefaultTask {
     private static final PostState newAnalysisPostState(Project project) {
 
         DoopExtension doop = project.extensions.doop
-        PostState ps = new PostState()
+        PostState ps = new PostState(id:"analysis")
 
         def json = Helper.createCommandForOptionsDiscovery("ANALYSIS", new DefaultHttpClientLifeCycle()).execute(doop.host, doop.port)
         Set<String> supportedOptionIds = json.options.collect { it.id.toLowerCase() } as Set
@@ -177,17 +182,4 @@ class AnalyzeTask extends DefaultTask {
         !isEmpty
     }
 
-
-    // Entry point to call when replaying a previously posted
-    // analysis. Example:
-    //   ./gradlew replayPost -Pargs="/tmp/1486846789163549904"
-    public static void main(String[] args) {
-        if (args.size() == 0) {
-            println "Usage: AnalyzeTask path-of-state-directory"
-            println "Replay posting of an analysis to the server."
-            System.exit(0)
-        }
-
-        Helper.replayPost(args[0])
-    }
 }

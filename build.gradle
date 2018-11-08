@@ -88,11 +88,3 @@ release {
 }
 
 afterReleaseBuild.dependsOn publish
-
-task replayPost(type: JavaExec, dependsOn: 'classes') {
-    main = 'org.clyze.doop.gradle.AnalyzeTask'
-    classpath = sourceSets.main.runtimeClasspath
-    if(project.hasProperty("args")) {
-        args project.property("args").split()
-    }
-}
