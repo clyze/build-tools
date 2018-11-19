@@ -48,10 +48,14 @@ class AnalyzeTask extends DefaultTask {
         Remote remote = Remote.at(doop.host, doop.port)
 
         println "Logging in as ${doop.username}"
-        remote.login(doop.username, doop.password)        
+        remote.login(doop.username, doop.password)     
 
-        println "Submitting bundle..."
-        String bundleId = remote.createDoopBundle(bundlePostState)
+        if (!doop.clueProject) {
+            throw new RuntimeException("Clue project missing")
+        }
+
+        println "Submitting bundle in ${doop.clueProject}..."
+        String bundleId = remote.createDoopBundle(doop.clueProject, bundlePostState)
 
         println "Done (new bundle $bundleId)."
 
@@ -118,10 +122,7 @@ class AnalyzeTask extends DefaultTask {
         addStringInputFromDoopExtensionOption(ps, doop, "MAIN_CLASS", "main_class")        
 
         //platform
-        ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_7")
-
-        //project_name
-        ps.addStringInput("PROJECT_NAME", doop.projectName)
+        ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")        
 
         // We expect sources_jar to always exist.
         File sources

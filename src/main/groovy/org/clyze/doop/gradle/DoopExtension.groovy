@@ -10,6 +10,7 @@ class DoopExtension {
     String orgName
     String projectName
     String projectVersion
+    String clueProject
     String rating
     String ratingCount
     String useSourcesJar
