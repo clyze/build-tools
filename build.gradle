@@ -20,9 +20,6 @@ repositories {
     maven {
         url "${artifactory_contextUrl}/plast-public"
     }
-    maven {
-        url "https://raw.github.com/msridhar/maven-jars/mvn-repo"
-    }
     maven { url "${artifactory_contextUrl}/plast-deps" }
     maven {
         credentials {
