@@ -5,3 +5,6 @@
 #intellij idea files
 /.idea
 /doop-gradle-plugin.iml
+
+#cached states
+/states/
