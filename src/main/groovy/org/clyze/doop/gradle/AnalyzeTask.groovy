@@ -44,30 +44,7 @@ class AnalyzeTask extends DefaultTask {
     }
 
     static void doPost(DoopExtension doop, PostState bundlePostState, PostState analysisPostState) {
-        println "Connecting to server at ${doop.host}:${doop.port}"
-        Remote remote = Remote.at(doop.host, doop.port)
-
-        println "Logging in as ${doop.username}"
-        remote.login(doop.username, doop.password)     
-
-        if (!doop.clueProject) {
-            throw new RuntimeException("Clue project missing")
-        }
-
-        println "Submitting bundle in ${doop.clueProject}..."
-        String bundleId = remote.createDoopBundle(doop.clueProject, bundlePostState)
-
-        println "Done (new bundle $bundleId)."
-
-        if (analysisPostState.inputs) {
-            println "Creating new analysis of bundle $bundleId..."
-            String analysisId = remote.createAnalysis(bundleId, analysisPostState)
-            println "Done. Starting it..."
-            remote.executeAnalysisAction(bundleId, analysisId, 'start')                
-            println "Analysis has been started, waiting..."
-            String status = remote.waitForAnalysisStatus(["FINISHED", "ERROR"] as Set, bundleId, analysisId, 120)
-            println "Analysis state: $status"
-        }            
+        Helper.doPost(doop.host, doop.port, doop.username, doop.password, doop.clueProject, bundlePostState, analysisPostState)
     }
 
     //A PostState for preserving all the information required to replay a bundle post
@@ -105,7 +82,7 @@ class AnalyzeTask extends DefaultTask {
         }
 
         // Filter out empty inputs.
-        p.inputFiles(project).findAll(checkFileEmpty).each {
+        p.inputFiles(project).findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("INPUTS", it)
         }
 
@@ -114,12 +91,12 @@ class AnalyzeTask extends DefaultTask {
         ps.addFileInput("JCPLUGIN_METADATA", jcPluginMetadata.canonicalPath)
 
         // Filter out empty libraries.
-        p.libraryFiles(project).findAll(checkFileEmpty).each {
+        p.libraryFiles(project).findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("LIBRARIES", it)
         }
 
         //main_class
-        addStringInputFromDoopExtensionOption(ps, doop, "MAIN_CLASS", "main_class")        
+        addStringInputFromDoopExtensionOption(ps, doop, "MAIN_CLASS", "main_class")
 
         //platform
         ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")        
@@ -173,14 +150,6 @@ class AnalyzeTask extends DefaultTask {
         if (doop.options.containsKey(optionId)) {
             ps.addFileInput(inputId, doop.options[(optionId)])
         }
-    }
-
-    private static Closure<Boolean> checkFileEmpty = { String f ->
-        boolean isEmpty = (new File(f)).length() == 0
-        if (isEmpty) {
-            println "Skipping empty file ${n}"
-        }
-        !isEmpty
     }
 
 }
