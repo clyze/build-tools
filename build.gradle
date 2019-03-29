@@ -64,7 +64,9 @@ publishing {
             from components.java
         }
     }
-
+}
+if (project.hasProperty('artifactory_user')) {
+publishing {
     repositories {
         maven {
             credentials {
@@ -77,6 +79,7 @@ publishing {
                 "${artifactory_contextUrl}/plugins-release-local"
         }
     }
+}
 }
 
 release {
