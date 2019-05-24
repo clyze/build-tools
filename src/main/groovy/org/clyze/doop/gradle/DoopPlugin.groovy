@@ -103,7 +103,7 @@ class DoopPlugin implements Plugin<Project> {
 
         task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
 
-        task.archiveName = 'jcplugin.zip'
+        task.archiveName = 'metadata.zip'
         task.destinationDir = project.extensions.doop.scavengeOutputDir
         File jsonOutput = new File(project.extensions.doop.scavengeOutputDir as File, "json")
         task.from jsonOutput
