@@ -19,6 +19,7 @@ class DoopPlugin implements Plugin<Project> {
     static final String TASK_SOURCES_JAR  = 'sourcesJar'
     static final String TASK_ANALYZE      = 'analyze'
     static final String TASK_REPLAY_POST  = 'replay'
+    private Platform platform
 
     @Override
     void apply(Project project) {
@@ -28,21 +29,20 @@ class DoopPlugin implements Plugin<Project> {
             throw new RuntimeException("The Doop plugin requires Java 1.8 or higher")
         }
 
-        Platform platform0
         //verify that the appropriate plugins have been applied
         if (project.plugins.hasPlugin('java')) {
             println "Project platform: Java"
-            platform0 = new JavaPlatform()
+            platform = new JavaPlatform()
         } else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
             println "Project platform: Android"
-            platform0 = new AndroidPlatform(project.plugins.hasPlugin('com.android.library'))
+            platform = new AndroidPlatform(project.plugins.hasPlugin('com.android.library'))
         } else {
             throw new RuntimeException('One of these plugins should be applied before Doop: java, android, com.android.application, com.android.library')
         }
 
         //create the doop extension
         project.extensions.create('doop', DoopExtension)
-        project.extensions.doop.platform = platform0
+        project.extensions.doop.platform = platform
 
         //set the default values
         configureDefaults(project)
@@ -51,7 +51,7 @@ class DoopPlugin implements Plugin<Project> {
         configureScavengeTask(project)
         configureJCPluginZipTask(project)
         configureSourceJarTask(project)
-        platform(project).configureCodeJarTask(project)
+        platform.configureCodeJarTask(project)
         configureAnalyzeTask(project)
         configureReplayPostTask(project)
 
@@ -61,14 +61,10 @@ class DoopPlugin implements Plugin<Project> {
         }
     }
 
-    Platform platform(Project project) {
-        return project.extensions.doop.platform
-    }
-
     private void configureDefaults(Project project) {
         DoopExtension doop = project.extensions.doop
         doop.orgName = project.group
-        doop.projectName = platform(project).getProjectName(project)
+        doop.projectName = platform.getProjectName(project)
         doop.projectVersion = project.version?.toString()
         doop.scavengeOutputDir = project.file("build/scavenge")        
         doop.options = ['analysis':'context-insensitive']        
@@ -80,18 +76,18 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
 
         // Copy the project's Java compilation settings.
-        platform(project).copyCompilationSettings(project, task)
+        platform.copyCompilationSettings(project, task)
 
         // Our custom settings.
         File dest = project.extensions.doop.scavengeOutputDir
-        String processorPath = platform(project).getClasspath(project)
+        String processorPath = platform.getClasspath(project)
         println "Using processor path: ${processorPath}"
         task.destinationDir = new File(dest as File, "classes")
         File jsonOutput = new File(dest as File, "json")
         task.options.annotationProcessorPath = project.files(processorPath)
         task.options.compilerArgs = ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
-        platform(project).createScavengeDependency(project, task)
-        platform(project).markMetadataToFix(project)
+        platform.createScavengeDependency(project, task)
+        platform.markMetadataToFix(project)
 
         task.doFirst {
             jsonOutput.mkdirs()
@@ -127,7 +123,7 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
         task.classifier = 'sources'
 
-        platform(project).gatherSources(project, task)
+        platform.gatherSources(project, task)
     }
 
     private void configureAnalyzeTask(Project project) {
@@ -135,7 +131,7 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
 
-        task.dependsOn project.getTasks().findByName(platform(project).jarTaskName()),
+        task.dependsOn project.getTasks().findByName(platform.jarTaskName()),
                        project.getTasks().findByName(TASK_SOURCES_JAR),
                        project.getTasks().findByName(TASK_JCPLUGIN_ZIP)
     }
