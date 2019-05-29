@@ -85,9 +85,11 @@ class DoopPlugin implements Plugin<Project> {
         // Our custom settings.
         File dest = project.extensions.doop.scavengeOutputDir
         String processorPath = platform(project).getClasspath(project)
+        println "Using processor path: ${processorPath}"
         task.destinationDir = new File(dest as File, "classes")
         File jsonOutput = new File(dest as File, "json")
-        task.options.compilerArgs = ['-processorpath', processorPath, '-Xplugin:TypeInfoPlugin ' + jsonOutput]
+        task.options.annotationProcessorPath = project.files(processorPath)
+        task.options.compilerArgs = ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
         platform(project).createScavengeDependency(project, task)
         platform(project).markMetadataToFix(project)
 
