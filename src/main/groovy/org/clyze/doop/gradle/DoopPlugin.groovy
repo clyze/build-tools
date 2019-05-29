@@ -86,6 +86,8 @@ class DoopPlugin implements Plugin<Project> {
         File jsonOutput = new File(dest as File, "json")
         task.options.annotationProcessorPath = project.files(processorPath)
         task.options.compilerArgs = ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
+        // The compiler may fail when dependencies are missing, try to continue.
+        task.options.failOnError = false
         platform.createScavengeDependency(project, task)
         platform.markMetadataToFix(project)
 
