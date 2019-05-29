@@ -42,7 +42,23 @@ class DoopExtension {
     public boolean definesAndroidProperties() {
         // We don't check for 'options', as that is never empty (but
         // initialized to defaults).
-        return (host != null) && (port != 0) && (username != null) && (password != null) && (subprojectName != null) && (buildType != null)
+	def err = { println("Error: missing property: '${it}'") }
+	if (host == null) {
+	    err 'host'
+	} else if (port == 0) {
+	    err 'port'
+	} else if (username == null) {
+	    err 'username'
+	} else if (password == null) {
+	    err 'password'
+	} else if (subprojectName == null) {
+	    err 'subprojectName'
+	} else if (buildType == null) {
+	    err 'buildType'
+	} else {
+	    return true
+	}
+	return false
     }
 
     public List<String> getExtraInputFiles(File rootDir) {

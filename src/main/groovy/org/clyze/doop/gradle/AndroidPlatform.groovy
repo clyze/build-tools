@@ -101,7 +101,7 @@ class AndroidPlatform implements Platform {
             // Read properties from build.gradle.
             DoopExtension doop = project.extensions.doop
             if (!doop.definesAndroidProperties()) {
-                println "No 'doop' section found in build.gradle, skipping configuration."
+                println "Bad 'doop' section found in build.gradle, skipping configuration."
                 return
             }
 
