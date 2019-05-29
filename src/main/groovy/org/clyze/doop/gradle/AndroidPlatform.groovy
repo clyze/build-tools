@@ -17,7 +17,11 @@ import static org.clyze.utils.JHelper.throwRuntimeException
 
 class AndroidPlatform implements Platform {
 
+    // The name of the Doop Gradle plugin task that will generate the
+    // code input for Doop.
     static final String TASK_CODE_JAR = 'codeJar'
+    // The name of the Android Gradle plugin task that will compile
+    // and package the program.
     static final String TASK_ASSEMBLE = 'assemble'
 
     private AndroidDepResolver resolver
@@ -335,37 +339,38 @@ class AndroidPlatform implements Platform {
 
     String jarTaskName() { return TASK_CODE_JAR }
 
-    List<String> inputFiles(Project project) {
+    // Returns the task that will package the compiled code as an .apk or .aar.
+    String findPackageTask(Project project) {
         DoopExtension doop = project.extensions.doop
         String buildType = checkAndGetBuildType(doop)
         String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
         String prefix = isLibrary? "bundle" : "package"
-        String packageTask = "${prefix}${flavorPart}${buildType.capitalize()}"
+        // String sub = getSubprojectName(project.extensions.doop)
+        return "${prefix}${flavorPart}${buildType.capitalize()}"
+    }
 
+    List<String> inputFiles(Project project) {
+        String packageTask = findPackageTask(project)
+        println "Using non-library outputs from task ${packageTask}"
         def ars = project.tasks.findByName(packageTask).outputs.files
-                .findAll { extension(it.name) == 'apk' ||
-                extension(it.name) == 'aar' }
-        .collect { it.canonicalPath }
-
-        return ars.toList()
+                               .findAll { extension(it.name) == 'apk' ||
+                                          extension(it.name) == 'aar' }
+                               .collect { it.canonicalPath }
+                               .toList()
+        println "Calculated non-library outputs: ${ars}"
+        return ars
     }
 
     List<String> libraryFiles(Project project) {
-        DoopExtension doop = project.extensions.doop
-        String buildType = checkAndGetBuildType(doop)
-        String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
-        String prefix = isLibrary? "bundle" : "package"
-        String packageTask = "${prefix}${flavorPart}${buildType.capitalize()}"
-
-        println "Using outputs from task ${packageTask}, isLibrary = ${isLibrary}"
-
         // Only upload dependencies when in AAR mode.
-        if (isLibrary) {
-            List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
-            return getDependencies().asList() + extraInputFiles
-        } else {
+        if (!isLibrary) {
             return null
         }
+
+        String packageTask = findPackageTask(project.extensions.doop)
+        println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
+        List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
+        return getDependencies().asList() + extraInputFiles
     }
 
     private Set<String> getDependencies() {
@@ -417,10 +422,14 @@ class AndroidPlatform implements Platform {
         return flavor == null? "${buildType}" : "${flavor}/${buildType}"
     }
 
-    public static String getSubprojectName(DoopExtension doop) {
-	if (doop.subprojectName == null)
-	    throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
-	else
+    public static String getSubprojectName(DoopExtension doop, boolean crash = true) {
+	if (doop.subprojectName == null) {
+	    if (crash) {
+		throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+	    } else {
+		return ""
+	    }
+	} else
 	    return doop.subprojectName
     }
 
