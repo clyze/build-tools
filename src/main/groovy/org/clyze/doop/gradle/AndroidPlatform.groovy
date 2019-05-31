@@ -132,10 +132,9 @@ class AndroidPlatform implements Platform {
             String flavor = doop.flavor
             String flavorDir = getFlavorDir(flavor, buildType)
 
-            // Resolve dependencies.
-            Set<String> deps = resolveDeps(project, appBuildHome)
-
+            // Resolve dependencies if using an explicit scavenge task.
             if (explicitScavengeTask()) {
+                Set<String> deps = resolveDeps(project, appBuildHome)
                 JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
                 copySourceSettings(project, scavengeTask)
 
@@ -162,9 +161,8 @@ class AndroidPlatform implements Platform {
                 }
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
+                cachedDeps.addAll(deps.collect { new File(it) })
             }
-
-            cachedDeps.addAll(deps.collect { new File(it) })
 
             // Update location of class files for JAR task.
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
