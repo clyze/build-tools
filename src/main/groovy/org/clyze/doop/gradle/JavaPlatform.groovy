@@ -111,4 +111,9 @@ class JavaPlatform implements Platform {
     }
 
     public void cleanUp() { }
+
+    // In Java mode, always use an explicit "scavenge" Gradle task.
+    public boolean explicitScavengeTask() {
+        return true
+    }
 }

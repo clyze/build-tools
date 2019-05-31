@@ -99,6 +99,8 @@ class AndroidPlatform implements Platform {
     // 5. It copies the source file location from the configured
     // Android sourceSet.
     //
+    // 6. If the metadata processor is integrated as an annotation
+    // processor in an existing task, configure it.
     void markMetadataToFix(Project project) {
         project.afterEvaluate {
 
@@ -110,17 +112,18 @@ class AndroidPlatform implements Platform {
             }
 
             def tasks = project.gradle.startParameter.taskNames
-            if (!tasks.any {
-                    it.endsWith(TASK_CODE_JAR) || it.endsWith(TASK_SCAVENGE) ||
-                    it.endsWith(TASK_JCPLUGIN_ZIP) || it.endsWith(TASK_ANALYZE) ||
+            // Skip configuration if no Doop tasks will run (this can only be
+            // determined when no integration with existing tasks happens).
+            if (explicitScavengeTask() && !tasks.any {
+                    it.endsWith(TASK_CODE_JAR) ||
+                    it.endsWith(TASK_SCAVENGE) ||
+                    it.endsWith(TASK_JCPLUGIN_ZIP) ||
+                    it.endsWith(TASK_ANALYZE) ||
                     it.endsWith(TASK_SOURCES_JAR)
                 }) {
                 println "No ${DOOP_GROUP} task invoked, skipping configuration."
                 return
             }
-
-            JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
-            copySourceSettings(project, scavengeTask)
 
             def subprojectName = getSubprojectName(doop)
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
@@ -129,30 +132,37 @@ class AndroidPlatform implements Platform {
             String flavor = doop.flavor
             String flavorDir = getFlavorDir(flavor, buildType)
 
-            // The scavenge classpath prefix contains Android core
-            // libraries and the location of R*.class files.  Its
-            // contents are not to be uploaded, so it is kept separate
-            // from the rest of the classpath.
-            Set<String> scavengeJarsPre = new HashSet<>()
-            project.android.getBootClasspath().collect {
-                scavengeJarsPre << it.canonicalPath
-            }
-            scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
-            // Resolve dependencies and calculate the scavenge classpath.
+            // Resolve dependencies.
             Set<String> deps = resolveDeps(project, appBuildHome)
-            calcScavengeDeps(project, deps)
 
-            // Construct scavenge classpath, checking if all parts exist.
-            tmpDirs = new HashSet<>()
-            Set<String> cp = new HashSet<>()
-            cp.addAll(scavengeJarsPre)
-            cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
-            cp.each {
-                if (!(new File(it)).exists())
-                    println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
+            if (explicitScavengeTask()) {
+                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
+                copySourceSettings(project, scavengeTask)
+
+                // The scavenge classpath prefix contains Android core
+                // libraries and the location of R*.class files.  Its
+                // contents are not to be uploaded, so it is kept separate
+                // from the rest of the classpath.
+                Set<String> scavengeJarsPre = new HashSet<>()
+                project.android.getBootClasspath().collect {
+                    scavengeJarsPre << it.canonicalPath
+                }
+                scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
+                // Calculate the scavenge classpath.
+                calcScavengeDeps(project, deps)
+
+                // Construct scavenge classpath, checking if all parts exist.
+                tmpDirs = new HashSet<>()
+                Set<String> cp = new HashSet<>()
+                cp.addAll(scavengeJarsPre)
+                cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
+                cp.each {
+                    if (!(new File(it)).exists())
+                        println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
+                }
+                scavengeTask.options.compilerArgs << "-cp"
+                scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
             }
-            scavengeTask.options.compilerArgs << "-cp"
-            scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
 
             cachedDeps.addAll(deps.collect { new File(it) })
 
@@ -164,7 +174,10 @@ class AndroidPlatform implements Platform {
             Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
             gatherSourcesAfterEvaluate(project, sourcesJarTask, flavorDir)
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
-            scavengeTask.source(genSourceDirs)
+
+            if (explicitScavengeTask()) {
+                scavengeTask.source(genSourceDirs)
+            }
 
             // Create dependency on source JAR task in order to create
             // the R.java files. This cannot happen at an earlier
@@ -173,6 +186,10 @@ class AndroidPlatform implements Platform {
             // equivalent flavor task, given via the 'flavor'
             // parameter).
             createSourcesJarDep(project, sourcesJarTask, flavor, buildType)
+
+            if (!explicitScavengeTask()) {
+                configureCompileHook(project)
+            }
         }
     }
 
@@ -453,5 +470,26 @@ class AndroidPlatform implements Platform {
 
     public void cleanUp() {
         tmpDirs?.each { FileUtils.deleteQuietly(new File(it)) }
+    }
+
+    public boolean explicitScavengeTask() {
+        // Current behavior: integrate with existing compile task.
+        return false
+    }
+
+    /**
+     * Configures the metadata processor (when integrated with a build task).
+     *
+     * @parameter project   the current project
+     */
+    private static void configureCompileHook(Project project) {
+        String taskName = 'compileDebugJavaWithJavac'
+        def task = project.tasks.findByName(taskName)
+        if (!task) {
+            println "Cannot integrate with build process, no task: ${taskName}"
+            return
+        }
+        println "Integrating metadata processor with task '${taskName}': ${task}"
+        DoopPlugin.addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
     }
 }

@@ -27,4 +27,7 @@ interface Platform {
   String getProjectName(Project project)
   boolean mustRunAgain()
   void cleanUp()
+  // True if the metadata processor runs in a separate Gradle task,
+  // false if the processor is integrated in an existing task.
+  boolean explicitScavengeTask()
 }

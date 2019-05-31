@@ -48,12 +48,15 @@ class DoopPlugin implements Plugin<Project> {
         configureDefaults(project)
 
         //configure the tasks
-        configureScavengeTask(project)
+        platform.configureCodeJarTask(project)
+        if (platform.explicitScavengeTask()) {
+            configureScavengeTask(project)
+        }
         configureJCPluginZipTask(project)
         configureSourceJarTask(project)
-        platform.configureCodeJarTask(project)
         configureAnalyzeTask(project)
         configureReplayPostTask(project)
+        platform.markMetadataToFix(project)
 
         //update the project's artifacts
         project.artifacts {
@@ -79,21 +82,22 @@ class DoopPlugin implements Plugin<Project> {
         platform.copyCompilationSettings(project, task)
 
         // Our custom settings.
-        File dest = project.extensions.doop.scavengeOutputDir
         String processorPath = platform.getClasspath(project)
         println "Using processor path: ${processorPath}"
+
+        File dest = project.extensions.doop.scavengeOutputDir
+        addPluginCommandArgs(task, dest)
         task.destinationDir = new File(dest as File, "classes")
-        File jsonOutput = new File(dest as File, "json")
         task.options.annotationProcessorPath = project.files(processorPath)
-        task.options.compilerArgs = ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
         // The compiler may fail when dependencies are missing, try to continue.
         task.options.failOnError = false
-        platform.createScavengeDependency(project, task)
-        platform.markMetadataToFix(project)
 
-        task.doFirst {
-            jsonOutput.mkdirs()
-        }
+        platform.createScavengeDependency(project, task)
+    }
+
+    private static void addPluginCommandArgs(def task, File dest) {
+        File jsonOutput = new File(dest as File, "json")
+        task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
     }
 
     private void configureJCPluginZipTask(Project project) {
@@ -101,7 +105,13 @@ class DoopPlugin implements Plugin<Project> {
         task.description = 'Zips the output files of the scavenge task'
         task.group = DOOP_GROUP
 
-        task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
+        // If a separate metadata generation task exists, depend on it;
+        // otherwise depend on build task (which integrates metadata generation).
+        if (platform.explicitScavengeTask()) {
+	    task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
+        } else {
+	    task.dependsOn project.tasks.findByName(platform.jarTaskName())
+        }
 
         task.archiveName = 'metadata.zip'
         task.destinationDir = project.extensions.doop.scavengeOutputDir

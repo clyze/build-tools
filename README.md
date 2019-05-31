@@ -1,3 +1,42 @@
+# Doop Gradle plugin #
+
+This plugin integrates with Gradle builds for posting projects to Doop
+for analysis. Some support for Ant-based builds is also included (see
+below for details).
+
+## Setup ##
+
+Use the "doop" plugin in your Gradle build:
+
+```
+buildscript {
+    repositories {
+        maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-deps" }
+        maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
+    }
+    dependencies {
+       classpath 'org.clyze:doop-gradle-plugin:4.0.+'
+    }
+}
+
+apply plugin: 'doop'
+```
+
+On Android, you must also use the "doop" annotation processor in your
+Gradle build:
+
+```
+repositories {
+    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-deps" }
+    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
+}
+
+dependencies {
+    ...
+    annotationProcessor 'org.clyze:doop-jcplugin:2.0.+'
+}
+```
+
 ## Running the 'analyze' task on a Java application ##
 
 Assume a Java application that can be built by OpenJDK and has a
@@ -6,14 +45,13 @@ build.gradle.
 Step 1. Put these lines in build.gradle:
 
 ```
-apply plugin: 'doop'
 ...
 doop {
-  host = ...
-  port = ...
-  username = ...
-  password = ...
-  clueProject = ...
+    host = ...
+    port = ...
+    username = ...
+    password = ...
+    clueProject = ...
 }
 ```
 
@@ -47,13 +85,14 @@ Step 2. Put these lines in Application/build.gradle:
 apply plugin: 'doop'
 ...
 doop {
-  host = ...
-  port = ...
-  username = ...
-  password = ...
-  clueProject = ...
-  subprojectName = "Application"
-  buildType = "debug"
+    host = ...
+    port = ...
+    username = ...
+    password = ...
+    subprojectName = "Application"
+    clueProject = ...
+    buildType = "debug"
+    options.platform = 'android_25_fulljars'
 }
 ```
 
@@ -68,27 +107,9 @@ Step 3. In directory "Project", run the analyze task:
 To add HPROF information, these steps are required:
 
 Step 1. Run the progam using an HPROF agent to produce the heap dump
-(e.g., java.hprof). In JVM, this can be done as follows:
-
-```
-java -agentlib:hprof=heap=dump,format=b,depth=8 -jar Program.jar
-```
-
-In Android, for some App/Activity, generation of HPROF data differs:
-
-```
-adb shell am start --track-allocation App/Activity
-```
-
-and then convert the HPROF file using hprof-conv (found in the Android
-SDK):
-
-```
-hprof-conv original.hprof java.hprof
-```
-
-For more details on how to obtain an HPROF file to use with Doop,
-consult the [HeapDL documentation](https://github.com/plast-lab/HeapDL).
+(e.g., java.hprof). For more details on how to obtain an HPROF file to
+use with Doop, consult the [HeapDL
+documentation](https://github.com/plast-lab/HeapDL).
 
 Step 2. Zip java.hprof to produce java.hprof.zip. (This step is
 optional, you can upload the java.hprof file but it might be big.)
@@ -149,7 +170,7 @@ doop {
 }
 ```
 
-## Flags ##
+## Options ##
 
 * String _host_: the host name of the server (e.g. `"localhost"`).
 
@@ -189,7 +210,7 @@ doop {
 * boolean _dry_: if `true`, then the artifact is not uploaded to the
   server.
 
-### Android-specific flags ###
+### Android-specific options ###
 
 * String _subprojectName_: sub-project name (used when an `app`
   sub-directory contains the actual app code).
@@ -205,8 +226,10 @@ doop {
   "appcompat-v7" ], [ "com.android.support", "recyclerview-v7" ] ]`).
   
 ## Replay the post ##
-When invoking the plugin with the ```cachePost``` flag set to true, the ```analyze``` task will report a directory containing the post state.
-You can then trigger a replay of posting this state with the following command:
+When invoking the plugin with the ```cachePost``` option set to true,
+the ```analyze``` task will report a directory containing the post
+state.  You can then trigger a replay of posting this state with the
+following command:
 
 ```
 ./gradlew replay --fromDir [path-to-dir]
