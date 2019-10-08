@@ -135,7 +135,7 @@ class AndroidPlatform implements Platform {
             // Resolve dependencies if using an explicit scavenge task.
             if (explicitScavengeTask()) {
                 Set<String> deps = resolveDeps(project, appBuildHome)
-                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
+                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
                 copySourceSettings(project, scavengeTask)
 
                 // The scavenge classpath prefix contains Android core
@@ -165,11 +165,11 @@ class AndroidPlatform implements Platform {
             }
 
             // Update location of class files for JAR task.
-            Jar jarTask = project.tasks.findByName(TASK_CODE_JAR)
+            Jar jarTask = project.tasks.findByName(TASK_CODE_JAR) as Jar
             jarTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
 
             def genSourceDirs = findGeneratedSourceDirs(appBuildHome, flavorDir)
-            Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
+            Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR) as Jar
             gatherSourcesAfterEvaluate(project, sourcesJarTask, flavorDir)
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
 
@@ -382,7 +382,7 @@ class AndroidPlatform implements Platform {
         }
 
         DoopExtension doop = project.extensions.doop
-        String packageTask = findPackageTask(doop)
+        String packageTask = findPackageTask(project)
         println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
