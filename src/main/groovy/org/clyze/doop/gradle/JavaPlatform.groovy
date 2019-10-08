@@ -11,14 +11,13 @@ import static org.clyze.doop.gradle.DoopPlugin.*
 class JavaPlatform implements Platform {
 
     void copyCompilationSettings(Project project, Task task) {
-        JavaCompile projectDefaultTask = project.tasks.findByName("compileJava")
+        JavaCompile projectDefaultTask = project.tasks.findByName("compileJava") as JavaCompile
         task.classpath = projectDefaultTask.classpath
         Set<File> source = projectDefaultTask.source.getFiles()
 
         final String COMPILE_TEST_JAVA = "compileTestJava"
-        JavaCompile projectTestTask = project.tasks.findByName(COMPILE_TEST_JAVA)
+        JavaCompile projectTestTask = project.tasks.findByName(COMPILE_TEST_JAVA) as JavaCompile
         if (projectTestTask != null) {
-            Set<File> testSource = projectTestTask.source.getFiles()
             // We cannot combine the classpaths from the two tasks to create a
             // new classpath (Gradle complains), so we must use 'extraInputs'.
             println "WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in the build.gradle to fix missing classpath entries."
@@ -52,7 +51,7 @@ class JavaPlatform implements Platform {
             List<String> extras = doop.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
                 String extraCp = extras.join(File.pathSeparator)
-                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE)
+                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
             }
@@ -61,7 +60,7 @@ class JavaPlatform implements Platform {
             if (sourcesJar != null) {
                 println "No setup for '${TASK_SOURCES_JAR}' task, using: ${sourcesJar}"
             } else {
-                Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR)
+                Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR) as Jar
                 sourcesJarTask.dependsOn project.tasks.findByName('classes')
             }
         }
@@ -106,14 +105,14 @@ class JavaPlatform implements Platform {
 	return project.name
     }
 
-    public boolean mustRunAgain() {
+    boolean mustRunAgain() {
         return false
     }
 
-    public void cleanUp() { }
+    void cleanUp() { }
 
     // In Java mode, always use an explicit "scavenge" Gradle task.
-    public boolean explicitScavengeTask() {
+    boolean explicitScavengeTask() {
         return true
     }
 }

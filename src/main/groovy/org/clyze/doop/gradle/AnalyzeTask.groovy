@@ -9,6 +9,8 @@ import org.gradle.api.Project
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
+import java.nio.file.Files
+
 
 class AnalyzeTask extends DefaultTask {
 
@@ -27,7 +29,7 @@ class AnalyzeTask extends DefaultTask {
         PostState analysisPostState = newAnalysisPostState(project)
 
         if (doop.cachePost) {
-            File tmpDir = java.nio.file.Files.createTempDirectory("").toFile()
+            File tmpDir = Files.createTempDirectory("").toFile()
 
             bundlePostState.saveTo(tmpDir)            
             if (analysisPostState.inputs) {
@@ -133,7 +135,7 @@ class AnalyzeTask extends DefaultTask {
         Set<String> supportedOptionIds = json.options.collect { it.id.toLowerCase() } as Set
         doop.options.each { k, v ->
             if (supportedOptionIds.contains(k)) {
-                ps.addStringInput(k.toUpperCase(), v)
+                ps.addStringInput(k.toUpperCase(), v as String)
             }
         }
 
@@ -142,13 +144,13 @@ class AnalyzeTask extends DefaultTask {
 
     private static void addStringInputFromDoopExtensionOption(PostState ps, DoopExtension doop, String inputId, String optionId) {
         if (doop.options.containsKey(optionId)) {
-            ps.addStringInput(inputId, doop.options[(optionId)])
+            ps.addStringInput(inputId, doop.options[(optionId)] as String)
         }
     }
 
     private static void addFileInputFromDoopExtensionOption(PostState ps, DoopExtension doop, String inputId, String optionId) {
         if (doop.options.containsKey(optionId)) {
-            ps.addFileInput(inputId, doop.options[(optionId)])
+            ps.addFileInput(inputId, doop.options[(optionId)] as String)
         }
     }
 
