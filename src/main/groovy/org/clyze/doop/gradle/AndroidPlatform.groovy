@@ -337,7 +337,7 @@ class AndroidPlatform implements Platform {
             println "Using manifest for sources JAR: ${manifest}"
             sourcesJarTask.from manifest
         } else {
-            println "Error: manifest not found: ${manifest}"
+            println "Error: manifest not found: ${manifest}. This could be due to a missing product flavor (set doop.flavor=\"flavor\" in build.gradle)."
         }
     }
 
