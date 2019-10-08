@@ -18,7 +18,6 @@ class JavaPlatform implements Platform {
         final String COMPILE_TEST_JAVA = "compileTestJava"
         JavaCompile projectTestTask = project.tasks.findByName(COMPILE_TEST_JAVA)
         if (projectTestTask != null) {
-            Set<File> testSource = projectTestTask.source.getFiles()
             // We cannot combine the classpaths from the two tasks to create a
             // new classpath (Gradle complains), so we must use 'extraInputs'.
             println "WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in the build.gradle to fix missing classpath entries."
@@ -106,14 +105,14 @@ class JavaPlatform implements Platform {
 	return project.name
     }
 
-    public boolean mustRunAgain() {
+    boolean mustRunAgain() {
         return false
     }
 
-    public void cleanUp() { }
+    void cleanUp() { }
 
     // In Java mode, always use an explicit "scavenge" Gradle task.
-    public boolean explicitScavengeTask() {
+    boolean explicitScavengeTask() {
         return true
     }
 }

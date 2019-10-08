@@ -9,6 +9,8 @@ import org.gradle.api.Project
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
+import java.nio.file.Files
+
 
 class AnalyzeTask extends DefaultTask {
 
@@ -27,7 +29,7 @@ class AnalyzeTask extends DefaultTask {
         PostState analysisPostState = newAnalysisPostState(project)
 
         if (doop.cachePost) {
-            File tmpDir = java.nio.file.Files.createTempDirectory("").toFile()
+            File tmpDir = Files.createTempDirectory("").toFile()
 
             bundlePostState.saveTo(tmpDir)            
             if (analysisPostState.inputs) {

@@ -37,7 +37,7 @@ class AndroidPlatform implements Platform {
     private Set<String> scavengeDeps = new HashSet<>()
     private Set<String> tmpDirs
 
-    public AndroidPlatform(boolean lib) {
+    AndroidPlatform(boolean lib) {
         isLibrary = lib
         resolver = new AndroidDepResolver()
         resolver.setUseLatestVersion(true)
@@ -75,7 +75,7 @@ class AndroidPlatform implements Platform {
     private static boolean isDefinedSubProject(Project project) {
         DoopExtension doop = project.extensions.doop
         return ((doop.subprojectName != null) &&
-                (!getSubprojectName(doop).equals(".")))
+                getSubprojectName(doop) != ".")
     }
 
     // Reads properties from local.properties and build.gradle and
@@ -206,7 +206,7 @@ class AndroidPlatform implements Platform {
                 String group = dep.group
                 if (group == null) {
                     return
-                } else if (group.equals(project.group.toString())) {
+                } else if (group == project.group.toString()) {
                     // We do not resolve dependencies whose group is
                     // that of the current build. This means that
                     // other subprojects in the same tree must be
@@ -236,7 +236,6 @@ class AndroidPlatform implements Platform {
 
     private static void createSourcesJarDep(Project project, Jar sourcesJarTask,
                                             String flavor, String buildType) {
-        DoopExtension doop = project.extensions.doop
         String assembleTaskDep
         String flavorPart = flavor == null ? "" : flavor.capitalize()
         switch (buildType) {
@@ -382,7 +381,8 @@ class AndroidPlatform implements Platform {
             return null
         }
 
-        String packageTask = findPackageTask(project.extensions.doop)
+        DoopExtension doop = project.extensions.doop
+        String packageTask = findPackageTask(doop)
         println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
@@ -407,12 +407,12 @@ class AndroidPlatform implements Platform {
         // a real task in the Android Gradle plugin and we have to use
         // a lower-level way to read the classpath.
         def cLoader = project.buildscript.getClassLoader()
-        def cpList = null
+        def cpList
         if (cLoader instanceof URLClassLoader) {
             URLClassLoader cl = (URLClassLoader)cLoader
             cpList = cl.getURLs()
         } else {
-            ClassPath cp = ClasspathUtil.getClasspath(cLoader);
+            ClassPath cp = ClasspathUtil.getClasspath(cLoader)
             cpList = cp.getAsURIs()
         }
 
@@ -437,7 +437,7 @@ class AndroidPlatform implements Platform {
         return flavor == null? "${buildType}" : "${flavor}/${buildType}"
     }
 
-    public static String getSubprojectName(DoopExtension doop, boolean crash = true) {
+    static String getSubprojectName(DoopExtension doop, boolean crash = true) {
 	if (doop.subprojectName == null) {
 	    if (crash) {
 		throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
@@ -462,15 +462,15 @@ class AndroidPlatform implements Platform {
         }
     }
 
-    public boolean mustRunAgain() {
+    boolean mustRunAgain() {
         return runAgain
     }
 
-    public void cleanUp() {
+    void cleanUp() {
         tmpDirs?.each { FileUtils.deleteQuietly(new File(it)) }
     }
 
-    public boolean explicitScavengeTask() {
+    boolean explicitScavengeTask() {
         // Current behavior: integrate with existing compile task.
         return false
     }
@@ -488,6 +488,6 @@ class AndroidPlatform implements Platform {
             return
         }
         println "Integrating metadata processor with task '${taskName}': ${task}"
-        DoopPlugin.addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
+        addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
     }
 }

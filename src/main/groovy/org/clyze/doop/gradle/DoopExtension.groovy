@@ -11,8 +11,6 @@ class DoopExtension {
     String projectName
     String projectVersion
     String clueProject
-    String rating
-    String ratingCount
     String useSourcesJar
     File scavengeOutputDir
     List<String> hprofs
@@ -39,7 +37,7 @@ class DoopExtension {
     }
 
     // Check used to detect 'doop' sections in Android Gradle scripts.
-    public boolean definesAndroidProperties() {
+    boolean definesAndroidProperties() {
         // We don't check for 'options', as that is never empty (but
         // initialized to defaults).
 	def err = { println("Error: missing property: '${it}'") }
@@ -61,7 +59,7 @@ class DoopExtension {
 	return false
     }
 
-    public List<String> getExtraInputFiles(File rootDir) {
+    List<String> getExtraInputFiles(File rootDir) {
         if (extraInputs == null) {
             return []
         } else {
