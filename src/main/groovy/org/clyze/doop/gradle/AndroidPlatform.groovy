@@ -3,6 +3,7 @@ package org.clyze.doop.gradle
 import groovy.io.FileType
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.internal.classpath.ClassPath
@@ -101,9 +102,10 @@ class AndroidPlatform implements Platform {
     //
     // 6. If the metadata processor is integrated as an annotation
     // processor in an existing task, configure it.
+    //
+    // 7. Read all configuration files from transform tasks.
     void markMetadataToFix(Project project) {
         project.afterEvaluate {
-
             // Read properties from build.gradle.
             DoopExtension doop = project.extensions.doop
             if (!doop.definesAndroidProperties()) {
@@ -188,6 +190,8 @@ class AndroidPlatform implements Platform {
             if (!explicitScavengeTask()) {
                 configureCompileHook(project)
             }
+
+            readConfigurationFiles(project)
         }
     }
 
@@ -349,6 +353,55 @@ class AndroidPlatform implements Platform {
         codeJarTask.description = 'Generates the code jar'
         codeJarTask.group = DOOP_GROUP
         codeJarTask.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
+    }
+
+    // Get an internal class from the Android Gradle plugin.
+    private static Class getInternalClass(String s) {
+        try {
+            return Class.forName(s)
+        } catch (ClassNotFoundException ex) {
+            println "WARNING: class ${s} not found in Android Gradle plugin."
+            return null
+        }
+    }
+
+    // Read the configuration files of all appropriate transform tasks
+    // set up by the Android Gradle plugin. This uses the internal API
+    // of the Android Gradle plugin.
+    void readConfigurationFiles(Project project) {
+        Class transformTask = getInternalClass("com.android.build.gradle.internal.pipeline.TransformTask")
+        Class pgTransform = getInternalClass("com.android.build.gradle.internal.transforms.ProguardConfigurable")
+
+        if (!transformTask || !pgTransform) {
+            project.logger.info "Could not access internal Android Gradle API, ProGuard files may not be automatically resolved and must be provided via option \"doop.configurationFiles\" in build.gradle."
+            return
+        }
+
+        Set<File> allPros = new HashSet<>()
+        project.tasks.each {
+            if (transformTask.isInstance(it)) {
+                try {
+                    if (it.transform && pgTransform.isInstance(it.transform)) {
+                        project.logger.info "Processing configuration files in transform: ${it} (${it.class} extends ${it.class.superclass})"
+                        FileCollection pros = it.transform.getAllConfigurationFiles()
+                        allPros.addAll(pros)
+                    } else {
+                        project.logger.debug "Ignoring transform task: ${it}"
+                    }
+                } catch (Throwable t) {
+                    println "Error reading task ${it.transform}: ${t.message}"
+                }
+            }
+        }
+        project.logger.info "Found ${allPros.size()} configuration files:"
+        DoopExtension doop = project.extensions.doop
+        if (!doop.configurationFiles) {
+            doop.configurationFiles = new HashSet<>()
+        }
+        allPros.each {
+            project.logger.info "Using rules from configuration file: ${it.canonicalPath}"
+            doop.configurationFiles.add(it.canonicalPath)
+        }
     }
 
     String jarTaskName() { return TASK_CODE_JAR }
