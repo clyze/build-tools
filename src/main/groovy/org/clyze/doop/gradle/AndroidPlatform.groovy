@@ -542,7 +542,7 @@ class AndroidPlatform implements Platform {
             println "Cannot integrate with build process, no task: ${taskName}"
             return
         }
-        println "Integrating metadata processor with task '${taskName}': ${task}"
+        project.logger.info "Integrating metadata processor with task '${taskName}': ${task}"
         addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
     }
 }
