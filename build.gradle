@@ -35,13 +35,12 @@ dependencies {
     compile localGroovy(),
             "commons-cli:commons-cli:1.2"
 
-    compile("org.clyze:clue-client:4+") {
+    compile("org.clyze:clue-client:[4.0.0,)") {
         exclude module: "groovy-all"
     }
-    compile("org.clyze:doop-jcplugin:2.0.+") {
+    compile("org.clyze:doop-jcplugin:[2.0.0,)") {
         exclude module: "groovy-all"
     }
-
 
     runtime "org.codehaus.groovy:groovy-all:2.4.7"
 }
