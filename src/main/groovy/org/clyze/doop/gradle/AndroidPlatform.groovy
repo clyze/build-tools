@@ -518,13 +518,15 @@ class AndroidPlatform implements Platform {
      * @parameter project   the current project
      */
     private static void configureCompileHook(Project project) {
-        String taskName = 'compileDebugJavaWithJavac'
-        def task = project.tasks.findByName(taskName)
-        if (!task) {
-            println "Cannot integrate with build process, no task: ${taskName}"
+        def tasks = project.tasks.findAll { it instanceof JavaCompile }
+        if (tasks.size() == 0) {
+            project.logger.error "Could not integrate metadata processor, no compile tasks found."
             return
         }
-        project.logger.info "Integrating metadata processor with task '${taskName}': ${task}"
-        addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
+
+        tasks.each { task ->
+            project.logger.info "Plugging metadata processor into task ${task.name}"
+            addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
+        }
     }
 }
