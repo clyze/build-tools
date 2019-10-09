@@ -326,24 +326,6 @@ class AndroidPlatform implements Platform {
             println "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
             sourcesJarTask.from srcAndroidTestMaven
         }
-
-        String mDir = "${appPath}/build/intermediates/manifests"
-        DoopExtension doop = project.extensions.doop
-        if (isLibrary) {
-            addManifest(doop, "${mDir}/aapt/${flavorDir}/AndroidManifest.xml", sourcesJarTask)
-        } else {
-            addManifest(doop, "${mDir}/full/${flavorDir}/AndroidManifest.xml", sourcesJarTask)
-        }
-    }
-
-    private static void addManifest(DoopExtension doop, String manifest,
-                                    Jar sourcesJarTask) {
-        if ((new File(manifest)).exists()) {
-            println "Using manifest for sources JAR: ${manifest}"
-            sourcesJarTask.from manifest
-        } else {
-            println "Error: manifest not found: ${manifest}. This could be due to a missing product flavor (set doop.flavor=\"flavor\" in build.gradle, current value is \"${doop.flavor}\")."
-        }
     }
 
     // Analogous to configureSourceJarTask(), needed for Android,
