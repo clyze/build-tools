@@ -398,7 +398,7 @@ class AndroidPlatform implements Platform {
         project.logger.info "Found ${allPros.size()} configuration files:"
         DoopExtension doop = project.extensions.doop
         if (!doop.configurationFiles) {
-            doop.configurationFiles = new HashSet<>()
+            doop.configurationFiles = new ArrayList<>()
         }
         allPros.each {
             project.logger.info "Using rules from configuration file: ${it.canonicalPath}"

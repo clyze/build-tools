@@ -14,7 +14,7 @@ class DoopExtension {
     String useSourcesJar
     File scavengeOutputDir
     // The configration files to use.
-    Iterable<String> configurationFiles
+    List<String> configurationFiles
     List<String> hprofs
     // Extra inputs, as a list of paths relative to the project root
     // directory. Can be used to add dependency JARs whose resolutions
