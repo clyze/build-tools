@@ -71,7 +71,7 @@ publishing {
                 password artifactory_password
             }
 
-            "${artifactory_contextUrl}/plugins-release-local"
+            url "${artifactory_contextUrl}/plugins-release-local"
         }
     }
 }
