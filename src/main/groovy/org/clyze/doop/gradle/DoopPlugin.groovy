@@ -109,7 +109,7 @@ class DoopPlugin implements Plugin<Project> {
 
     private void configureJCPluginZipTask(Project project) {
         Zip task = project.tasks.create(TASK_JCPLUGIN_ZIP, Zip)
-        task.description = 'Zips the output files of the scavenge task'
+        task.description = 'Zips the output files of the metadata processor'
         task.group = DOOP_GROUP
 
         // If a separate metadata generation task exists, depend on it;
