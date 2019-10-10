@@ -132,7 +132,7 @@ class AndroidPlatform extends Platform {
             def subprojectName = getSubprojectName()
             def appBuildHome = "${project.rootDir}/${subprojectName}/build"
 
-            String buildType = checkAndGetBuildType()
+            String buildType = doop.buildType
             String flavorDir = getFlavorDir(doop.flavor, buildType)
 
             // Resolve dependencies if using an explicit scavenge task.
@@ -399,8 +399,8 @@ class AndroidPlatform extends Platform {
     String jarTaskName() { return TASK_CODE_JAR }
 
     // Returns the task that will package the compiled code as an .apk or .aar.
-    String findPackageTask() {
-        String buildType = checkAndGetBuildType()
+    String getPackageTaskName() {
+        String buildType = doop.buildType
         String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
         String prefix = isLibrary? "bundle" : "package"
         // String sub = getSubprojectName()
@@ -409,7 +409,7 @@ class AndroidPlatform extends Platform {
 
     @Override
     List<String> inputFiles() {
-        String packageTask = findPackageTask()
+        String packageTask = getPackageTaskName()
         println "Using non-library outputs from task ${packageTask}"
         List<String> ars = project.tasks.findByName(packageTask).outputs.files
                                .findAll { extension(it.name) == 'apk' ||
@@ -427,7 +427,7 @@ class AndroidPlatform extends Platform {
             return null
         }
 
-        String packageTask = findPackageTask()
+        String packageTask = getPackageTaskName()
         println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
@@ -466,16 +466,6 @@ class AndroidPlatform extends Platform {
             throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin, cLoader is ' + cLoader)
         }
         return cpList.collect().join(File.pathSeparator).replaceAll('file://', '')
-    }
-
-    private String checkAndGetBuildType() {
-        String buildType = doop.buildType
-        if (buildType == null) {
-            throwRuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
-        } else if ((buildType != 'debug') && (buildType != 'release')) {
-            project.logger.info "Property doop.buildType should probably be 'debug' or 'release'."
-        }
-        return buildType
     }
 
     private static String getFlavorDir(String flavor, String buildType) {
