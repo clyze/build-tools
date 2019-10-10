@@ -10,7 +10,7 @@ import static org.clyze.doop.gradle.DoopPlugin.*
 
 class JavaPlatform implements Platform {
 
-    void copyCompilationSettings(Project project, Task task) {
+    void copyCompilationSettings(Project project, JavaCompile task) {
         JavaCompile projectDefaultTask = project.tasks.findByName("compileJava") as JavaCompile
         task.classpath = projectDefaultTask.classpath
         Set<File> source = projectDefaultTask.source.getFiles()

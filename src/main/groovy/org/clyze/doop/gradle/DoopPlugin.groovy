@@ -70,7 +70,7 @@ class DoopPlugin implements Plugin<Project> {
         doop.projectName = platform.getProjectName(project)
         doop.projectVersion = project.version?.toString()
         doop.scavengeOutputDir = project.file("build/scavenge")        
-        doop.options = ['analysis':'context-insensitive']        
+        doop.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 
     private void configureScavengeTask(Project project) {
@@ -95,7 +95,7 @@ class DoopPlugin implements Plugin<Project> {
         platform.createScavengeDependency(project, task)
     }
 
-    private static void addPluginCommandArgs(def task, File dest) {
+    private static void addPluginCommandArgs(JavaCompile task, File dest) {
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
     }

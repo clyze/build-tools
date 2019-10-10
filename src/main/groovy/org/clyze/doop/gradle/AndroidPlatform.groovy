@@ -1,6 +1,10 @@
 package org.clyze.doop.gradle
 
 import groovy.io.FileType
+// import groovy.transform.TypeChecked
+import org.apache.commons.io.FileUtils
+import org.clyze.utils.AARUtils
+import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -9,13 +13,10 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classloader.ClasspathUtil
 
-import org.apache.commons.io.FileUtils
-
 import static org.clyze.doop.gradle.DoopPlugin.*
-import org.clyze.utils.AARUtils
-import org.clyze.utils.AndroidDepResolver
 import static org.clyze.utils.JHelper.throwRuntimeException
 
+// @TypeChecked
 class AndroidPlatform implements Platform {
 
     // The name of the Doop Gradle plugin task that will generate the
@@ -45,7 +46,7 @@ class AndroidPlatform implements Platform {
         resolver.setResolveLatestLast(true)
     }
 
-    void copyCompilationSettings(Project project, Task task) {
+    void copyCompilationSettings(Project project, JavaCompile task) {
         task.classpath = project.files()
     }
 
@@ -148,7 +149,7 @@ class AndroidPlatform implements Platform {
                 project.android.getBootClasspath().collect {
                     scavengeJarsPre << it.canonicalPath
                 }
-                scavengeJarsPre << "${appBuildHome}/intermediates/classes/${flavorDir}"
+                scavengeJarsPre << ("${appBuildHome}/intermediates/classes/${flavorDir}" as String)
                 // Calculate the scavenge classpath.
                 calcScavengeDeps(project, deps)
 
@@ -431,7 +432,7 @@ class AndroidPlatform implements Platform {
                 throwRuntimeException("Dependency ${f} does not exist!")
             }
             f.canonicalPath
-        }
+        } as Set
         if (scavengeDeps != null) {
             // Skip any directories used in the scavenge class path.
             ret.addAll(scavengeDeps.findAll { (new File(it)).isFile() })

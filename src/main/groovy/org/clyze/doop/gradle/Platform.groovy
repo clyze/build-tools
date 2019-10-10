@@ -15,7 +15,7 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 interface Platform {
-  void copyCompilationSettings(Project project, Task task)
+  void copyCompilationSettings(Project project, JavaCompile task)
   void markMetadataToFix(Project project)
   void createScavengeDependency(Project project, JavaCompile scavengeTask)
   void gatherSources(Project project, Jar sourcesJarTask)
