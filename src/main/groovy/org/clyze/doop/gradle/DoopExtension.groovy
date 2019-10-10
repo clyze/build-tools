@@ -1,5 +1,6 @@
 package org.clyze.doop.gradle
 
+import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
 class DoopExtension {
@@ -75,5 +76,14 @@ class DoopExtension {
                 f.canonicalPath
             }
         }
+    }
+
+    public static DoopExtension of(Project project) {
+        String sectionName = "doop"
+        Object sec = project.extensions.getByName(sectionName)
+        if (sec == null) {
+            throw new RuntimeException("Missing section \"${sectionName}\" in build.gradle.")
+        }
+        return (sec instanceof DoopExtension) ? sec : null
     }
 }

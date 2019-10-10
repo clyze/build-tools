@@ -39,7 +39,7 @@ class JavaPlatform implements Platform {
      */
     void markMetadataToFix(Project project) {
         project.afterEvaluate {
-            DoopExtension doop = project.extensions.doop
+            DoopExtension doop = DoopExtension.of(project)
 
             String convPath = doop.convertUTF8Dir
             if (convPath != null) {
@@ -90,7 +90,7 @@ class JavaPlatform implements Platform {
     }
 
     List<String> libraryFiles(Project project) {
-        List<String> extraInputFiles = project.extensions.doop.getExtraInputFiles(project.rootDir)
+        List<String> extraInputFiles = DoopExtension.of(project).getExtraInputFiles(project.rootDir)
         List<String> runtimeFiles = project.configurations.runtime.files.collect { it.canonicalPath }
         return runtimeFiles + extraInputFiles
     }

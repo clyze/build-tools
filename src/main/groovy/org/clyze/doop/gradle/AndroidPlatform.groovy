@@ -74,7 +74,7 @@ class AndroidPlatform implements Platform {
     // Checks if the current project is a Gradle sub-project (with a
     // non-"." value for doop.subprojectName in its build.gradle).
     private static boolean isDefinedSubProject(Project project) {
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         return ((doop.subprojectName != null) &&
                 getSubprojectName(doop) != ".")
     }
@@ -107,7 +107,7 @@ class AndroidPlatform implements Platform {
     void markMetadataToFix(Project project) {
         project.afterEvaluate {
             // Read properties from build.gradle.
-            DoopExtension doop = project.extensions.doop
+            DoopExtension doop = DoopExtension.of(project)
             if (!doop.definesAndroidProperties()) {
                 println "Bad 'doop' section found in build.gradle, skipping configuration."
                 return
@@ -202,7 +202,7 @@ class AndroidPlatform implements Platform {
         // Find the location of the Android SDK.
         resolver.findSDK(project.rootDir.canonicalPath)
         // Don't resolve dependencies the user overrides.
-        resolver.ignoredArtifacts.addAll(project.extensions.doop.replacedByExtraInputs ?: [])
+        resolver.ignoredArtifacts.addAll(DoopExtension.of(project).replacedByExtraInputs ?: [])
 
         project.configurations.each { conf ->
             // println "Configuration: ${conf.name}"
@@ -232,7 +232,7 @@ class AndroidPlatform implements Platform {
     // Calculates the scavenge dependencies of the project.
     private void calcScavengeDeps(Project project, Set<String> deps) {
         Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
-        List<String> extraInputs = project.extensions.doop.getExtraInputFiles(project.rootDir)
+        List<String> extraInputs = DoopExtension.of(project).getExtraInputFiles(project.rootDir)
         scavengeDeps.addAll(deferredDeps)
         scavengeDeps.addAll(deps)
         scavengeDeps.addAll(extraInputs)
@@ -301,7 +301,7 @@ class AndroidPlatform implements Platform {
     void gatherSources(Project project, Jar sourcesJarTask) {}
 
     void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String flavorDir) {
-        String subprojectName = getSubprojectName(project.extensions.doop)
+        String subprojectName = getSubprojectName(DoopExtension.of(project))
         String appPath = "${project.rootDir}/${subprojectName}"
 
         // Check if the Maven convention is followed for the sources.
@@ -378,7 +378,7 @@ class AndroidPlatform implements Platform {
             }
         }
         project.logger.info "Found ${allPros.size()} configuration files:"
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         if (!doop.configurationFiles) {
             doop.configurationFiles = new ArrayList<>()
         }
@@ -392,11 +392,11 @@ class AndroidPlatform implements Platform {
 
     // Returns the task that will package the compiled code as an .apk or .aar.
     String findPackageTask(Project project) {
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         String buildType = checkAndGetBuildType(doop)
         String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
         String prefix = isLibrary? "bundle" : "package"
-        // String sub = getSubprojectName(project.extensions.doop)
+        // String sub = getSubprojectName(DoopExtension.of(project))
         return "${prefix}${flavorPart}${buildType.capitalize()}"
     }
 
@@ -418,7 +418,7 @@ class AndroidPlatform implements Platform {
             return null
         }
 
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         String packageTask = findPackageTask(project)
         println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
@@ -526,7 +526,7 @@ class AndroidPlatform implements Platform {
 
         tasks.each { task ->
             project.logger.info "Plugging metadata processor into task ${task.name}"
-            addPluginCommandArgs(task, project.extensions.doop.scavengeOutputDir)
+            addPluginCommandArgs(task, DoopExtension.of(project).scavengeOutputDir)
         }
     }
 }

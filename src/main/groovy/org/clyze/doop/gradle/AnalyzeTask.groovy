@@ -17,7 +17,7 @@ class AnalyzeTask extends DefaultTask {
     @TaskAction
     void analyze() {
 
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         Platform p = doop.platform
         if (p.mustRunAgain()) {
             println "ERROR: this looks like a first-time build, please run the 'analyze' task again."
@@ -67,7 +67,7 @@ class AnalyzeTask extends DefaultTask {
         --sources_jar <file>
         --tamiflex <file>
         */
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         Platform p = doop.platform
         PostState ps = new PostState(id:"bundle")
 
@@ -128,7 +128,7 @@ class AnalyzeTask extends DefaultTask {
     //A PostState for preserving all the information required to replay an analysis post
     private static final PostState newAnalysisPostState(Project project) {
 
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         PostState ps = new PostState(id:"analysis")
 
         def json = Helper.createCommandForOptionsDiscovery("ANALYSIS", new DefaultHttpClientLifeCycle()).execute(doop.host, doop.port)

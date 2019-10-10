@@ -41,7 +41,7 @@ class ReplayPostTask extends DefaultTask {
     			println "Warning: ${any.getMessage()}"
     		}
 
-    		DoopExtension doop = project.extensions.doop
+    		DoopExtension doop = DoopExtension.of(project)
 
     		AnalyzeTask.doPost(doop, bundlePostState, analysisPostState)
     	}    	

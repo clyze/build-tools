@@ -42,7 +42,7 @@ class DoopPlugin implements Plugin<Project> {
 
         //create the doop extension
         project.extensions.create('doop', DoopExtension)
-        project.extensions.doop.platform = platform
+        DoopExtension.of(project).platform = platform
 
         //set the default values
         configureDefaults(project)
@@ -65,7 +65,7 @@ class DoopPlugin implements Plugin<Project> {
     }
 
     private void configureDefaults(Project project) {
-        DoopExtension doop = project.extensions.doop
+        DoopExtension doop = DoopExtension.of(project)
         doop.orgName = project.group
         doop.projectName = platform.getProjectName(project)
         doop.projectVersion = project.version?.toString()
@@ -85,7 +85,7 @@ class DoopPlugin implements Plugin<Project> {
         String processorPath = platform.getClasspath(project)
         println "Using processor path: ${processorPath}"
 
-        File dest = project.extensions.doop.scavengeOutputDir
+        File dest = DoopExtension.of(project).scavengeOutputDir
         addPluginCommandArgs(task, dest)
         task.destinationDir = new File(dest as File, "classes")
         task.options.annotationProcessorPath = project.files(processorPath)
@@ -114,8 +114,9 @@ class DoopPlugin implements Plugin<Project> {
         }
 
         task.archiveName = 'metadata.zip'
-        task.destinationDir = project.extensions.doop.scavengeOutputDir
-        File jsonOutput = new File(project.extensions.doop.scavengeOutputDir as File, "json")
+        File scavengeDir = DoopExtension.of(project).scavengeOutputDir
+        task.destinationDir = scavengeDir
+        File jsonOutput = new File(scavengeDir, "json")
         task.from jsonOutput
     }
 
