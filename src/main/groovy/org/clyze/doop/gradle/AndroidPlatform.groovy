@@ -22,9 +22,9 @@ class AndroidPlatform extends Platform {
     // The name of the Doop Gradle plugin task that will generate the
     // code input for Doop.
     static final String TASK_CODE_JAR = 'codeJar'
-    // The name of the Android Gradle plugin task that will compile
-    // and package the program.
-    static final String TASK_ASSEMBLE = 'assemble'
+    // The name prefix of the Android Gradle plugin task that will
+    // compile and package the program.
+    static final String TASK_ASSEMBLE_PRE = 'assemble'
 
     private AndroidDepResolver resolver
     // Flag used to prompt the user to run again the Doop plugin when
@@ -171,6 +171,8 @@ class AndroidPlatform extends Platform {
             // Update location of class files for JAR task.
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR) as Jar
             jarTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
+            // Create dependency (needs doop section so it must happen late).
+            configureCodeJarTaskDep(jarTask)
 
             Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR) as Jar
             gatherSourcesAfterEvaluate(sourcesJarTask, flavorDir)
@@ -250,9 +252,12 @@ class AndroidPlatform extends Platform {
         String flavor = doop.flavor
         String flavorPart = flavor == null ? "" : flavor.capitalize()
         String buildType = doop.buildType
-        String taskName = "assemble${flavorPart}" + buildType.capitalize()
+        if (!buildType) {
+            throw new RuntimeException("Error: could not determine build type")
+        }
+        String taskName = TASK_ASSEMBLE_PRE + flavorPart + buildType.capitalize()
         if (buildType != 'debug' && buildType != 'release') {
-            println "Unknown buildType ${buildType}, assuming task: ${taskName}"
+            project.logger.info "Unknown build type ${buildType}, assuming \"assemble\" task: ${taskName}"
         }
         return taskName
     }
@@ -301,7 +306,7 @@ class AndroidPlatform extends Platform {
 
     @Override
     void createScavengeDependency(JavaCompile scavengeTask) {
-        scavengeTask.dependsOn project.tasks.findByName(TASK_ASSEMBLE)
+        scavengeTask.dependsOn project.tasks.findByName(assembleTaskName)
     }
 
     @Override
@@ -337,14 +342,17 @@ class AndroidPlatform extends Platform {
 
     // Analogous to configureSourceJarTask(), needed for Android,
     // where no JAR task exists in the Android gradle plugin. The task
-    // is not fully created here; its inputs are set "afterEvaluate"
-    // (see method markMetadataToFix() above).
+    // is not fully created here; its inputs and dependencies are set
+    // "afterEvaluate" (see method markMetadataToFix() above).
     @Override
     void configureCodeJarTask() {
         Jar codeJarTask = project.tasks.create(TASK_CODE_JAR, Jar)
         codeJarTask.description = 'Generates the code jar'
         codeJarTask.group = DOOP_GROUP
-        codeJarTask.dependsOn project.getTasks().findByName(TASK_ASSEMBLE)
+    }
+
+    private void configureCodeJarTaskDep(Jar codeJarTask) {
+        codeJarTask.dependsOn project.tasks.findByName(assembleTaskName)
     }
 
     // Get an internal class from the Android Gradle plugin.
