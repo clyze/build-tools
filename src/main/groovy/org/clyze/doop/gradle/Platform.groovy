@@ -23,7 +23,7 @@ abstract class Platform {
         this.project = project
     }
 
-    protected getDoop() {
+    protected DoopExtension getDoop() {
         if (!doopExt) {
             doopExt = DoopExtension.of(project)
         }
