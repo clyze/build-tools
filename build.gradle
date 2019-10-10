@@ -70,9 +70,7 @@ publishing {
                 password artifactory_password
             }
 
-            url version.endsWith("-SNAPSHOT") ?
-                "${artifactory_contextUrl}/plugins-snapshot-local" :
-                "${artifactory_contextUrl}/plugins-release-local"
+            "${artifactory_contextUrl}/plugins-release-local"
         }
     }
 }
