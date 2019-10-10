@@ -62,7 +62,7 @@ class AndroidPlatform extends Platform {
                 // build.gradle but it can also naturally occur during
                 // the configuration of the top-level project that is
                 // just a container of sub-projects.
-                if ((srcFiles.size() == 0) && (isDefinedSubProject(project))) {
+                if ((srcFiles.size() == 0) && (isDefinedSubProject())) {
                     throwRuntimeException("No Java source files found for subproject " + subprojectName)
                 } else {
                     task.source = srcFiles
@@ -136,10 +136,11 @@ class AndroidPlatform extends Platform {
             String flavorDir = getFlavorDir(doop.flavor, buildType)
 
             // Resolve dependencies if using an explicit scavenge task.
+            JavaCompile scavengeTask = null
             if (explicitScavengeTask()) {
-                Set<String> deps = resolveDeps(project, appBuildHome)
-                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
-                copySourceSettings(project, scavengeTask)
+                Set<String> deps = resolveDeps(appBuildHome)
+                scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
+                copySourceSettings(scavengeTask)
 
                 // The scavenge classpath prefix contains Android core
                 // libraries and the location of R*.class files.  Its
@@ -151,7 +152,7 @@ class AndroidPlatform extends Platform {
                 }
                 scavengeJarsPre << ("${appBuildHome}/intermediates/classes/${flavorDir}" as String)
                 // Calculate the scavenge classpath.
-                calcScavengeDeps(project, deps)
+                calcScavengeDeps(deps)
 
                 // Construct scavenge classpath, checking if all parts exist.
                 tmpDirs = new HashSet<>()
@@ -179,7 +180,11 @@ class AndroidPlatform extends Platform {
                 def genSourceDirs = findGeneratedSourceDirs(appBuildHome, flavorDir)
                 genSourceDirs.each { dir -> sourcesJarTask.from dir}
                 if (explicitScavengeTask()) {
-                    scavengeTask.source(genSourceDirs)
+                    if (scavengeTask) {
+                        scavengeTask.source(genSourceDirs)
+                    } else {
+                        project.logger.error "Error: scavenge task is missing."
+                    }
                 }
                 // Create dependency on source JAR task in order to create
                 // the R.java files. This cannot happen at an earlier
@@ -187,7 +192,7 @@ class AndroidPlatform extends Platform {
                 // and thus we use 'assemble{Debug,Release}' (or
                 // equivalent flavor task, given via the 'flavor'
                 // parameter).
-                createSourcesJarDep(project, sourcesJarTask, buildType)
+                createSourcesJarDep(sourcesJarTask)
             }
 
             if (!explicitScavengeTask()) {
@@ -244,6 +249,7 @@ class AndroidPlatform extends Platform {
     private String getAssembleTaskName() {
         String flavor = doop.flavor
         String flavorPart = flavor == null ? "" : flavor.capitalize()
+        String buildType = doop.buildType
         String taskName = "assemble${flavorPart}" + buildType.capitalize()
         if (buildType != 'debug' && buildType != 'release') {
             println "Unknown buildType ${buildType}, assuming task: ${taskName}"
@@ -251,14 +257,10 @@ class AndroidPlatform extends Platform {
         return taskName
     }
 
-    private void createSourcesJarDep(Jar sourcesJarTask, String buildType) {
-        String assembleTaskDep = getAssembleTaskName(project)
+    private void createSourcesJarDep(Jar sourcesJarTask) {
+        String assembleTaskDep = getAssembleTaskName()
         println "Using task '${assembleTaskDep}' to generate the sources JAR."
         sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
-    }
-
-    static String baseName(File file) {
-        return file.name.replaceFirst(~/\.[^\.]+$/, '')
     }
 
     static String extension(String name) {
@@ -318,7 +320,7 @@ class AndroidPlatform extends Platform {
         } else if ((new File("${appPath}/${srcSimple}")).exists()) {
             println "Using sources: ${srcSimple}"
             sourcesJarTask.from srcSimple
-        } else if (isDefinedSubProject(project)) {
+        } else if (isDefinedSubProject()) {
             throwRuntimeException("Could not find source directory")
         }
         String srcTestMaven = "src/test/java"
@@ -407,7 +409,7 @@ class AndroidPlatform extends Platform {
 
     @Override
     List<String> inputFiles() {
-        String packageTask = findPackageTask(project)
+        String packageTask = findPackageTask()
         println "Using non-library outputs from task ${packageTask}"
         List<String> ars = project.tasks.findByName(packageTask).outputs.files
                                .findAll { extension(it.name) == 'apk' ||
@@ -425,7 +427,7 @@ class AndroidPlatform extends Platform {
             return null
         }
 
-        String packageTask = findPackageTask(project)
+        String packageTask = findPackageTask()
         println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
