@@ -3,6 +3,7 @@ package org.clyze.doop.gradle
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.clyze.client.SourceProcessor
@@ -85,8 +86,12 @@ class JavaPlatform implements Platform {
     String jarTaskName() { return 'jar' }
 
     List<String> inputFiles(Project project) {
-        def jar = project.file(project.tasks.findByName(jarTaskName()).archivePath)
-        return [jar.canonicalPath]
+        AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
+        if (!jarTask) {
+            project.logger.error "Could not find jar task ${jarTaskName()}"
+            return [] as List<String>
+        }
+        return [project.file(jarTask.archiveFile).canonicalPath]
     }
 
     List<String> libraryFiles(Project project) {

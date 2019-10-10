@@ -241,15 +241,10 @@ class AndroidPlatform implements Platform {
 
     private static void createSourcesJarDep(Project project, Jar sourcesJarTask,
                                             String flavor, String buildType) {
-        String assembleTaskDep
         String flavorPart = flavor == null ? "" : flavor.capitalize()
-        switch (buildType) {
-            case 'debug':
-                assembleTaskDep = "assemble${flavorPart}Debug"
-                break
-            case 'release':
-                assembleTaskDep = "assemble${flavorPart}Release"
-                break
+        String assembleTaskDep = "assemble${flavorPart}" + buildType.capitalize()
+        if (buildType != 'debug' && buildType != 'release') {
+            println "Unknown buildType ${buildType}, assuming task: ${assembleTaskDep}"
         }
         println "Using task '${assembleTaskDep}' to generate the sources JAR."
         sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
@@ -301,7 +296,7 @@ class AndroidPlatform implements Platform {
 
     void gatherSources(Project project, Jar sourcesJarTask) {}
 
-    void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String flavorDir) {
+    static void gatherSourcesAfterEvaluate(Project project, Jar sourcesJarTask, String flavorDir) {
         String subprojectName = getSubprojectName(DoopExtension.of(project))
         String appPath = "${project.rootDir}/${subprojectName}"
 
@@ -345,7 +340,7 @@ class AndroidPlatform implements Platform {
         try {
             return Class.forName(s)
         } catch (ClassNotFoundException ex) {
-            println "WARNING: class ${s} not found in Android Gradle plugin."
+            println "WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}"
             return null
         }
     }
@@ -353,7 +348,7 @@ class AndroidPlatform implements Platform {
     // Read the configuration files of all appropriate transform tasks
     // set up by the Android Gradle plugin. This uses the internal API
     // of the Android Gradle plugin.
-    void readConfigurationFiles(Project project) {
+    static void readConfigurationFiles(Project project) {
         Class transformTask = getInternalClass("com.android.build.gradle.internal.pipeline.TransformTask")
         Class pgTransform = getInternalClass("com.android.build.gradle.internal.transforms.ProguardConfigurable")
 
@@ -404,11 +399,11 @@ class AndroidPlatform implements Platform {
     List<String> inputFiles(Project project) {
         String packageTask = findPackageTask(project)
         println "Using non-library outputs from task ${packageTask}"
-        def ars = project.tasks.findByName(packageTask).outputs.files
+        List<String> ars = project.tasks.findByName(packageTask).outputs.files
                                .findAll { extension(it.name) == 'apk' ||
                                           extension(it.name) == 'aar' }
                                .collect { it.canonicalPath }
-                               .toList()
+                               .toList() as List<String>
         println "Calculated non-library outputs: ${ars}"
         return ars
     }
@@ -454,11 +449,10 @@ class AndroidPlatform implements Platform {
             cpList = cp.getAsURIs()
         }
 
-        if (cpList != null) {
-            return cpList.collect().join(File.pathSeparator).replaceAll('file://', '')
-        } else {
+        if (cpList == null) {
             throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin, cLoader is ' + cLoader)
         }
+        return cpList.collect().join(File.pathSeparator).replaceAll('file://', '')
     }
 
     private static String checkAndGetBuildType(DoopExtension doop) {
@@ -476,14 +470,13 @@ class AndroidPlatform implements Platform {
     }
 
     static String getSubprojectName(DoopExtension doop, boolean crash = true) {
-	if (doop.subprojectName == null) {
-	    if (crash) {
-		throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
-	    } else {
-		return ""
-	    }
-	} else
-	    return doop.subprojectName
+        if (doop.subprojectName == null) {
+            if (crash) {
+                throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+            }
+            return ""
+        } else
+            return doop.subprojectName
     }
 
     // Android projects may have project.name be the default name of
@@ -519,7 +512,7 @@ class AndroidPlatform implements Platform {
      * @parameter project   the current project
      */
     private static void configureCompileHook(Project project) {
-        def tasks = project.tasks.findAll { it instanceof JavaCompile }
+        Set<JavaCompile> tasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
         if (tasks.size() == 0) {
             project.logger.error "Could not integrate metadata processor, no compile tasks found."
             return

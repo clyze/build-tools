@@ -78,7 +78,7 @@ class DoopExtension {
         }
     }
 
-    public static DoopExtension of(Project project) {
+    static DoopExtension of(Project project) {
         String sectionName = "doop"
         Object sec = project.extensions.getByName(sectionName)
         if (sec == null) {

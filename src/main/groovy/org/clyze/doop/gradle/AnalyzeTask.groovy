@@ -132,7 +132,7 @@ class AnalyzeTask extends DefaultTask {
         PostState ps = new PostState(id:"analysis")
 
         def json = Helper.createCommandForOptionsDiscovery("ANALYSIS", new DefaultHttpClientLifeCycle()).execute(doop.host, doop.port)
-        Set<String> supportedOptionIds = json.options.collect { it.id.toLowerCase() } as Set
+        Set<String> supportedOptionIds = json.options.collect { it.id.toLowerCase() } as Set<String>
         doop.options.each { k, v ->
             if (supportedOptionIds.contains(k)) {
                 ps.addStringInput(k.toUpperCase(), v as String)

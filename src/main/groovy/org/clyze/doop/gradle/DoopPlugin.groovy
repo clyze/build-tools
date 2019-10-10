@@ -113,9 +113,9 @@ class DoopPlugin implements Plugin<Project> {
 	    task.dependsOn project.tasks.findByName(platform.jarTaskName())
         }
 
-        task.archiveName = 'metadata.zip'
+        task.archiveFileName = 'metadata.zip'
         File scavengeDir = DoopExtension.of(project).scavengeOutputDir
-        task.destinationDir = scavengeDir
+        task.destinationDirectory = scavengeDir
         File jsonOutput = new File(scavengeDir, "json")
         task.from jsonOutput
     }
@@ -134,7 +134,7 @@ class DoopPlugin implements Plugin<Project> {
         }
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
-        task.classifier = 'sources'
+        task.archiveClassifier.set('sources')
 
         platform.gatherSources(project, task)
     }
