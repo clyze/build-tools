@@ -14,20 +14,35 @@ import groovy.transform.CompileStatic
  */
 
 @CompileStatic
-interface Platform {
-  void copyCompilationSettings(Project project, JavaCompile task)
-  void markMetadataToFix(Project project)
-  void createScavengeDependency(Project project, JavaCompile scavengeTask)
-  void gatherSources(Project project, Jar sourcesJarTask)
-  void configureCodeJarTask(Project project)
-  String jarTaskName()
-  List<String> inputFiles(Project project)
-  List<String> libraryFiles(Project project)
-  String getClasspath(Project project)
-  String getProjectName(Project project)
-  boolean mustRunAgain()
-  void cleanUp()
-  // True if the metadata processor runs in a separate Gradle task,
-  // false if the processor is integrated in an existing task.
-  boolean explicitScavengeTask()
+abstract class Platform {
+
+    protected Project project
+    protected DoopExtension doopExt = null
+
+    Platform(Project project) {
+        this.project = project
+    }
+
+    protected getDoop() {
+        if (!doopExt) {
+            doopExt = DoopExtension.of(project)
+        }
+        return doopExt
+    }
+
+    abstract void copyCompilationSettings(JavaCompile task)
+    abstract void markMetadataToFix()
+    abstract void createScavengeDependency(JavaCompile scavengeTask)
+    abstract void gatherSources(Jar sourcesJarTask)
+    abstract void configureCodeJarTask()
+    abstract String jarTaskName()
+    abstract List<String> inputFiles()
+    abstract List<String> libraryFiles()
+    abstract String getClasspath()
+    abstract String getProjectName()
+    abstract boolean mustRunAgain()
+    abstract void cleanUp()
+    // True if the metadata processor runs in a separate Gradle task,
+    // false if the processor is integrated in an existing task.
+    abstract boolean explicitScavengeTask()
 }

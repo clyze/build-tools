@@ -6,12 +6,15 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
+import groovy.transform.InheritConstructors
 import org.clyze.client.SourceProcessor
 import static org.clyze.doop.gradle.DoopPlugin.*
 
-class JavaPlatform implements Platform {
+@InheritConstructors
+class JavaPlatform extends Platform {
 
-    void copyCompilationSettings(Project project, JavaCompile task) {
+    @Override
+    void copyCompilationSettings(JavaCompile task) {
         JavaCompile projectDefaultTask = project.tasks.findByName("compileJava") as JavaCompile
         task.classpath = projectDefaultTask.classpath
         Set<File> source = projectDefaultTask.source.getFiles()
@@ -38,7 +41,8 @@ class JavaPlatform implements Platform {
      * - Set up 'sourcesJar' task according to 'useSourcesJar' parameter.
      *
      */
-    void markMetadataToFix(Project project) {
+    @Override
+    void markMetadataToFix() {
         project.afterEvaluate {
             DoopExtension doop = DoopExtension.of(project)
 
@@ -67,9 +71,11 @@ class JavaPlatform implements Platform {
         }
     }
 
-    void createScavengeDependency(Project project, JavaCompile scavengeTask) {}
+    @Override
+    void createScavengeDependency(JavaCompile scavengeTask) {}
 
-    void gatherSources(Project project, Jar sourcesJarTask) {
+    @Override
+    void gatherSources(Jar sourcesJarTask) {
         sourcesJarTask.from project.sourceSets.main.allSource
 
         final String TEST_SOURCE_SET = "test"
@@ -81,11 +87,14 @@ class JavaPlatform implements Platform {
 
     // No code JAR task is created, the 'java' gradle plugin already
     // provides 'jar'.
-    void configureCodeJarTask(Project project) {}
+    @Override
+    void configureCodeJarTask() {}
 
+    @Override
     String jarTaskName() { return 'jar' }
 
-    List<String> inputFiles(Project project) {
+    @Override
+    List<String> inputFiles() {
         AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
         if (!jarTask) {
             project.logger.error "Could not find jar task ${jarTaskName()}"
@@ -94,29 +103,35 @@ class JavaPlatform implements Platform {
         return [project.file(jarTask.archiveFile).canonicalPath]
     }
 
-    List<String> libraryFiles(Project project) {
+    @Override
+    List<String> libraryFiles() {
         List<String> extraInputFiles = DoopExtension.of(project).getExtraInputFiles(project.rootDir)
         List<String> runtimeFiles = project.configurations.runtime.files.collect { it.canonicalPath }
         return runtimeFiles + extraInputFiles
     }
 
-    String getClasspath(Project project) {
+    @Override
+    String getClasspath() {
         def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
         //TODO: Filter-out not required jars
         return buildScriptConf.collect().join(File.pathSeparator)
     }
 
-    String getProjectName(Project project) {
-	return project.name
+    @Override
+    String getProjectName() {
+	    return project.name
     }
 
+    @Override
     boolean mustRunAgain() {
         return false
     }
 
+    @Override
     void cleanUp() { }
 
     // In Java mode, always use an explicit "scavenge" Gradle task.
+    @Override
     boolean explicitScavengeTask() {
         return true
     }

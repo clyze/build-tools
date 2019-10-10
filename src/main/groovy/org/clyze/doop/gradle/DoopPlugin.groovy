@@ -32,10 +32,10 @@ class DoopPlugin implements Plugin<Project> {
         //verify that the appropriate plugins have been applied
         if (project.plugins.hasPlugin('java')) {
             println "Project platform: Java"
-            platform = new JavaPlatform()
+            platform = new JavaPlatform(project)
         } else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
             println "Project platform: Android"
-            platform = new AndroidPlatform(project.plugins.hasPlugin('com.android.library'))
+            platform = new AndroidPlatform(project)
         } else {
             throw new RuntimeException('One of these plugins should be applied before Doop: java, android, com.android.application, com.android.library')
         }
@@ -48,15 +48,22 @@ class DoopPlugin implements Plugin<Project> {
         configureDefaults(project)
 
         //configure the tasks
-        platform.configureCodeJarTask(project)
+        project.logger.debug "[DOOP] Configuring code jar task"
+        platform.configureCodeJarTask()
         if (platform.explicitScavengeTask()) {
+            project.logger.debug "[DOOP] Configuring scavenge task"
             configureScavengeTask(project)
         }
+        project.logger.debug "[DOOP] Configuring jcplugin task"
         configureJCPluginZipTask(project)
+        project.logger.debug "[DOOP] Configuring sources task"
         configureSourceJarTask(project)
+        project.logger.debug "[DOOP] Configuring analyze task"
         configureAnalyzeTask(project)
+        project.logger.debug "[DOOP] Configuring replay task"
         configureReplayPostTask(project)
-        platform.markMetadataToFix(project)
+        project.logger.debug "[DOOP] Performing late configuration"
+        platform.markMetadataToFix()
 
         //update the project's artifacts
         project.artifacts {
@@ -67,7 +74,7 @@ class DoopPlugin implements Plugin<Project> {
     private void configureDefaults(Project project) {
         DoopExtension doop = DoopExtension.of(project)
         doop.orgName = project.group
-        doop.projectName = platform.getProjectName(project)
+        doop.projectName = platform.getProjectName()
         doop.projectVersion = project.version?.toString()
         doop.scavengeOutputDir = project.file("build/scavenge")        
         doop.options = [ 'analysis': 'context-insensitive' ] as Map
@@ -79,10 +86,10 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
 
         // Copy the project's Java compilation settings.
-        platform.copyCompilationSettings(project, task)
+        platform.copyCompilationSettings(task)
 
         // Our custom settings.
-        String processorPath = platform.getClasspath(project)
+        String processorPath = platform.getClasspath()
         println "Using processor path: ${processorPath}"
 
         File dest = DoopExtension.of(project).scavengeOutputDir
@@ -92,7 +99,7 @@ class DoopPlugin implements Plugin<Project> {
         // The compiler may fail when dependencies are missing, try to continue.
         task.options.failOnError = false
 
-        platform.createScavengeDependency(project, task)
+        platform.createScavengeDependency(task)
     }
 
     private static void addPluginCommandArgs(JavaCompile task, File dest) {
@@ -108,9 +115,9 @@ class DoopPlugin implements Plugin<Project> {
         // If a separate metadata generation task exists, depend on it;
         // otherwise depend on build task (which integrates metadata generation).
         if (platform.explicitScavengeTask()) {
-	    task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
+	        task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
         } else {
-	    task.dependsOn project.tasks.findByName(platform.jarTaskName())
+	        task.dependsOn project.tasks.findByName(platform.jarTaskName())
         }
 
         task.archiveFileName = 'metadata.zip'
@@ -136,7 +143,7 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
         task.archiveClassifier.set('sources')
 
-        platform.gatherSources(project, task)
+        platform.gatherSources(task)
     }
 
     private void configureAnalyzeTask(Project project) {

@@ -84,7 +84,7 @@ class AnalyzeTask extends DefaultTask {
         }
 
         // Filter out empty inputs.
-        p.inputFiles(project).findAll(Helper.checkFileEmpty).each {
+        p.inputFiles().findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("INPUTS", it)
         }
 
@@ -93,7 +93,7 @@ class AnalyzeTask extends DefaultTask {
         ps.addFileInput("JCPLUGIN_METADATA", jcPluginMetadata.canonicalPath)
 
         // Filter out empty libraries.
-        p.libraryFiles(project).findAll(Helper.checkFileEmpty).each {
+        p.libraryFiles().findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("LIBRARIES", it)
         }
 
