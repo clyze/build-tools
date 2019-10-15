@@ -52,7 +52,7 @@ class AndroidPlatform extends Platform {
         task.classpath = project.files()
     }
 
-    // This must happen afteEvaluate().
+    // This must happen afterEvaluate().
     void copySourceSettings(JavaCompile task) {
         for (def set1 : project.android.sourceSets) {
             if (set1.name == "main") {
