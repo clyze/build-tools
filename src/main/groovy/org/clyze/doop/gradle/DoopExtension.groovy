@@ -86,14 +86,4 @@ class DoopExtension {
         }
         return (sec instanceof DoopExtension) ? sec : null
     }
-
-    // Returns the build type.
-    String getBuildType() {
-        if (this.buildType == null) {
-            throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
-        } else if ((this.buildType != 'debug') && (this.buildType != 'release')) {
-            project.logger.info "Property doop.buildType should probably be 'debug' or 'release' (current value: ${this.buildType})."
-        }
-        return this.buildType
-    }
 }

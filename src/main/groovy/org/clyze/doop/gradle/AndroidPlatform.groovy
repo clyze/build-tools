@@ -212,10 +212,20 @@ class AndroidPlatform extends Platform {
         scavengeDeps.addAll(extraInputs)
     }
 
+    // Returns the build type.
+    String getBuildType() {
+        if (doop.buildType == null) {
+            throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
+        } else if ((doop.buildType != 'debug') && (doop.buildType != 'release')) {
+            project.logger.info "Property doop.buildType should probably be 'debug' or 'release' (current value: ${doop.buildType})."
+        }
+        return doop.buildType
+    }
+
     private String getAssembleTaskName() {
         String flavor = doop.flavor
         String flavorPart = flavor == null ? "" : flavor.capitalize()
-        String buildType = doop.buildType
+        String buildType = getBuildType()
         if (!buildType) {
             throw new RuntimeException("Error: could not determine build type")
         }
@@ -381,7 +391,7 @@ class AndroidPlatform extends Platform {
 
     // Returns the task that will package the compiled code as an .apk or .aar.
     String getPackageTaskName() {
-        String buildType = doop.buildType
+        String buildType = getBuildType()
         String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
         String prefix = isLibrary? "bundle" : "package"
         // String sub = getSubprojectName()
@@ -446,7 +456,7 @@ class AndroidPlatform extends Platform {
     }
 
     private String getFlavorDir() {
-        String buildType = doop.buildType
+        String buildType = getBuildType()
         String flavor = doop.flavor
         return flavor == null? "${buildType}" : "${flavor}/${buildType}"
     }
