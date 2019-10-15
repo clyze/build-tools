@@ -1,14 +1,11 @@
 package org.clyze.doop.gradle
 
-import org.gradle.api.Project
-import org.gradle.api.Task
+import groovy.transform.InheritConstructors
+import org.clyze.client.SourceProcessor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
-import groovy.transform.InheritConstructors
-import org.clyze.client.SourceProcessor
-import static org.clyze.doop.gradle.DoopPlugin.*
 
 @InheritConstructors
 class JavaPlatform extends Platform {
@@ -56,16 +53,16 @@ class JavaPlatform extends Platform {
             List<String> extras = doop.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
                 String extraCp = extras.join(File.pathSeparator)
-                JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
+                JavaCompile scavengeTask = project.tasks.findByName(DoopPlugin.TASK_SCAVENGE) as JavaCompile
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
             }
 
             String sourcesJar = doop.useSourcesJar
             if (sourcesJar != null) {
-                println "No setup for '${TASK_SOURCES_JAR}' task, using: ${sourcesJar}"
+                println "No setup for '${DoopPlugin.TASK_SOURCES_JAR}' task, using: ${sourcesJar}"
             } else {
-                Jar sourcesJarTask = project.tasks.findByName(TASK_SOURCES_JAR) as Jar
+                Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR) as Jar
                 sourcesJarTask.dependsOn project.tasks.findByName('classes')
             }
         }

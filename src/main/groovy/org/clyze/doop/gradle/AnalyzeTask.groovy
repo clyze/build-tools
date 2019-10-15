@@ -1,16 +1,12 @@
 package org.clyze.doop.gradle
 
+import java.nio.file.Files
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.clyze.client.web.http.DefaultHttpClientLifeCycle
-import org.clyze.client.web.api.Remote
-
-import org.gradle.api.Project
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
-
-import java.nio.file.Files
-
 
 class AnalyzeTask extends DefaultTask {
 

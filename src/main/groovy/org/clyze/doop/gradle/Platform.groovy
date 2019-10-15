@@ -1,10 +1,9 @@
 package org.clyze.doop.gradle
 
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.bundling.Jar
 import groovy.transform.CompileStatic
+import org.gradle.api.Project
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.JavaCompile
 
 /**
  * The Java platform used: plain Java or Android. Each platform is

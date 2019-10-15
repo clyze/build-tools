@@ -1,7 +1,6 @@
 package org.clyze.doop.gradle
 
 import org.clyze.client.web.PostState
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.InputDirectory
