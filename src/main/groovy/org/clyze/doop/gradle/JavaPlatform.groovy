@@ -1,12 +1,16 @@
 package org.clyze.doop.gradle
 
 import groovy.transform.InheritConstructors
+import groovy.transform.TypeChecked
 import org.clyze.client.SourceProcessor
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
+@TypeChecked
 @InheritConstructors
 class JavaPlatform extends Platform {
 
@@ -21,7 +25,7 @@ class JavaPlatform extends Platform {
         if (projectTestTask != null) {
             // We cannot combine the classpaths from the two tasks to create a
             // new classpath (Gradle complains), so we must use 'extraInputs'.
-            println "WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in the build.gradle to fix missing classpath entries."
+            println "WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in build.gradle to fix missing classpath entries."
             source.addAll(projectTestTask.source.getFiles())
         }
 
@@ -73,12 +77,13 @@ class JavaPlatform extends Platform {
 
     @Override
     void gatherSources(Jar sourcesJarTask) {
-        sourcesJarTask.from project.sourceSets.main.allSource
+        SourceSetContainer sourceSets = JavaAPI.getSourceSets(project)
+        sourcesJarTask.from JavaAPI.getMainSources(project)
 
         final String TEST_SOURCE_SET = "test"
-        if (project.sourceSets.hasProperty(TEST_SOURCE_SET)) {
+        if (sourceSets.hasProperty(TEST_SOURCE_SET)) {
             println "Also adding sources from ${TEST_SOURCE_SET}"
-            sourcesJarTask.from project.sourceSets.test.allSource
+            sourcesJarTask.from JavaAPI.getTestSources(project)
         }
     }
 
@@ -103,15 +108,16 @@ class JavaPlatform extends Platform {
     @Override
     List<String> libraryFiles() {
         List<String> extraInputFiles = DoopExtension.of(project).getExtraInputFiles(project.rootDir)
-        List<String> runtimeFiles = project.configurations.runtime.files.collect { it.canonicalPath }
+        println "project configuration type: ${project.configurations.class}"
+        List<String> runtimeFiles = JavaAPI.getRuntimeFiles(project)
         return runtimeFiles + extraInputFiles
     }
 
     @Override
     String getClasspath() {
-        def buildScriptConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
+        Configuration clConf = project.getBuildscript().configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION)
         //TODO: Filter-out not required jars
-        return buildScriptConf.collect().join(File.pathSeparator)
+        return clConf.collect().join(File.pathSeparator)
     }
 
     @Override
