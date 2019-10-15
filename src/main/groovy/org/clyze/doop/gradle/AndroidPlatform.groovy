@@ -129,44 +129,8 @@ class AndroidPlatform extends Platform {
                 return
             }
 
-            def subprojectName = getSubprojectName()
-            def appBuildHome = "${project.rootDir}/${subprojectName}/build"
-
-            String buildType = doop.buildType
-            String flavorDir = getFlavorDir(doop.flavor, buildType)
-
-            // Resolve dependencies if using an explicit scavenge task.
-            JavaCompile scavengeTask = null
-            if (explicitScavengeTask()) {
-                Set<String> deps = resolveDeps(appBuildHome)
-                scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
-                copySourceSettings(scavengeTask)
-
-                // The scavenge classpath prefix contains Android core
-                // libraries and the location of R*.class files.  Its
-                // contents are not to be uploaded, so it is kept separate
-                // from the rest of the classpath.
-                Set<String> scavengeJarsPre = new HashSet<>()
-                project.android.getBootClasspath().collect {
-                    scavengeJarsPre << it.canonicalPath
-                }
-                scavengeJarsPre << ("${appBuildHome}/intermediates/classes/${flavorDir}" as String)
-                // Calculate the scavenge classpath.
-                calcScavengeDeps(deps)
-
-                // Construct scavenge classpath, checking if all parts exist.
-                tmpDirs = new HashSet<>()
-                Set<String> cp = new HashSet<>()
-                cp.addAll(scavengeJarsPre)
-                cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
-                cp.each {
-                    if (!(new File(it)).exists())
-                        println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
-                }
-                scavengeTask.options.compilerArgs << "-cp"
-                scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
-                cachedDeps.addAll(deps.collect { new File(it) })
-            }
+            String flavorDir = getFlavorDir()
+            String appBuildHome = getAppBuildDir()
 
             // Update location of class files for JAR task.
             Jar jarTask = project.tasks.findByName(TASK_CODE_JAR) as Jar
@@ -182,6 +146,7 @@ class AndroidPlatform extends Platform {
                 def genSourceDirs = findGeneratedSourceDirs(appBuildHome, flavorDir)
                 genSourceDirs.each { dir -> sourcesJarTask.from dir}
                 if (explicitScavengeTask()) {
+                    JavaCompile scavengeTask = project.tasks.findByName(TASK_SCAVENGE) as JavaCompile
                     if (scavengeTask) {
                         scavengeTask.source(genSourceDirs)
                     } else {
@@ -304,9 +269,48 @@ class AndroidPlatform extends Platform {
         return genSourceDirs
     }
 
+    private String getAppBuildDir() {
+        String subprojectName = getSubprojectName()
+        return "${project.rootDir}/${subprojectName}/build"
+    }
+
+    // This happens 'afterEvaluate', since the doop section must have
+    // already been read (to determine build-type-specific tasks).
     @Override
     void createScavengeDependency(JavaCompile scavengeTask) {
-        scavengeTask.dependsOn project.tasks.findByName(assembleTaskName)
+        project.afterEvaluate {
+            copySourceSettings(scavengeTask)
+            scavengeTask.dependsOn project.tasks.findByName(assembleTaskName)
+
+            // The scavenge classpath prefix contains Android core
+            // libraries and the location of R*.class files.  Its
+            // contents are not to be uploaded, so it is kept separate
+            // from the rest of the classpath.
+            Set<String> scavengeJarsPre = new HashSet<>()
+            project.android.getBootClasspath().collect {
+                scavengeJarsPre << it.canonicalPath
+            }
+            String appBuildHome = getAppBuildDir()
+            String flavorDir = getFlavorDir()
+            scavengeJarsPre << ("${appBuildHome}/intermediates/classes/${flavorDir}" as String)
+
+            // Resolve dependencies to calculate the scavenge classpath.
+            Set<String> deps = resolveDeps(appBuildHome)
+            calcScavengeDeps(deps)
+
+            // Construct scavenge classpath, checking if all parts exist.
+            tmpDirs = new HashSet<>()
+            Set<String> cp = new HashSet<>()
+            cp.addAll(scavengeJarsPre)
+            cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
+            cp.each {
+                if (!(new File(it)).exists())
+                    println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
+            }
+            scavengeTask.options.compilerArgs << "-cp"
+            scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
+            cachedDeps.addAll(deps.collect { new File(it) })
+        }
     }
 
     @Override
@@ -476,7 +480,9 @@ class AndroidPlatform extends Platform {
         return cpList.collect().join(File.pathSeparator).replaceAll('file://', '')
     }
 
-    private static String getFlavorDir(String flavor, String buildType) {
+    private String getFlavorDir() {
+        String buildType = doop.buildType
+        String flavor = doop.flavor
         return flavor == null? "${buildType}" : "${flavor}/${buildType}"
     }
 
