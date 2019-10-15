@@ -10,8 +10,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classpath.ClassPath
 
 import static org.clyze.utils.JHelper.throwRuntimeException
 
@@ -444,8 +442,7 @@ class AndroidPlatform extends Platform {
             URLClassLoader cl = (URLClassLoader)cLoader
             cpList = cl.getURLs()
         } else {
-            ClassPath cp = ClasspathUtil.getClasspath(cLoader)
-            cpList = cp.getAsURIs()
+            cpList = AndroidAPI.getAsURIs(cLoader)
         }
 
         if (cpList == null) {

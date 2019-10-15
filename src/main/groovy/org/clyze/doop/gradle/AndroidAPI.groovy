@@ -3,9 +3,11 @@ package org.clyze.doop.gradle
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classpath.ClassPath
 
-// This class provides access to the Android Gradle API without a
-// compile-time dependency.
+// This class provides access to the Android Gradle API (including
+// internals) without a compile-time dependency.
 class AndroidAPI {
     static void forEachSourceFile(Project project, def closure) {
         for (def set1 : project.android.sourceSets) {
@@ -65,5 +67,10 @@ class AndroidAPI {
                 }
             }
         }
+    }
+
+    static List<URI> getAsURIs(ClassLoader cLoader) {
+        ClassPath cp = ClasspathUtil.getClasspath(cLoader)
+        return cp.getAsURIs()
     }
 }
