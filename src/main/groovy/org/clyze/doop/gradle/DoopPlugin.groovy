@@ -102,7 +102,7 @@ class DoopPlugin implements Plugin<Project> {
         platform.createScavengeDependency(task)
     }
 
-    public static void addPluginCommandArgs(JavaCompile task, File dest) {
+    static void addPluginCommandArgs(JavaCompile task, File dest) {
         File jsonOutput = new File(dest as File, "json")
         task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
     }
