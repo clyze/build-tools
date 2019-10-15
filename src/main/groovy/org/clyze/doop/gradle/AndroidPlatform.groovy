@@ -1,13 +1,14 @@
 package org.clyze.doop.gradle
 
 import groovy.io.FileType
-// import groovy.transform.TypeChecked
+import groovy.transform.TypeChecked
 import org.apache.commons.io.FileUtils
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.internal.classpath.ClassPath
@@ -16,7 +17,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import static org.clyze.doop.gradle.DoopPlugin.*
 import static org.clyze.utils.JHelper.throwRuntimeException
 
-// @TypeChecked
+@TypeChecked
 class AndroidPlatform extends Platform {
 
     // The name of the Doop Gradle plugin task that will generate the
@@ -54,21 +55,20 @@ class AndroidPlatform extends Platform {
 
     // This must happen afterEvaluate().
     void copySourceSettings(JavaCompile task) {
-        for (def set1 : project.android.sourceSets) {
-            if (set1.name == "main") {
-                def srcFiles = set1.java.sourceFiles
+        AndroidAPI.forEachSourceFile(
+            project,
+            { FileTree srcFiles ->
                 // Check if no Java sources were found. This may be a
                 // user error (not specifying a 'subprojectName' in
                 // build.gradle but it can also naturally occur during
                 // the configuration of the top-level project that is
                 // just a container of sub-projects.
                 if ((srcFiles.size() == 0) && (isDefinedSubProject())) {
-                    throwRuntimeException("No Java source files found for subproject " + subprojectName)
+                    throwRuntimeException("No Java source files found for subproject " + doop.subprojectName)
                 } else {
                     task.source = srcFiles
                 }
-            }
-        }
+            })
         if (task.source == null) {
             throwRuntimeException("Could not find sourceSet")
         }
@@ -287,9 +287,8 @@ class AndroidPlatform extends Platform {
             // contents are not to be uploaded, so it is kept separate
             // from the rest of the classpath.
             Set<String> scavengeJarsPre = new HashSet<>()
-            project.android.getBootClasspath().collect {
-                scavengeJarsPre << it.canonicalPath
-            }
+            AndroidAPI.forEachClasspathEntry(project, { String s -> scavengeJarsPre << s })
+
             String appBuildHome = getAppBuildDir()
             String flavorDir = getFlavorDir()
             scavengeJarsPre << ("${appBuildHome}/intermediates/classes/${flavorDir}" as String)
@@ -359,44 +358,15 @@ class AndroidPlatform extends Platform {
         codeJarTask.dependsOn project.tasks.findByName(assembleTaskName)
     }
 
-    // Get an internal class from the Android Gradle plugin.
-    private static Class getInternalClass(String s) {
-        try {
-            return Class.forName(s)
-        } catch (ClassNotFoundException ex) {
-            println "WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}"
-            return null
-        }
-    }
-
     // Read the configuration files of all appropriate transform tasks
     // set up by the Android Gradle plugin. This uses the internal API
     // of the Android Gradle plugin.
     void readConfigurationFiles() {
-        Class transformTask = getInternalClass("com.android.build.gradle.internal.pipeline.TransformTask")
-        Class pgTransform = getInternalClass("com.android.build.gradle.internal.transforms.ProguardConfigurable")
-
-        if (!transformTask || !pgTransform) {
-            project.logger.info "Could not access internal Android Gradle API, ProGuard files may not be automatically resolved and must be provided via option \"doop.configurationFiles\" in build.gradle."
-            return
-        }
-
         Set<File> allPros = new HashSet<>()
-        project.tasks.each {
-            if (transformTask.isInstance(it)) {
-                try {
-                    if (it.transform && pgTransform.isInstance(it.transform)) {
-                        project.logger.info "Processing configuration files in transform: ${it} (${it.class} extends ${it.class.superclass})"
-                        FileCollection pros = it.transform.getAllConfigurationFiles()
-                        allPros.addAll(pros)
-                    } else {
-                        project.logger.debug "Ignoring transform task: ${it}"
-                    }
-                } catch (Throwable t) {
-                    println "Error reading task ${it.transform}: ${t.message}"
-                }
-            }
-        }
+        AndroidAPI.forEachTransform(
+            project,
+            { FileCollection pros -> allPros.addAll(pros) })
+
         project.logger.info "Found ${allPros.size()} configuration files:"
         if (!doop.configurationFiles) {
             doop.configurationFiles = new ArrayList<>()
@@ -423,11 +393,7 @@ class AndroidPlatform extends Platform {
     List<String> inputFiles() {
         String packageTask = getPackageTaskName()
         println "Using non-library outputs from task ${packageTask}"
-        List<String> ars = project.tasks.findByName(packageTask).outputs.files
-                               .findAll { extension(it.name) == 'apk' ||
-                                          extension(it.name) == 'aar' }
-                               .collect { it.canonicalPath }
-                               .toList() as List<String>
+        List<String> ars = AndroidAPI.getOutputs(project, packageTask)
         println "Calculated non-library outputs: ${ars}"
         return ars
     }
@@ -541,7 +507,7 @@ class AndroidPlatform extends Platform {
 
         tasks.each { task ->
             project.logger.info "Plugging metadata processor into task ${task.name}"
-            addPluginCommandArgs(task, doop.scavengeOutputDir)
+            DoopPlugin.addPluginCommandArgs(task, doop.scavengeOutputDir)
         }
     }
 }
