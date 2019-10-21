@@ -37,6 +37,9 @@ dependencies {
 }
 ```
 
+Android integration has been tested with version 3.3.2 of the Android
+Gradle plugin (dependency "com.android.tools.build:gradle:3.3.2").
+
 ## Running the 'analyze' task on a Java application ##
 
 Assume a Java application that can be built by OpenJDK and has a
