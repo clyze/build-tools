@@ -216,6 +216,12 @@ class AndroidPlatform extends Platform {
         } else if ((doop.buildType != 'debug') && (doop.buildType != 'release')) {
             project.logger.info "Property doop.buildType should probably be 'debug' or 'release' (current value: ${doop.buildType})."
         }
+
+        Set<String> bTypes = AndroidAPI.getBuildTypes(project)
+        if (!bTypes.contains(doop.buildType)) {
+            println "WARNING: Build type not found in project: ${doop.buildType} (values: ${bTypes})"
+        }
+
         return doop.buildType
     }
 

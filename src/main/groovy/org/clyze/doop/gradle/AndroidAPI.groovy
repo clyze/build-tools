@@ -73,4 +73,18 @@ class AndroidAPI {
         ClassPath cp = ClasspathUtil.getClasspath(cLoader)
         return cp.getAsURIs()
     }
+
+    static Set<String> getBuildTypes(Project project) {
+        Set<String> bTypes = new HashSet<>()
+        try {
+            project.android.applicationVariants.all { variant ->
+                bTypes.add(variant.buildType.name)
+            }
+        } catch (Throwable t) {
+            // Just print the error message, without crashing. The
+            // code above can fail but should only be used for warnings.
+            t.printStackTrace()
+        }
+        return bTypes
+    }
 }
