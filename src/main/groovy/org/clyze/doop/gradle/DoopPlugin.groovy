@@ -63,11 +63,6 @@ class DoopPlugin implements Plugin<Project> {
         configureReplayPostTask(project)
         project.logger.debug "[DOOP] Performing late configuration"
         platform.markMetadataToFix()
-
-        //update the project's artifacts
-        project.artifacts {
-            archives project.tasks.findByName(TASK_SOURCES_JAR)
-        }
     }
 
     private void configureDefaults(Project project) {
