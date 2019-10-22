@@ -74,11 +74,19 @@ class AndroidAPI {
         return cp.getAsURIs()
     }
 
+    static Set<Project> getInterestingProjects(Project project) {
+        Set<Project> projects = project.subprojects
+        projects.add(project)
+        return projects
+    }
+
     static Set<String> getBuildTypes(Project project) {
         Set<String> bTypes = new HashSet<>()
         try {
-            project.android.applicationVariants.all { variant ->
-                bTypes.add(variant.buildType.name)
+            getInterestingProjects(project).forEach { p ->
+                p.android.applicationVariants.all { variant ->
+                    bTypes.add(variant.buildType.name)
+                }
             }
         } catch (Throwable t) {
             // Just print the error message, without crashing. The
@@ -91,10 +99,12 @@ class AndroidAPI {
     static Set<String> getFlavors(Project project) {
         Set<String> pFlavors = new HashSet<>()
         try {
-            project.android.applicationVariants.all { variant ->
-                String fName = variant.flavorName
-                if (fName && fName != "") {
-                    pFlavors.add(fName)
+            getInterestingProjects(project).forEach { p ->
+                p.android.applicationVariants.all { variant ->
+                    String fName = variant.flavorName
+                    if (fName && fName != "") {
+                        pFlavors.add(fName)
+                    }
                 }
             }
         } catch (Throwable t) {
