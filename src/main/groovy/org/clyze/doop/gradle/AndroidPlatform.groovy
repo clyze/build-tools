@@ -438,12 +438,19 @@ class AndroidPlatform extends Platform {
                 project.logger.warn "WARNING: file does not exist: ${conf}"
                 return
             }
-            out.putNextEntry(new ZipEntry(conf.canonicalPath))
+            String entryName = conf.canonicalPath
+            // Strip root directory prefix from absolute paths.
+            if (entryName.startsWith(File.separator)) {
+                entryName = entryName.substring(1)
+            }
+            out.putNextEntry(new ZipEntry(entryName))
             byte[] data = Files.readAllBytes(conf.toPath())
             out.write(data, 0, data.length)
             out.closeEntry()
         }
         out.close()
+
+        project.logger.info "Configurations written to: ${confZip.canonicalPath}"
     }
 
     @Override
