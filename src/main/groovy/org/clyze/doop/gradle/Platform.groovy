@@ -15,6 +15,8 @@ import org.gradle.api.tasks.compile.JavaCompile
 @CompileStatic
 abstract class Platform {
 
+    private static final String DEFAULT_HOST = "localhost"
+
     protected Project project
     protected DoopExtension doopExt = null
 
@@ -36,8 +38,8 @@ abstract class Platform {
         // initialized to defaults).
         def err = { project.logger.error "ERROR: missing property: '${it}'" }
         if (doop.host == null) {
-            err 'host'
-            return false
+            project.logger.warn "WARNING: missing property 'host', assuming host=${DEFAULT_HOST}"
+            doop.host = DEFAULT_HOST
         }
         if (doop.port == 0) {
             err 'port'
