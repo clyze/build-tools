@@ -405,7 +405,7 @@ class AndroidPlatform extends Platform {
         Zip confTask = project.tasks.create(TASK_CONFIGURATIONS, Zip)
         confTask.description = 'Generates the configurations archive'
         confTask.group = DoopPlugin.DOOP_GROUP
-        confTask.archiveFileName.set('configurations.zip')
+        confTask.archiveFileName.set('configurations2.zip')
         confTask.destinationDir = doop.scavengeOutputDir
     }
 
