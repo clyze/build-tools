@@ -61,8 +61,9 @@ gradlePlugin {
 // Communicate jcplugin dependency to the Gradle plugin code, to be
 // inserted as a dependency on the target project.
 task writeMetadataDependecy() {
-    File j = new File('src/main/resources/jcplugin.version')
-    j.withWriterAppend { w -> w.writeLine(jcpluginVersion) }
+    String JCPLUGIN_VERSION = 'src/main/resources/jcplugin.version'
+    delete JCPLUGIN_VERSION
+    (new File(JCPLUGIN_VERSION)).withWriterAppend { w -> w.writeLine(jcpluginVersion) }
 }
 build.dependsOn writeMetadataDependecy
 
