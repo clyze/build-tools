@@ -92,7 +92,10 @@ class AndroidAPI {
         Set<String> pFlavors = new HashSet<>()
         try {
             project.android.applicationVariants.all { variant ->
-                pFlavors.add(variant.flavorName)
+                String fName = variant.flavorName
+                if (fName && fName != "") {
+                    pFlavors.add(fName)
+                }
             }
         } catch (Throwable t) {
             // Just print the error message, without crashing. The
