@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
@@ -184,7 +185,8 @@ class AndroidPlatform extends Platform {
                 configureCompileHook()
             }
 
-            readConfigurationFiles()
+            Task confTask = project.tasks.findByName(TASK_CONFIGURATIONS) as Task
+            confTask.dependsOn getAssembleTaskName()
         }
     }
 
@@ -400,13 +402,18 @@ class AndroidPlatform extends Platform {
         codeJarTask.dependsOn project.tasks.findByName(assembleTaskName)
     }
 
+    File getConfFile() {
+        return new File(doop.scavengeOutputDir, 'configurations.zip')
+    }
+
     @Override
     void configureConfigurationsTask() {
-        Zip confTask = project.tasks.create(TASK_CONFIGURATIONS, Zip)
+        Task confTask = project.tasks.create(TASK_CONFIGURATIONS, Task)
         confTask.description = 'Generates the configurations archive'
         confTask.group = DoopPlugin.DOOP_GROUP
-        confTask.archiveFileName.set('configurations2.zip')
-        confTask.destinationDir = doop.scavengeOutputDir
+        confTask.doFirst {
+            readConfigurationFiles()
+        }
     }
 
     // Read the configuration files of all appropriate transform tasks
@@ -431,7 +438,7 @@ class AndroidPlatform extends Platform {
             return
         }
 
-        File confZip = new File(doop.scavengeOutputDir, 'configurations.zip')
+        File confZip = getConfFile()
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip));
         allPros.each { File conf ->
             if (!conf.exists()) {
