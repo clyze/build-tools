@@ -120,7 +120,7 @@ class AndroidAPI {
         try {
             getInterestingProjects(project).forEach { p ->
                 p.android.applicationVariants.all { variant ->
-                    println "Examining: ${variant.buildType.name}"
+                    // println "Examining: ${variant.buildType.name}"
                     if (variant.buildType.name == buildType) {
                         ret = variant.buildType.minifyEnabled
                     }
