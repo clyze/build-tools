@@ -116,7 +116,7 @@ class DoopPlugin implements Plugin<Project> {
 	        task.dependsOn project.tasks.findByName(platform.jarTaskName())
         }
 
-        task.archiveFileName = 'metadata.zip'
+        task.archiveFileName.set('metadata.zip')
         File scavengeDir = DoopExtension.of(project).scavengeOutputDir
         task.destinationDirectory = scavengeDir
         File jsonOutput = new File(scavengeDir, "json")
@@ -135,6 +135,7 @@ class DoopPlugin implements Plugin<Project> {
         } else {
             throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
         }
+        task.archiveFileName.set('sources.zip')
         task.description = 'Generates the sources jar'
         task.group = DOOP_GROUP
         task.archiveClassifier.set('sources')
