@@ -49,7 +49,7 @@ class DoopPlugin implements Plugin<Project> {
         configureDefaults(project)
 
         //configure the tasks
-        project.logger.debug "[DOOP] Configuring code jar task"
+        project.logger.debug "[DOOP] Configuring code archive task"
         platform.configureCodeJarTask()
         if (platform.explicitScavengeTask()) {
             project.logger.debug "[DOOP] Configuring scavenge task"
@@ -137,8 +137,8 @@ class DoopPlugin implements Plugin<Project> {
         } else {
             throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
         }
-        task.archiveFileName.set('sources.zip')
-        task.description = 'Generates the sources jar'
+        task.archiveFileName.set('sources.jar')
+        task.description = 'Generates the sources JAR'
         task.group = DOOP_GROUP
         task.archiveClassifier.set('sources')
 
