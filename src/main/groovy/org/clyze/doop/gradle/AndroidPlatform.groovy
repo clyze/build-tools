@@ -106,8 +106,8 @@ class AndroidPlatform extends Platform {
     void markMetadataToFix() {
         project.afterEvaluate {
             // Read properties from build.gradle.
-            if (!doop.definesAndroidProperties()) {
-                println "Bad 'doop' section found in build.gradle, skipping configuration."
+            if (!doop.definesAndroidProperties(project)) {
+                project.logger.warn "WARNING: Bad 'doop' section found in build.gradle, skipping configuration."
                 return
             }
 
@@ -121,7 +121,7 @@ class AndroidPlatform extends Platform {
                     it.endsWith(DoopPlugin.TASK_ANALYZE) ||
                     it.endsWith(DoopPlugin.TASK_SOURCES_JAR)
                 }) {
-                println "No ${DoopPlugin.DOOP_GROUP} task invoked, skipping configuration."
+                project.logger.warn "WARNING: No ${DoopPlugin.DOOP_GROUP} task invoked, skipping configuration."
                 return
             }
 
@@ -219,7 +219,7 @@ class AndroidPlatform extends Platform {
 
         Set<String> bTypes = AndroidAPI.getBuildTypes(project)
         if (!bTypes.contains(doop.buildType)) {
-            println "WARNING: Build type not found in project: ${doop.buildType} (values: ${bTypes})"
+            project.logger.warn "WARNING: Build type not found in project: ${doop.buildType} (values: ${bTypes})"
         }
 
         return doop.buildType
@@ -241,7 +241,7 @@ class AndroidPlatform extends Platform {
 
     private void createSourcesJarDep(Jar sourcesJarTask) {
         String assembleTaskDep = getAssembleTaskName()
-        println "Using task '${assembleTaskDep}' to generate the sources JAR."
+        project.logger.info "Using task '${assembleTaskDep}' to generate the sources JAR."
         sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
     }
 
@@ -256,7 +256,7 @@ class AndroidPlatform extends Platform {
         def generatedSources = "${appBuildHome}/generated/source"
         File genDir = new File(generatedSources)
         if (!genDir.exists()) {
-            println "Generated sources dir does not exist: ${generatedSources}"
+            project.logger.warn "WARNING: Generated sources dir does not exist: ${generatedSources}"
             runAgain = true
             return []
         }
@@ -264,7 +264,7 @@ class AndroidPlatform extends Platform {
             dir.eachFile (FileType.DIRECTORIES) { bPath ->
                 if (bPath.canonicalPath.endsWith(flavorDir)) {
                     // Add subdirectories containing .java files.
-                    println "Adding sources in ${bPath}"
+                    project.logger.info "Adding sources in ${bPath}"
                     def containsJava = false
                     bPath.eachFileRecurse (FileType.FILES) { f ->
                         def fName = f.name
@@ -272,7 +272,7 @@ class AndroidPlatform extends Platform {
                             containsJava = true
                     }
                     if (containsJava) {
-                        println "Found generated Java sources in ${bPath}"
+                        project.logger.info "Found generated Java sources in ${bPath}"
                         genSourceDirs << bPath.getAbsolutePath()
                     }
                 }
@@ -318,7 +318,7 @@ class AndroidPlatform extends Platform {
             cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
             cp.each {
                 if (!(new File(it)).exists())
-                    println("AndroidPlatform warning: classpath entry to add does not exist: " + it)
+                    project.logger.warn "WARNING: classpath entry to add does not exist: ${it}"
             }
             scavengeTask.options.compilerArgs << "-cp"
             scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
@@ -341,22 +341,22 @@ class AndroidPlatform extends Platform {
         String srcMaven = "src/main/java"
         String srcSimple = "src/"
         if ((new File("${appPath}/${srcMaven}")).exists()) {
-            println "Using Maven-style source directories: ${srcMaven}"
+            project.logger.info "Using Maven-style source directories: ${srcMaven}"
             sourcesJarTask.from srcMaven
         } else if ((new File("${appPath}/${srcSimple}")).exists()) {
-            println "Using sources: ${srcSimple}"
+            project.logger.info "Using sources: ${srcSimple}"
             sourcesJarTask.from srcSimple
         } else if (isDefinedSubProject()) {
             throwRuntimeException("Could not find source directory")
         }
         String srcTestMaven = "src/test/java"
         if ((new File("${appPath}/${srcTestMaven}")).exists()) {
-            println "Using Maven-style test directories: ${srcTestMaven}"
+            project.logger.info "Using Maven-style test directories: ${srcTestMaven}"
             sourcesJarTask.from srcTestMaven
         }
         String srcAndroidTestMaven = "src/androidTest/java"
         if ((new File("${appPath}/${srcAndroidTestMaven}")).exists()) {
-            println "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
+            project.logger.info "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
             sourcesJarTask.from srcAndroidTestMaven
         }
     }
@@ -412,9 +412,9 @@ class AndroidPlatform extends Platform {
     @Override
     List<String> inputFiles() {
         String packageTask = getPackageTaskName()
-        println "Using non-library outputs from task ${packageTask}"
+        project.logger.info "Using non-library outputs from task ${packageTask}"
         List<String> ars = AndroidAPI.getOutputs(project, packageTask)
-        println "Calculated non-library outputs: ${ars}"
+        project.logger.info "Calculated non-library outputs: ${ars}"
         return ars
     }
 
@@ -426,7 +426,7 @@ class AndroidPlatform extends Platform {
         }
 
         String packageTask = getPackageTaskName()
-        println "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
+        project.logger.info "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
     }
