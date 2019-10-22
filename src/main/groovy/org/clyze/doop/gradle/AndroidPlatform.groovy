@@ -522,6 +522,30 @@ class AndroidPlatform extends Platform {
      * @parameter project   the current project
      */
     private void configureCompileHook() {
+        String jcpluginVersion = null
+
+        try {
+            String JCPLUGIN_VERSION_FILE = 'jcplugin.version'
+            InputStream is = this.class.classLoader.getResourceAsStream(JCPLUGIN_VERSION_FILE)
+            if (is) {
+                is.withCloseable {
+                    BufferedReader txtReader = new BufferedReader(new InputStreamReader(it))
+                    jcpluginVersion = txtReader.readLine()
+                }
+            } else {
+                println "Could not read resource: ${JCPLUGIN_VERSION_FILE}"
+            }
+        } catch (Throwable t) {
+            t.printStackTrace()
+        }
+
+        if (jcpluginVersion) {
+            project.dependencies.add('annotationProcessor', jcpluginVersion)
+        } else {
+            project.logger.warn "WARNING: Could not integrate metadata processor, sources will not be processed"
+            return
+        }
+
         Set<JavaCompile> tasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
         if (tasks.size() == 0) {
             project.logger.error "Could not integrate metadata processor, no compile tasks found."

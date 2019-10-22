@@ -32,6 +32,8 @@ configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 
+String jcpluginVersion = "org.clyze:doop-jcplugin:[2.0.0,)"
+
 dependencies {
     compile localGroovy(),
             "commons-cli:commons-cli:1.2"
@@ -39,7 +41,8 @@ dependencies {
     compile("org.clyze:clue-client:[4.0.0,)") {
         exclude module: "groovy-all"
     }
-    compile("org.clyze:doop-jcplugin:[2.0.0,)") {
+
+    runtime(jcpluginVersion) {
         exclude module: "groovy-all"
     }
 
@@ -54,6 +57,14 @@ gradlePlugin {
         }
     }
 }
+
+// Communicate jcplugin dependency to the Gradle plugin code, to be
+// inserted as a dependency on the target project.
+task writeMetadataDependecy() {
+    File j = new File('src/main/resources/jcplugin.version')
+    j.withWriterAppend { w -> w.writeLine(jcpluginVersion) }
+}
+build.dependsOn writeMetadataDependecy
 
 publishing {
     publications {
