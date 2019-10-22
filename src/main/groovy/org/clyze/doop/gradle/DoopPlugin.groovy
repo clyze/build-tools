@@ -1,5 +1,6 @@
 package org.clyze.doop.gradle
 
+import groovy.transform.TypeChecked
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -10,6 +11,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 /**
  * The doop gradle plugin.
  */
+@TypeChecked
 class DoopPlugin implements Plugin<Project> {
 
     static final String DOOP_GROUP        = "Doop"
@@ -118,7 +120,7 @@ class DoopPlugin implements Plugin<Project> {
 
         task.archiveFileName.set('metadata.zip')
         File scavengeDir = DoopExtension.of(project).scavengeOutputDir
-        task.destinationDirectory = scavengeDir
+        task.destinationDirectory.set(scavengeDir)
         File jsonOutput = new File(scavengeDir, "json")
         task.from jsonOutput
     }
@@ -131,7 +133,7 @@ class DoopPlugin implements Plugin<Project> {
         } else if (existing instanceof Jar) {
             // Heuristic to handle repeated configuration by Gradle.
             println "Reusing existing task ${TASK_SOURCES_JAR}"
-            task = existing
+            task = existing as Jar
         } else {
             throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
         }
