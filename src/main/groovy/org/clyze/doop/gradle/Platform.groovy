@@ -29,6 +29,31 @@ abstract class Platform {
         return doopExt
     }
 
+    // Check if the build.gradle section defines the needed properties.
+    boolean definesRequiredProperties() {
+        DoopExtension doop = getDoop()
+        // We don't check for 'options', as that is never empty (but
+        // initialized to defaults).
+        def err = { project.logger.error "ERROR: missing property: '${it}'" }
+        if (doop.host == null) {
+            err 'host'
+            return false
+        }
+        if (doop.port == 0) {
+            err 'port'
+            return false
+        }
+        if (doop.username == null) {
+            err 'username'
+            return false
+        }
+        if (doop.password == null) {
+            err 'password'
+            return false
+        }
+        return true
+    }
+
     abstract void copyCompilationSettings(JavaCompile task)
     abstract void markMetadataToFix()
     abstract void createScavengeDependency(JavaCompile scavengeTask)

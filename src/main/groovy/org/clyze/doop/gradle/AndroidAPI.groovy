@@ -87,4 +87,19 @@ class AndroidAPI {
         }
         return bTypes
     }
+
+    static Set<String> getFlavors(Project project) {
+        Set<String> pFlavors = new HashSet<>()
+        try {
+            project.android.applicationVariants.all { variant ->
+                pFlavors.add(variant.flavorName)
+            }
+        } catch (Throwable t) {
+            // Just print the error message, without crashing. The
+            // code above can fail but should only be used for warnings.
+            t.printStackTrace()
+        }
+        return pFlavors
+    }
+
 }

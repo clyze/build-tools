@@ -23,6 +23,10 @@ class AndroidPlatform extends Platform {
     // compile and package the program.
     static final String TASK_ASSEMBLE_PRE = 'assemble'
 
+    // Configuration defaults.
+    final String DEFAULT_SUBPROJECT_NAME = "."
+    final String DEFAULT_BUILD_TYPE = "debug"
+
     private AndroidDepResolver resolver
     // Flag used to prompt the user to run again the Doop plugin when
     // needed files have not been generated yet.
@@ -106,7 +110,7 @@ class AndroidPlatform extends Platform {
     void markMetadataToFix() {
         project.afterEvaluate {
             // Read properties from build.gradle.
-            if (!doop.definesAndroidProperties(project)) {
+            if (!definesRequiredProperties()) {
                 project.logger.warn "WARNING: Bad 'doop' section found in build.gradle, skipping configuration."
                 return
             }
@@ -528,5 +532,25 @@ class AndroidPlatform extends Platform {
             project.logger.info "Plugging metadata processor into task ${task.name}"
             DoopPlugin.addPluginCommandArgs(task, doop.scavengeOutputDir)
         }
+    }
+
+    // Check 'doop' sections in Android Gradle scripts.
+    @Override
+    boolean definesRequiredProperties() {
+        if (doop.subprojectName == null) {
+            project.logger.warn "WARNING: missing property 'subprojectName', using top-level directory"
+	        doop.subprojectName = DEFAULT_SUBPROJECT_NAME
+	    }
+        if (doop.buildType == null) {
+            project.logger.warn "WARNING: missing property 'buildType', assuming buildType=${DEFAULT_BUILD_TYPE}"
+            doop.buildType = DEFAULT_BUILD_TYPE
+	    }
+        if (doop.flavor == null) {
+            Set<String> pFlavors = AndroidAPI.getFlavors(project)
+            if (pFlavors.size() > 0) {
+                project.logger.warn "WARNING: property 'flavor' not set but these flavors were found: ${pFlavors}"
+            }
+        }
+	    return super.definesRequiredProperties()
     }
 }
