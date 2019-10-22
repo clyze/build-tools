@@ -17,6 +17,9 @@ abstract class Platform {
 
     private static final String DEFAULT_HOST = "localhost"
 
+    // The task that gathers all optimization directive configurations.
+    protected static final String TASK_CONFIGURATIONS = 'configurations'
+
     protected Project project
     protected DoopExtension doopExt = null
 
@@ -68,6 +71,7 @@ abstract class Platform {
     abstract String getProjectName()
     abstract boolean mustRunAgain()
     abstract void cleanUp()
+    abstract void configureConfigurationsTask()
     // True if the metadata processor runs in a separate Gradle task,
     // false if the processor is integrated in an existing task.
     abstract boolean explicitScavengeTask()

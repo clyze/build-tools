@@ -2,6 +2,9 @@ package org.clyze.doop.gradle
 
 import groovy.io.FileType
 import groovy.transform.TypeChecked
+import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import org.apache.commons.io.FileUtils
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
@@ -9,6 +12,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 
 import static org.clyze.utils.JHelper.throwRuntimeException
@@ -18,7 +22,7 @@ class AndroidPlatform extends Platform {
 
     // The name of the Doop Gradle plugin task that will generate the
     // code input for Doop.
-    static final String TASK_CODE_JAR = 'codeJar'
+    static final String TASK_CODE_ARCHIVE = 'codeApk'
     // The name prefix of the Android Gradle plugin task that will
     // compile and package the program.
     static final String TASK_ASSEMBLE_PRE = 'assemble'
@@ -119,7 +123,8 @@ class AndroidPlatform extends Platform {
             // Skip configuration if no Doop tasks will run (this can only be
             // determined when no integration with existing tasks happens).
             if (explicitScavengeTask() && !tasks.any {
-                    it.endsWith(TASK_CODE_JAR) ||
+                    it.endsWith(TASK_CODE_ARCHIVE) ||
+                    it.endsWith(TASK_CONFIGURATIONS) ||
                     it.endsWith(DoopPlugin.TASK_SCAVENGE) ||
                     it.endsWith(DoopPlugin.TASK_JCPLUGIN_ZIP) ||
                     it.endsWith(DoopPlugin.TASK_ANALYZE) ||
@@ -129,11 +134,24 @@ class AndroidPlatform extends Platform {
                 return
             }
 
+            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) || it.endsWith(DoopPlugin.TASK_ANALYZE) }
+            def taskConf = tasks.find { it.endsWith(TASK_CONFIGURATIONS) }
+            String bType = getBuildType()
+            if (taskArch && taskConf) {
+                project.logger.error "ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation."
+                return
+            } else if (taskConf && !AndroidAPI.isMinifyEnabled(project, bType)) {
+                project.logger.error "ERROR: Option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'."
+                return
+            } else if (taskArch && AndroidAPI.isMinifyEnabled(project, bType)) {
+                project.logger.warn "WARNING: Option 'minifyEnabled' is enabled, the posted APK will be already optimized for build type '${buildType}'."
+            }
+
             String flavorDir = getFlavorDir()
             String appBuildHome = getAppBuildDir()
 
             // Update location of class files for JAR task.
-            Jar jarTask = project.tasks.findByName(TASK_CODE_JAR) as Jar
+            Jar jarTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
             jarTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
             // Create dependency (needs doop section so it must happen late).
             configureCodeJarTaskDep(jarTask)
@@ -373,13 +391,22 @@ class AndroidPlatform extends Platform {
      */
     @Override
     void configureCodeJarTask() {
-        Jar codeJarTask = project.tasks.create(TASK_CODE_JAR, Jar)
-        codeJarTask.description = 'Generates the code jar'
+        Jar codeJarTask = project.tasks.create(TASK_CODE_ARCHIVE, Jar)
+        codeJarTask.description = 'Generates the code archive'
         codeJarTask.group = DoopPlugin.DOOP_GROUP
     }
 
     private void configureCodeJarTaskDep(Jar codeJarTask) {
         codeJarTask.dependsOn project.tasks.findByName(assembleTaskName)
+    }
+
+    @Override
+    void configureConfigurationsTask() {
+        Zip confTask = project.tasks.create(TASK_CONFIGURATIONS, Zip)
+        confTask.description = 'Generates the configurations archive'
+        confTask.group = DoopPlugin.DOOP_GROUP
+        confTask.archiveFileName.set('configurations.zip')
+        confTask.destinationDir = doop.scavengeOutputDir
     }
 
     // Read the configuration files of all appropriate transform tasks
@@ -399,10 +426,28 @@ class AndroidPlatform extends Platform {
             project.logger.info "Using rules from configuration file: ${it.canonicalPath}"
             doop.configurationFiles.add(it.canonicalPath)
         }
+        if (allPros.size() == 0) {
+            project.logger.info "No project configuration files were found."
+            return
+        }
+
+        File confZip = new File(doop.scavengeOutputDir, 'configurations.zip')
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip));
+        allPros.each { File conf ->
+            if (!conf.exists()) {
+                project.logger.warn "WARNING: file does not exist: ${conf}"
+                return
+            }
+            out.putNextEntry(new ZipEntry(conf.canonicalPath))
+            byte[] data = Files.readAllBytes(conf.toPath())
+            out.write(data, 0, data.length)
+            out.closeEntry()
+        }
+        out.close()
     }
 
     @Override
-    String jarTaskName() { return TASK_CODE_JAR }
+    String jarTaskName() { return TASK_CODE_ARCHIVE }
 
     // Returns the task that will package the compiled code as an .apk or .aar.
     String getPackageTaskName() {

@@ -138,4 +138,9 @@ class JavaPlatform extends Platform {
     boolean explicitScavengeTask() {
         return true
     }
+
+    @Override
+    void configureConfigurationsTask() {
+        println "WARNING: the configurations task is not yet implemented."
+    }
 }

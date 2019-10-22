@@ -115,4 +115,24 @@ class AndroidAPI {
         return pFlavors
     }
 
+    static boolean isMinifyEnabled(Project project, String buildType) {
+        boolean ret = false
+        try {
+            getInterestingProjects(project).forEach { p ->
+                p.android.applicationVariants.all { variant ->
+                    println "Examining: ${variant.buildType.name}"
+                    if (variant.buildType.name == buildType) {
+                        ret = variant.buildType.minifyEnabled
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            project.logger.error "ERROR: failed to read 'minifyEnabled' property for build type '${buildType}': ${t.message}"
+            // Just print the error message, without crashing. The
+            // code above can fail but should only be used for warnings.
+            t.printStackTrace()
+        }
+        project.logger.warn "WARNING: build type '${buildType}' has no 'minifyEnabled' property."
+        return ret
+    }
 }

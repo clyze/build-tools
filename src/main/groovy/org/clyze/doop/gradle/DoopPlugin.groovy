@@ -61,6 +61,8 @@ class DoopPlugin implements Plugin<Project> {
         configureAnalyzeTask(project)
         project.logger.debug "[DOOP] Configuring replay task"
         configureReplayPostTask(project)
+        project.logger.debug "[DOOP] Configuring configuration-gathering task"
+        platform.configureConfigurationsTask()
         project.logger.debug "[DOOP] Performing late configuration"
         platform.markMetadataToFix()
     }
