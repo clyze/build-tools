@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 
+trap "exit" INT
+
 function usage() {
     echo "Analyze bundle:"
     echo "  clue-bundle.sh analyze"
     echo "Pack bundle:"
-    echo "  clue-bundle.sh pack BUNDLE_DIR APK"
+    echo "  clue-bundle.sh pack BUNDLE_DIR"
     echo
     echo "Generates the appropriate files to be posted to the Web UI."
     echo "This script should be run in the application module directory."
     echo
     echo "  BUNDLE_DIR      example: bundle-app"
-    echo "  APK             example: build/outputs/apk/app-debug.apk"
     echo
     exit
 }
@@ -21,7 +22,7 @@ function runDefaultBuildActions() {
     time ${GRADLE} --info clean configurations
 }
 
-# Build with minifyEnabled = false.
+# Build without minifyEnabled.
 function runCustomBuildActions() {
     BUILD2=build-minifyDisabled.gradle
     grep -vF minifyEnabled build.gradle | grep -vF shrinkResources > ${BUILD2}
@@ -33,26 +34,21 @@ function runCustomBuildActions() {
     mv build.gradle.backup build.gradle
 }
 
-function addCustomBuildFilesToBundle() {
-    cp ${APK} ${BUNDLE_DIR}
-}
-
-function prepareBundleDir() {
-    mkdir -p ${BUNDLE_DIR}
-    rm -f ${BUNDLE_DIR}/*.apk
-    rm -f ${BUNDLE_DIR}/*.zip
-    rm -f ${BUNDLE_DIR}/*.jar
-}
-
 function runBuildActions() {
     runDefaultBuildActions
     runCustomBuildActions
 }
 
 function createBundleArchive() {
+    mkdir -p ${BUNDLE_DIR}
+    rm -f ${BUNDLE_DIR}/*.apk
+    rm -f ${BUNDLE_DIR}/*.zip
+    rm -f ${BUNDLE_DIR}/*.jar
+
     cp ${LOCAL_BUNDLE_DIR}/metadata.zip ${BUNDLE_DIR}
     cp ${LOCAL_BUNDLE_DIR}/configurations.zip ${BUNDLE_DIR}
     cp ${LOCAL_BUNDLE_DIR}/sources.jar ${BUNDLE_DIR}
+    cp ${LOCAL_BUNDLE_DIR}/*.apk ${BUNDLE_DIR}
 
     BUNDLE_FILE=bundle.tar.gz
     rm -f ${BUNDLE_FILE}
@@ -64,10 +60,8 @@ if [ "$1" != "analyze" ] && [ "$1" != "pack" ]; then
     usage
 elif [ "$1" == "analyze" ] && [ "$2" != "" ]; then
     usage
-elif [ "$1" == "pack" ]; then
-     if [ "$2" == "" ] || [ "$3" == "" ]; then
-         usage
-     fi
+elif [ "$1" == "pack" ] && [ "$2" == "" ]; then
+    usage
 fi
 
 # Autodetect gradlew wrapper.
@@ -86,10 +80,7 @@ LOCAL_BUNDLE_DIR=".clue-bundle"
 
 if [ "$1" == "pack" ]; then
     BUNDLE_DIR="$2"
-    APK="$3"
-    prepareBundleDir
     runBuildActions
-    addCustomBuildFilesToBundle
     createBundleArchive
 elif [ "$1" == "analyze" ]; then
     runBuildActions
