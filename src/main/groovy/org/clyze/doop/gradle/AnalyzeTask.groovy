@@ -1,5 +1,6 @@
 package org.clyze.doop.gradle
 
+import groovy.io.FileType
 import java.nio.file.Files
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
@@ -16,7 +17,7 @@ class AnalyzeTask extends DefaultTask {
         DoopExtension doop = DoopExtension.of(project)
         Platform p = doop.platform
         if (p.mustRunAgain()) {
-            println "ERROR: this looks like a first-time build, please run the 'analyze' task again."
+            project.logger.error "ERROR: this looks like a first-time build, please run the '${DoopPlugin.TASK_ANALYZE}' task again."
             return
         }
         
@@ -73,18 +74,27 @@ class AnalyzeTask extends DefaultTask {
             ps.addFileInput("HEAPDLS", it)
         }
 
+        addFileInput(project, ps, 'JCPLUGIN_METADATA', DoopPlugin.METADATA_FILE)
+        addFileInput(project, ps, 'CLUE_FILE', DoopPlugin.CONFIGURATIONS_FILE)
+
+        doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
+            String n = f.name
+            if (n != DoopPlugin.SOURCES_FILE && (n.endsWith('.apk') || n.endsWith('.jar') || n.endsWith('.aar'))) {
+                addFileInput(project, ps, 'INPUTS', n)
+                project.logger.info "Added local cached input: ${n}"
+            }
+        }
+
         // Filter out empty inputs.
         p.inputFiles.findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("INPUTS", it)
+            project.logger.info "Added input: ${it}"
         }
-
-        // We expect jcplugin_metadata to always exist.
-        File jcPluginMetadata = project.tasks.findByName(DoopPlugin.TASK_JCPLUGIN_ZIP).outputs.files.files[0]        
-        ps.addFileInput("JCPLUGIN_METADATA", jcPluginMetadata.canonicalPath)
 
         // Filter out empty libraries.
         p.libraryFiles.findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("LIBRARIES", it)
+            project.logger.info "Added library: ${it}"
         }
 
         // The main class of the program. Usually empty on Android code.
@@ -93,21 +103,18 @@ class AnalyzeTask extends DefaultTask {
         // The platform to use when analyzing the code.
         ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")        
 
-        // We expect sources_jar to always exist.
-        File sources
-        String sourcesJar = doop.useSourcesJar
-        if (sourcesJar) {
-            sources = new File(sourcesJar)
+        // Upload sources (user can override with alternative sources archive).
+        String altSourcesJar = doop.useSourcesJar
+        if (altSourcesJar) {
+            File sources = new File(altSourcesJar)
             if (!sources.exists()) {
-                println "WARNING: explicit sources JAR ${sourcesJar} does not exist, no sources will be uploaded."
-                sources = null
+                project.logger.warn "WARNING: explicit sources JAR ${altSourcesJar} does not exist, no sources will be uploaded."
+            } else {
+                ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
             }
         } else {
-            sources = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR).outputs.files.files[0]
+            addFileInput(project, ps, 'SOURCES_JAR', DoopPlugin.SOURCES_FILE)
         }
-        if (sources) {
-            ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
-        }        
 
         //tamiflex
         addFileInputFromDoopExtensionOption(ps, doop, "TAMIFLEX", "tamiflex")
@@ -115,7 +122,23 @@ class AnalyzeTask extends DefaultTask {
         return ps
     }
 
-    //A PostState for preserving all the information required to replay an analysis post
+    private static void addFileInput(Project project, PostState ps, String tag, String fName) {
+        DoopExtension doop = DoopExtension.of(project)
+        try {
+            File f = new File(doop.scavengeOutputDir, fName)
+            if (f.exists()) {
+                ps.addFileInput(tag, f.canonicalPath)
+                project.logger.info "Added local cached ${tag} item: ${f}"
+            } else {
+                project.logger.warn "WARNING: could not find ${tag} item: ${f}"
+            }
+        } catch (Throwable t) {
+            project.logger.warn "WARNING: could not upload ${tag} item: ${fName}"
+        }
+    }
+
+    // Create a PostState for preserving all the information required
+    // to replay an analysis post.
     private static final PostState newAnalysisPostState(Project project) {
 
         DoopExtension doop = DoopExtension.of(project)

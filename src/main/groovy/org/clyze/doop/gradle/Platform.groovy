@@ -17,9 +17,6 @@ abstract class Platform {
 
     private static final String DEFAULT_HOST = "localhost"
 
-    // The task that gathers all optimization directive configurations.
-    protected static final String TASK_CONFIGURATIONS = 'configurations'
-
     protected Project project
     protected DoopExtension doopExt = null
 

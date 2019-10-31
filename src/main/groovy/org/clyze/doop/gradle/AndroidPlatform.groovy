@@ -124,7 +124,7 @@ class AndroidPlatform extends Platform {
             // determined when no integration with existing tasks happens).
             if (explicitScavengeTask() && !tasks.any {
                     it.endsWith(TASK_CODE_ARCHIVE) ||
-                    it.endsWith(TASK_CONFIGURATIONS) ||
+                    it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) ||
                     it.endsWith(DoopPlugin.TASK_SCAVENGE) ||
                     it.endsWith(DoopPlugin.TASK_JCPLUGIN_ZIP) ||
                     it.endsWith(DoopPlugin.TASK_ANALYZE) ||
@@ -135,10 +135,10 @@ class AndroidPlatform extends Platform {
             }
 
             def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) || it.endsWith(DoopPlugin.TASK_ANALYZE) }
-            def taskConf = tasks.find { it.endsWith(TASK_CONFIGURATIONS) }
+            def taskConf = tasks.find { it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) }
             String bType = getBuildType()
             if (taskArch && taskConf) {
-                project.logger.error "ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation."
+                project.logger.error "ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${DoopPlugin.TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation."
                 return
             } else if (taskConf && !AndroidAPI.isMinifyEnabled(project, bType)) {
                 project.logger.error "ERROR: Option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'."
@@ -183,7 +183,7 @@ class AndroidPlatform extends Platform {
                 configureCompileHook()
             }
 
-            Task confTask = project.tasks.findByName(TASK_CONFIGURATIONS) as Task
+            Task confTask = project.tasks.findByName(DoopPlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
         }
     }
@@ -406,12 +406,12 @@ class AndroidPlatform extends Platform {
     }
 
     File getConfFile() {
-        return new File(doop.scavengeOutputDir, 'configurations.zip')
+        return new File(doop.scavengeOutputDir, DoopPlugin.CONFIGURATIONS_FILE)
     }
 
     @Override
     void configureConfigurationsTask() {
-        Task confTask = project.tasks.create(TASK_CONFIGURATIONS, Task)
+        Task confTask = project.tasks.create(DoopPlugin.TASK_CONFIGURATIONS, Task)
         confTask.description = 'Generates the configurations archive'
         confTask.group = DoopPlugin.DOOP_GROUP
         confTask.doFirst {

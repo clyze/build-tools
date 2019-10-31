@@ -14,13 +14,20 @@ import org.gradle.api.tasks.compile.JavaCompile
 @TypeChecked
 class DoopPlugin implements Plugin<Project> {
 
-    static final String LOCAL_BUNDLE_DIR  = '.clue-bundle'
-    static final String DOOP_GROUP        = 'Doop'
-    static final String TASK_SCAVENGE     = 'scavenge'
-    static final String TASK_JCPLUGIN_ZIP = 'jcpluginZip'
-    static final String TASK_SOURCES_JAR  = 'sourcesJar'
-    static final String TASK_ANALYZE      = 'analyze'
-    static final String TASK_REPLAY_POST  = 'replay'
+    static final String LOCAL_BUNDLE_DIR    = '.clue-bundle'
+    static final String METADATA_FILE       = 'metadata.zip'
+    static final String CONFIGURATIONS_FILE = 'configurations.zip'
+    static final String SOURCES_FILE        = 'sources.jar'
+
+    static final String DOOP_GROUP          = 'Doop'
+    static final String TASK_SCAVENGE       = 'scavenge'
+    static final String TASK_JCPLUGIN_ZIP   = 'jcpluginZip'
+    static final String TASK_SOURCES_JAR    = 'sourcesJar'
+    static final String TASK_ANALYZE        = 'analyze'
+    static final String TASK_REPLAY_POST    = 'replay'
+    // The task that gathers all optimization directive configurations.
+    static final String TASK_CONFIGURATIONS = 'configurations'
+
     private Platform platform
 
     @Override
@@ -119,7 +126,7 @@ class DoopPlugin implements Plugin<Project> {
 	        task.dependsOn project.tasks.findByName(platform.jarTaskName())
         }
 
-        task.archiveFileName.set('metadata.zip')
+        task.archiveFileName.set(METADATA_FILE)
         File scavengeDir = DoopExtension.of(project).scavengeOutputDir
         task.destinationDirectory.set(scavengeDir)
         File jsonOutput = new File(scavengeDir, "json")
@@ -138,7 +145,7 @@ class DoopPlugin implements Plugin<Project> {
         } else {
             throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
         }
-        task.archiveFileName.set('sources.jar')
+        task.archiveFileName.set(SOURCES_FILE)
         task.destinationDirectory.set(project.file(LOCAL_BUNDLE_DIR))
         task.description = 'Generates the sources JAR'
         task.group = DOOP_GROUP
@@ -151,10 +158,6 @@ class DoopPlugin implements Plugin<Project> {
         AnalyzeTask task = project.tasks.create(TASK_ANALYZE, AnalyzeTask)
         task.description = 'Starts the Doop analysis of the project'
         task.group = DOOP_GROUP
-
-        task.dependsOn project.getTasks().findByName(platform.jarTaskName()),
-                       project.getTasks().findByName(TASK_SOURCES_JAR),
-                       project.getTasks().findByName(TASK_JCPLUGIN_ZIP)
     }
 
     private static void configureReplayPostTask(Project project) {
