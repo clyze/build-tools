@@ -96,7 +96,7 @@ class JavaPlatform extends Platform {
     String jarTaskName() { return 'jar' }
 
     @Override
-    List<String> inputFiles() {
+    List<String> getInputFiles() {
         AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
         if (!jarTask) {
             project.logger.error "Could not find jar task ${jarTaskName()}"
@@ -106,7 +106,7 @@ class JavaPlatform extends Platform {
     }
 
     @Override
-    List<String> libraryFiles() {
+    List<String> getLibraryFiles() {
         List<String> extraInputFiles = DoopExtension.of(project).getExtraInputFiles(project.rootDir)
         println "project configuration type: ${project.configurations.class}"
         List<String> runtimeFiles = JavaAPI.getRuntimeFiles(project)

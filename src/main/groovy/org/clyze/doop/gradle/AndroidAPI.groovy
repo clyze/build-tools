@@ -27,8 +27,7 @@ class AndroidAPI {
 
     static List<String> getOutputs(Project project, String packageTask) {
         return project.tasks.findByName(packageTask).outputs.files
-            .findAll { AndroidPlatform.extension(it.name) == 'apk' ||
-                       AndroidPlatform.extension(it.name) == 'aar' }
+            .findAll { it.name.endsWith('.apk') || it.name.endsWith('.aar') }
             .collect { it.canonicalPath }
             .toList() as List<String>
     }

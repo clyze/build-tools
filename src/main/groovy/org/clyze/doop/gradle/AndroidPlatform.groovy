@@ -96,8 +96,7 @@ class AndroidPlatform extends Platform {
     // metadata such as the compile dependencies (e.g. to find uses of
     // the support libraries).
     //
-    // 2. It sets the location of the class files needed by the code
-    // JAR task.
+    // 2. It finishes the configuration of the code archive task.
     //
     // 3. It sets the location of the auto-generated Java sources in
     // the sources JAR task.
@@ -151,11 +150,7 @@ class AndroidPlatform extends Platform {
             String flavorDir = getFlavorDir()
             String appBuildHome = getAppBuildDir()
 
-            // Update location of class files for JAR task.
-            Jar jarTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
-            jarTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
-            // Create dependency (needs doop section so it must happen late).
-            configureCodeJarTaskDep(jarTask)
+            configureCodeJarTaskAfterEvaluate(appBuildHome)
 
             Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR) as Jar
             gatherSourcesAfterEvaluate(sourcesJarTask)
@@ -272,10 +267,6 @@ class AndroidPlatform extends Platform {
         sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
     }
 
-    static String extension(String name) {
-        return name.substring(name.lastIndexOf('.') + 1, name.size())
-    }
-
     // Add auto-generated Java files (examples are the app's R.java,
     // other R.java files, and classes in android.support packages).
     private List findGeneratedSourceDirs(String appBuildHome, String flavorDir) {
@@ -295,7 +286,7 @@ class AndroidPlatform extends Platform {
                     def containsJava = false
                     bPath.eachFileRecurse (FileType.FILES) { f ->
                         def fName = f.name
-                        if ((!containsJava) && extension(fName) == "java")
+                        if ((!containsJava) && fName.endsWith('.java'))
                             containsJava = true
                     }
                     if (containsJava) {
@@ -401,8 +392,17 @@ class AndroidPlatform extends Platform {
         codeJarTask.group = DoopPlugin.DOOP_GROUP
     }
 
-    private void configureCodeJarTaskDep(Jar codeJarTask) {
-        codeJarTask.dependsOn project.tasks.findByName(assembleTaskName)
+    /**
+     * Late configuration for the code archive task.
+     */
+    private void configureCodeJarTaskAfterEvaluate(String appBuildHome) {
+        // Update location of class files for JAR task.
+        Jar codeTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
+        codeTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
+
+        // Create dependency (needs doop section so it must happen late).
+        // Copy compiled outputs to local bundle cache.
+        codeTask.dependsOn project.tasks.findByName(packageTaskName)
     }
 
     File getConfFile() {
@@ -476,23 +476,22 @@ class AndroidPlatform extends Platform {
     }
 
     @Override
-    List<String> inputFiles() {
-        String packageTask = getPackageTaskName()
-        project.logger.info "Using non-library outputs from task ${packageTask}"
-        List<String> ars = AndroidAPI.getOutputs(project, packageTask)
+    List<String> getInputFiles() {
+        String outputsTask = getAssembleTaskName()
+        project.logger.info "Using non-library outputs from task ${outputsTask}"
+        List<String> ars = AndroidAPI.getOutputs(project, outputsTask)
         project.logger.info "Calculated non-library outputs: ${ars}"
         return ars
     }
 
     @Override
-    List<String> libraryFiles() {
+    List<String> getLibraryFiles() {
         // Only upload dependencies when in AAR mode.
         if (!isLibrary) {
             return null
         }
 
-        String packageTask = getPackageTaskName()
-        project.logger.info "Using library outputs from task ${packageTask}, isLibrary = ${isLibrary}"
+        project.logger.info "Detecting library outputs..."
         List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
     }

@@ -80,7 +80,7 @@ class AnalyzeTask extends DefaultTask {
         }
 
         // Filter out empty inputs.
-        p.inputFiles().findAll(Helper.checkFileEmpty).each {
+        p.inputFiles.findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("INPUTS", it)
         }
 
