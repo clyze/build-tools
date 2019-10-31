@@ -15,8 +15,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 @CompileStatic
 abstract class Platform {
 
-    private static final String DEFAULT_HOST = "localhost"
+    private static final String DEFAULT_HOST    = 'localhost'
     private static final String DEFAULT_PROFILE = 'apiTargetAndroid25'
+    private static final String DEFAULT_PROJECT = 'scrap'
 
     protected Project project
     protected DoopExtension doopExt = null
@@ -51,6 +52,10 @@ abstract class Platform {
         }
         if (doop.password == null) {
             doop.password = 'fixed123'
+        }
+        if (doop.clueProject == null) {
+            project.logger.warn "WARNING: missing property 'clueProject', assuming host=${DEFAULT_PROJECT}"
+            doop.clueProject = DEFAULT_PROJECT
         }
         if (doop.profile == null) {
             project.logger.debug "Missing property 'profile', assuming profile=${DEFAULT_PROFILE}"
