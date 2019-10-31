@@ -23,27 +23,22 @@ class AnalyzeTask extends DefaultTask {
         
         // Package all information needed to post the bundle and the analysis.
         PostState bundlePostState   = newBundlePostState(project)
-        PostState analysisPostState = newAnalysisPostState(project)
 
         if (doop.cachePost) {
             File tmpDir = Files.createTempDirectory("").toFile()
-
             bundlePostState.saveTo(tmpDir)            
-            if (analysisPostState.inputs) {
-                analysisPostState.saveTo(tmpDir)                
-            }
-            println "Saved post state in $tmpDir"
+            println "Saved post state in ${tmpDir}"
         }
 
         if (!doop.dry) {            
-            doPost(doop, bundlePostState, analysisPostState)
+            doPost(doop, bundlePostState)
         }        
 
         p.cleanUp()
     }
 
-    static void doPost(DoopExtension doop, PostState bundlePostState, PostState analysisPostState) {
-        Helper.doPost(doop.host, doop.port, doop.username, doop.password, doop.clueProject, bundlePostState, analysisPostState)
+    static void doPost(DoopExtension doop, PostState bundlePostState) {
+        Helper.doPost(doop.host, doop.port, doop.username, doop.password, doop.clueProject, bundlePostState)
     }
 
     //A PostState for preserving all the information required to replay a bundle post
@@ -135,24 +130,6 @@ class AnalyzeTask extends DefaultTask {
         } catch (Throwable t) {
             project.logger.warn "WARNING: could not upload ${tag} item: ${fName}"
         }
-    }
-
-    // Create a PostState for preserving all the information required
-    // to replay an analysis post.
-    private static final PostState newAnalysisPostState(Project project) {
-
-        DoopExtension doop = DoopExtension.of(project)
-        PostState ps = new PostState(id:"analysis")
-
-        def json = Helper.createCommandForOptionsDiscovery("ANALYSIS", new DefaultHttpClientLifeCycle()).execute(doop.host, doop.port)
-        Set<String> supportedOptionIds = json.options.collect { it.id.toLowerCase() } as Set<String>
-        doop.options.each { k, v ->
-            if (supportedOptionIds.contains(k)) {
-                ps.addStringInput(k.toUpperCase(), v as String)
-            }
-        }
-
-        return ps
     }
 
     private static void addStringInputFromDoopExtensionOption(PostState ps, DoopExtension doop, String inputId, String optionId) {
