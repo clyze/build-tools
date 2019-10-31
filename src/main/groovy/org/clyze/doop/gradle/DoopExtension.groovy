@@ -27,6 +27,7 @@ class DoopExtension {
     boolean cachePost = false
     String convertUTF8Dir
     boolean dry
+    String profile
     // Android-only
     String subprojectName
     String flavor

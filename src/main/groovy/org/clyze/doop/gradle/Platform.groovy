@@ -16,6 +16,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 abstract class Platform {
 
     private static final String DEFAULT_HOST = "localhost"
+    private static final String DEFAULT_PROFILE = 'apiTargetAndroid25'
 
     protected Project project
     protected DoopExtension doopExt = null
@@ -46,12 +47,14 @@ abstract class Platform {
             return false
         }
         if (doop.username == null) {
-            err 'username'
-            return false
+            doop.username = 'fixed'
         }
         if (doop.password == null) {
-            err 'password'
-            return false
+            doop.password = 'fixed123'
+        }
+        if (doop.profile == null) {
+            project.logger.debug "Missing property 'profile', assuming profile=${DEFAULT_PROFILE}"
+            doop.profile = DEFAULT_PROFILE
         }
         return true
     }

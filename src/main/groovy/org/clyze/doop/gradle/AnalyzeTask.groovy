@@ -38,7 +38,7 @@ class AnalyzeTask extends DefaultTask {
     }
 
     static void doPost(DoopExtension doop, PostState bundlePostState) {
-        Helper.doPost(doop.host, doop.port, doop.username, doop.password, doop.clueProject, bundlePostState)
+        Helper.doPost(doop.host, doop.port, doop.username, doop.password, doop.clueProject, doop.profile, bundlePostState)
     }
 
     //A PostState for preserving all the information required to replay a bundle post
