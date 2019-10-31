@@ -14,7 +14,8 @@ import org.gradle.api.tasks.compile.JavaCompile
 @TypeChecked
 class DoopPlugin implements Plugin<Project> {
 
-    static final String DOOP_GROUP        = "Doop"
+    static final String LOCAL_BUNDLE_DIR  = '.clue-bundle'
+    static final String DOOP_GROUP        = 'Doop'
     static final String TASK_SCAVENGE     = 'scavenge'
     static final String TASK_JCPLUGIN_ZIP = 'jcpluginZip'
     static final String TASK_SOURCES_JAR  = 'sourcesJar'
@@ -74,7 +75,7 @@ class DoopPlugin implements Plugin<Project> {
         doop.orgName = project.group
         doop.projectName = platform.getProjectName()
         doop.projectVersion = project.version?.toString()
-        doop.scavengeOutputDir = project.file("build/scavenge")        
+        doop.scavengeOutputDir = project.file(LOCAL_BUNDLE_DIR)
         doop.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 
@@ -138,6 +139,7 @@ class DoopPlugin implements Plugin<Project> {
             throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
         }
         task.archiveFileName.set('sources.jar')
+        task.destinationDirectory.set(project.file(LOCAL_BUNDLE_DIR))
         task.description = 'Generates the sources JAR'
         task.group = DOOP_GROUP
         task.archiveClassifier.set('sources')
