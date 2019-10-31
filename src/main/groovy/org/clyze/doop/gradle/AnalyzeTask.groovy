@@ -51,8 +51,6 @@ class AnalyzeTask extends DefaultTask {
         /*         
         These are the options for bundles: 
         --app_regex <arg>        
-        --dacapo                     
-        --dacapo_bach            
         --heapdls <files>
         --inputs <files>
         --jcplugin_metadata <file>
@@ -67,14 +65,10 @@ class AnalyzeTask extends DefaultTask {
         Platform p = doop.platform
         PostState ps = new PostState(id:"bundle")
 
-        //app_regex
-        addStringInputFromDoopExtensionOption(ps, doop, "APP_REGEX", "app_regex")        
-        //dacapo
-        addStringInputFromDoopExtensionOption(ps, doop, "DACAPO", "dacapo")
-        //dacapo_bach
-        addStringInputFromDoopExtensionOption(ps, doop, "DACAPO_BACH", "dacapo_bach")
+        // The aplication regex.
+        addStringInputFromDoopExtensionOption(ps, doop, "APP_REGEX", "app_regex")
 
-        // The heapdls are optional.
+        // The heap snapshots are optional.
         doop.hprofs?.collect { 
             ps.addFileInput("HEAPDLS", it)
         }
@@ -93,10 +87,10 @@ class AnalyzeTask extends DefaultTask {
             ps.addFileInput("LIBRARIES", it)
         }
 
-        //main_class
+        // The main class of the program. Usually empty on Android code.
         addStringInputFromDoopExtensionOption(ps, doop, "MAIN_CLASS", "main_class")
 
-        //platform
+        // The platform to use when analyzing the code.
         ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")        
 
         // We expect sources_jar to always exist.
