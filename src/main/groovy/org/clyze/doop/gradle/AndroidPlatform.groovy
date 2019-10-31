@@ -3,6 +3,7 @@ package org.clyze.doop.gradle
 import groovy.io.FileType
 import groovy.transform.TypeChecked
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.apache.commons.io.FileUtils
@@ -402,7 +403,42 @@ class AndroidPlatform extends Platform {
 
         // Create dependency (needs doop section so it must happen late).
         // Copy compiled outputs to local bundle cache.
-        codeTask.dependsOn project.tasks.findByName(packageTaskName)
+        Task assembleTask = project.tasks.findByName(assembleTaskName)
+        codeTask.dependsOn assembleTask
+
+        codeTask.doLast {
+            String output = getOutputCodeArchive(project)
+            if (output == null) {
+                project.logger.error "ERROR: could not determine code output."
+                return
+            }
+            File codeArchive = new File(output)
+            File target = new File(doop.scavengeOutputDir, codeArchive.name)
+            Files.copy(codeArchive.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+
+    String getOutputCodeArchive(Project project) {
+        List<String> outputs = AndroidAPI.getOutputs(project, doop.buildType, doop.flavor)
+        project.logger.info "Found code outputs: ${outputs}"
+        if (outputs.size() == 1) {
+            return outputs[0]
+        }
+
+        if (doop.apkFilter != null) {
+            List<String> filteredOutputs = outputs.findAll { it.contains(doop.apkFilter) }
+            int sz = filteredOutputs.size()
+            if (sz == 0) {
+                project.logger.error "ERROR: filter '${doop.apkFilter}' does not match any code output."
+            } else if (sz == 1) {
+                return filteredOutputs[0]
+            } else {
+                project.logger.error "ERROR: filter '${doop.apkFilter}' matches too many code outputs: ${filteredOutputs}"
+            }
+        } else {
+            project.logger.error "ERROR: too many outputs (${outputs}), please set filter via option 'apkFilter'."
+        }
+        return null
     }
 
     File getConfFile() {
@@ -465,15 +501,6 @@ class AndroidPlatform extends Platform {
 
     @Override
     String jarTaskName() { return TASK_CODE_ARCHIVE }
-
-    // Returns the task that will package the compiled code as an .apk or .aar.
-    String getPackageTaskName() {
-        String buildType = getBuildType()
-        String flavorPart = doop.flavor ? doop.flavor.capitalize() : ""
-        String prefix = isLibrary? "bundle" : "package"
-        // String sub = getSubprojectName()
-        return "${prefix}${flavorPart}${buildType.capitalize()}"
-    }
 
     @Override
     List<String> getInputFiles() {

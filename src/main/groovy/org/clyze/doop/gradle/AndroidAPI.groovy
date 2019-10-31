@@ -25,6 +25,19 @@ class AndroidAPI {
         }
     }
 
+    static List<String> getOutputs(Project project, String buildType, String flavor) {
+        List<String> ret = [] as List<String>
+        iterateOverVariants project, { variant ->
+            if ((variant.buildType.name == buildType) &&
+                (!flavor || variant.flavorName == flavor)) {
+                variant.outputs.each { output ->
+                    ret.add output.outputFile.canonicalPath
+                }
+            }
+        }
+        return ret
+    }
+
     static List<String> getOutputs(Project project, String packageTask) {
         return project.tasks.findByName(packageTask).outputs.files
             .findAll { it.name.endsWith('.apk') || it.name.endsWith('.aar') }
@@ -79,13 +92,19 @@ class AndroidAPI {
         return projects
     }
 
+    static void iterateOverVariants(Project project, Closure cl) {
+        getInterestingProjects(project).forEach { p ->
+            p.android.applicationVariants.all { variant ->
+                cl(variant)
+            }
+        }
+    }
+
     static Set<String> getBuildTypes(Project project) {
         Set<String> bTypes = new HashSet<>()
         try {
-            getInterestingProjects(project).forEach { p ->
-                p.android.applicationVariants.all { variant ->
-                    bTypes.add(variant.buildType.name)
-                }
+            iterateOverVariants project, { variant ->
+                bTypes.add(variant.buildType.name)
             }
         } catch (Throwable t) {
             // Just print the error message, without crashing. The
@@ -98,12 +117,10 @@ class AndroidAPI {
     static Set<String> getFlavors(Project project) {
         Set<String> pFlavors = new HashSet<>()
         try {
-            getInterestingProjects(project).forEach { p ->
-                p.android.applicationVariants.all { variant ->
-                    String fName = variant.flavorName
-                    if (fName && fName != "") {
-                        pFlavors.add(fName)
-                    }
+            iterateOverVariants project, { variant ->
+                String fName = variant.flavorName
+                if (fName && fName != "") {
+                    pFlavors.add(fName)
                 }
             }
         } catch (Throwable t) {
@@ -117,12 +134,10 @@ class AndroidAPI {
     static boolean isMinifyEnabled(Project project, String buildType) {
         boolean ret = false
         try {
-            getInterestingProjects(project).forEach { p ->
-                p.android.applicationVariants.all { variant ->
-                    // println "Examining: ${variant.buildType.name}"
-                    if (variant.buildType.name == buildType) {
-                        ret = variant.buildType.minifyEnabled
-                    }
+            iterateOverVariants project, { variant ->
+                // println "Examining: ${variant.buildType.name}"
+                if (variant.buildType.name == buildType) {
+                    ret = variant.buildType.minifyEnabled
                 }
             }
         } catch (Throwable t) {
