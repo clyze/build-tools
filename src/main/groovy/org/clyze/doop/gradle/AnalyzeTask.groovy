@@ -70,7 +70,7 @@ class AnalyzeTask extends DefaultTask {
         }
 
         addFileInput(project, ps, 'JCPLUGIN_METADATA', DoopPlugin.METADATA_FILE)
-        addFileInput(project, ps, 'CLUE_FILE', DoopPlugin.CONFIGURATIONS_FILE)
+        addFileInput(project, ps, 'PG_ZIP', DoopPlugin.CONFIGURATIONS_FILE)
 
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
