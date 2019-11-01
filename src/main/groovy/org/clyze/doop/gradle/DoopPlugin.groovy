@@ -23,7 +23,7 @@ class DoopPlugin implements Plugin<Project> {
     static final String TASK_SCAVENGE       = 'scavenge'
     static final String TASK_JCPLUGIN_ZIP   = 'jcpluginZip'
     static final String TASK_SOURCES_JAR    = 'sourcesJar'
-    static final String TASK_ANALYZE        = 'analyze'
+    static final String TASK_POST_BUNDLE    = 'postBundle'
     static final String TASK_REPLAY_POST    = 'replay'
     // The task that gathers all optimization directive configurations.
     static final String TASK_CONFIGURATIONS = 'configurations'
@@ -67,8 +67,8 @@ class DoopPlugin implements Plugin<Project> {
         configureJCPluginZipTask(project)
         project.logger.debug "[DOOP] Configuring sources task"
         configureSourceJarTask(project)
-        project.logger.debug "[DOOP] Configuring analyze task"
-        configureAnalyzeTask(project)
+        project.logger.debug "[DOOP] Configuring bundling task"
+        configurePostBundleTask(project)
         project.logger.debug "[DOOP] Configuring replay task"
         configureReplayPostTask(project)
         project.logger.debug "[DOOP] Configuring configuration-gathering task"
@@ -154,9 +154,9 @@ class DoopPlugin implements Plugin<Project> {
         platform.gatherSources(task)
     }
 
-    private void configureAnalyzeTask(Project project) {
-        AnalyzeTask task = project.tasks.create(TASK_ANALYZE, AnalyzeTask)
-        task.description = 'Starts the Doop analysis of the project'
+    private void configurePostBundleTask(Project project) {
+        PostBundleTask task = project.tasks.create(TASK_POST_BUNDLE, PostBundleTask)
+        task.description = 'Posts the current project as a bundle'
         task.group = DOOP_GROUP
     }
 

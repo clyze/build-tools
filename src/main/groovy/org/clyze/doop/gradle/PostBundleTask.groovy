@@ -9,15 +9,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
-class AnalyzeTask extends DefaultTask {
+class PostBundleTask extends DefaultTask {
 
     @TaskAction
-    void analyze() {
+    void postBundle() {
 
         DoopExtension doop = DoopExtension.of(project)
         Platform p = doop.platform
         if (p.mustRunAgain()) {
-            project.logger.error "ERROR: this looks like a first-time build, please run the '${DoopPlugin.TASK_ANALYZE}' task again."
+            project.logger.error "ERROR: this looks like a first-time build, please run the '${DoopPlugin.TASK_POST_BUNDLE}' task again."
             return
         }
         

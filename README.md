@@ -40,7 +40,7 @@ dependencies {
 Android integration has been tested with version 3.3.2 of the Android
 Gradle plugin (dependency "com.android.tools.build:gradle:3.3.2").
 
-## Running the 'analyze' task on a Java application ##
+## Running the bundling task on a Java application ##
 
 Assume a Java application that can be built by OpenJDK and has a
 build.gradle.
@@ -58,13 +58,13 @@ doop {
 }
 ```
 
-Step 2. Run the analyze task:
+Step 2. Run the bundling task:
 
 ```
-gradle analyze
+gradle postBundle
 ```
 
-## Running the 'analyze' task on an Android app ##
+## Running the bundling task on an Android app ##
 
 Assume an Android Studio project with the following structure:
 
@@ -88,10 +88,7 @@ Step 2. Put these lines in Application/build.gradle:
 apply plugin: 'doop'
 ...
 doop {
-    host = ...
     port = ...
-    username = ...
-    password = ...
     subprojectName = "Application"
     clueProject = ...
     buildType = "debug"
@@ -99,10 +96,10 @@ doop {
 }
 ```
 
-Step 3. In directory "Project", run the analyze task:
+Step 3. In directory "Project", run the bundling task:
 
 ```
-./gradlew :Application:analyze
+./gradlew :Application:postBundle
 ```
 
 ## Using HPROF information ##
@@ -127,7 +124,7 @@ hprofs = [ 'java.hprof.zip' ]
 
 Basic Ant projects are supported via Gradle's Ant support.
 
-A sample build.gradle file to run `gradle analyze` in an Ant project
+A sample build.gradle file to run `gradle postBundle` in an Ant project
 is the following:
 
 ```
@@ -140,7 +137,7 @@ buildscript {
         // Put here the repositories needed to find the Doop plugin.
     }
     dependencies {
-        classpath ('org.clyze:doop-gradle-plugin:2.0.+')
+        classpath ('org.clyze:doop-gradle-plugin:4.0.+')
     }
 }
 
@@ -161,10 +158,9 @@ ant.importBuild('build.xml') { antTargetName ->
 }
 
 doop {
-    host = clue_host
-    port = clue_port as Integer
-    username = clue_user
-    password = clue_password
+    port = ...
+    buildType = ...
+    flavor = ...
 
     // Put here the rest of the Doop options...
 
@@ -222,10 +218,13 @@ doop {
 * String _subprojectName_: sub-project name (used when an `app`
   sub-directory contains the actual app code).
 
-* String _buildType_: `"debug"` or `"release"`.
+* String _buildType_: `"debug"` (default) or `"release"`.
 
 * String _flavor_: the name of the flavor to use. If not given,
   default tasks are used (such as 'assembleDebug'/'assembleRelease').
+
+* String _apkFilter_: if more than one .apk outputs are found, pick
+  the one that contains this value as a substring.
 
 * List _replacedByExtraInputs_: a list of string pairs of artifacts
   that are provided by _extraInputs_ and thus should not be resolved
@@ -233,10 +232,11 @@ doop {
   "appcompat-v7" ], [ "com.android.support", "recyclerview-v7" ] ]`).
   
 ## Replay the post ##
+
 When invoking the plugin with the ```cachePost``` option set to true,
-the ```analyze``` task will report a directory containing the post
-state.  You can then trigger a replay of posting this state with the
-following command:
+the bundling task will report a directory containing the post state.
+You can then trigger a replay of posting this state with the following
+command:
 
 ```
 ./gradlew replay --fromDir [path-to-dir]

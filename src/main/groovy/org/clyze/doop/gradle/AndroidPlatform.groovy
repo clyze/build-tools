@@ -128,14 +128,14 @@ class AndroidPlatform extends Platform {
                     it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) ||
                     it.endsWith(DoopPlugin.TASK_SCAVENGE) ||
                     it.endsWith(DoopPlugin.TASK_JCPLUGIN_ZIP) ||
-                    it.endsWith(DoopPlugin.TASK_ANALYZE) ||
+                    it.endsWith(DoopPlugin.TASK_POST_BUNDLE) ||
                     it.endsWith(DoopPlugin.TASK_SOURCES_JAR)
                 }) {
                 project.logger.warn "WARNING: No ${DoopPlugin.DOOP_GROUP} task invoked, skipping configuration."
                 return
             }
 
-            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) || it.endsWith(DoopPlugin.TASK_ANALYZE) }
+            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) || it.endsWith(DoopPlugin.TASK_POST_BUNDLE) }
             def taskConf = tasks.find { it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) }
             String bType = getBuildType()
             if (taskArch && taskConf) {

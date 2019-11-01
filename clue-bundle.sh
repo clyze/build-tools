@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-trap "exit" INT
-
 function usage() {
-    echo "Analyze bundle:"
-    echo "  clue-bundle.sh analyze"
-    echo "Pack bundle:"
-    echo "  clue-bundle.sh pack BUNDLE_DIR"
+    echo "Post bundle:"
+    echo "  clue-bundle.sh postBundle"
+    echo "Save bundle to directory:"
+    echo "  clue-bundle.sh save BUNDLE_DIR"
     echo
     echo "Generates the appropriate files to be posted to the Web UI."
     echo "This script should be run in the application module directory."
@@ -16,30 +14,10 @@ function usage() {
     exit
 }
 
-# Run actions that are compatible with default build (assumed
-# "minifyEnabled = true").
-function runDefaultBuildActions() {
-    time ${GRADLE} --info clean configurations
-}
-
-# Build without minifyEnabled.
-function runCustomBuildActions() {
-    BUILD2=build-minifyDisabled.gradle
-    grep -vF minifyEnabled build.gradle | grep -vF shrinkResources > ${BUILD2}
-    # Temporarily swap build.gradle with custom one. We cannot use a build
-    # script with a different name, as that may clash with existing settings files.
-    mv build.gradle build.gradle.backup
-    mv ${BUILD2} build.gradle
-    time ${GRADLE} --info clean sourcesJar jcpluginZip codeApk
-    mv build.gradle.backup build.gradle
-}
-
-function runBuildActions() {
-    runDefaultBuildActions
-    runCustomBuildActions
-}
-
 function createBundleArchive() {
+    local BUNDLE_DIR="$1"
+    local LOCAL_BUNDLE_DIR=".clue-bundle"
+
     mkdir -p ${BUNDLE_DIR}
     rm -f ${BUNDLE_DIR}/*.apk
     rm -f ${BUNDLE_DIR}/*.zip
@@ -56,33 +34,21 @@ function createBundleArchive() {
     echo "Output written to file: ${BUNDLE_FILE}"
 }
 
-if [ "$1" != "analyze" ] && [ "$1" != "pack" ]; then
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     usage
-elif [ "$1" == "analyze" ] && [ "$2" != "" ]; then
+elif [ "$1" != "postBundle" ] && [ "$1" != "save" ]; then
     usage
-elif [ "$1" == "pack" ] && [ "$2" == "" ]; then
+elif [ "$1" == "postBundle" ] && [ "$2" != "" ]; then
+    usage
+elif [ "$1" == "save" ] && [ "$2" == "" ]; then
     usage
 fi
 
-# Autodetect gradlew wrapper.
-if [ "${GRADLE}" == "" ]; then
-    if [ -f "./gradlew" ]; then
-        GRADLE="./gradlew"
-    elif [ -f "../gradlew" ]; then
-        GRADLE="../gradlew"
-    else
-        echo "Please set GRADLE to an appropriate Gradle binary (or wrapper)."
-        exit
-    fi
-fi
+SCRIPTS_DIR=$(dirname "$0")
 
-LOCAL_BUNDLE_DIR=".clue-bundle"
-
-if [ "$1" == "pack" ]; then
-    BUNDLE_DIR="$2"
-    runBuildActions
-    createBundleArchive
-elif [ "$1" == "analyze" ]; then
-    runBuildActions
-    ${GRADLE} analyze
+if [ "$1" == "save" ]; then
+    ${SCRIPTS_DIR}/clue-bundle-build.sh
+    createBundleArchive "$2"
+elif [ "$1" == "postBundle" ]; then
+    ${SCRIPTS_DIR}/clue-bundle-build.sh postBundle
 fi

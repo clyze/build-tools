@@ -37,6 +37,6 @@ class ReplayPostTask extends DefaultTask {
 			return
 		}
 
-		AnalyzeTask.doPost(DoopExtension.of(project), bundlePostState, analysisPostState)
+		PostBundleTask.doPost(DoopExtension.of(project), bundlePostState, analysisPostState)
     }
 }
