@@ -1,3 +1,6 @@
+#emacs files
+*~
+
 #gradle dirs
 /.gradle
 /build/
