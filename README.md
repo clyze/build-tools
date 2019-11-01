@@ -45,23 +45,22 @@ Gradle plugin (dependency "com.android.tools.build:gradle:3.3.2").
 Assume a Java application that can be built by OpenJDK and has a
 build.gradle.
 
-Step 1. Put these lines in build.gradle:
+Step 1. Put these lines in build.gradle (lines with default values can
+be omitted):
 
 ```
-...
 doop {
-    host = ...
-    port = ...
-    username = ...
-    password = ...
-    clueProject = ...
+    port = ...           // server UI port
+    clueProject = ...    // default: 'scrap'
+    buildType = ...      // default: 'debug'
+    flavor = ...         // default: none
 }
 ```
 
 Step 2. Run the bundling task:
 
 ```
-gradle postBundle
+clue-bundle.sh postBundle
 ```
 
 ## Running the bundling task on an Android app ##
@@ -96,10 +95,10 @@ doop {
 }
 ```
 
-Step 3. In directory "Project", run the bundling task:
+Step 3. In directory "Project/Application", run the bundling task:
 
 ```
-./gradlew :Application:postBundle
+clue-bundle.sh postBundle
 ```
 
 ## Using HPROF information ##
@@ -124,8 +123,7 @@ hprofs = [ 'java.hprof.zip' ]
 
 Basic Ant projects are supported via Gradle's Ant support.
 
-A sample build.gradle file to run `gradle postBundle` in an Ant project
-is the following:
+A sample build.gradle file to bundle an Ant project is the following:
 
 ```
 apply plugin: 'java'
