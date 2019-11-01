@@ -135,16 +135,16 @@ class AndroidPlatform extends Platform {
                 return
             }
 
-            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) || it.endsWith(DoopPlugin.TASK_POST_BUNDLE) }
+            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) }
             def taskConf = tasks.find { it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) }
             String bType = getBuildType()
             if (taskArch && taskConf) {
                 project.logger.error "ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${DoopPlugin.TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation."
                 return
-            } else if (taskConf && !AndroidAPI.isMinifyEnabled(project, bType)) {
+            } else if (taskConf && !AndroidAPI.isMinifyEnabled(project, bType, true)) {
                 project.logger.error "ERROR: Option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'."
                 return
-            } else if (taskArch && AndroidAPI.isMinifyEnabled(project, bType)) {
+            } else if (taskArch && AndroidAPI.isMinifyEnabled(project, bType, false)) {
                 project.logger.warn "WARNING: Option 'minifyEnabled' is enabled, the posted APK will be already optimized for build type '${buildType}'."
             }
 

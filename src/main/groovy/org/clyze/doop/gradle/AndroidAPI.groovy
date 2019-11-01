@@ -131,7 +131,8 @@ class AndroidAPI {
         return pFlavors
     }
 
-    static boolean isMinifyEnabled(Project project, String buildType) {
+    static boolean isMinifyEnabled(Project project, String buildType,
+                                   boolean reportError) {
         boolean ret = false
         try {
             iterateOverVariants project, { variant ->
@@ -146,7 +147,9 @@ class AndroidAPI {
             // code above can fail but should only be used for warnings.
             t.printStackTrace()
         }
-        project.logger.warn "WARNING: build type '${buildType}' has no 'minifyEnabled' property."
+        if (reportError) {
+            project.logger.warn "WARNING: build type '${buildType}' has no 'minifyEnabled' property."
+        }
         return ret
     }
 }
