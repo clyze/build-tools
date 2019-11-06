@@ -48,10 +48,10 @@ abstract class Platform {
             return false
         }
         if (doop.username == null) {
-            doop.username = 'fixed'
+            doop.username = 'user'
         }
         if (doop.password == null) {
-            doop.password = 'fixed123'
+            doop.password = 'user123'
         }
         if (doop.clueProject == null) {
             project.logger.warn "WARNING: missing property 'clueProject', assuming host=${DEFAULT_PROJECT}"
