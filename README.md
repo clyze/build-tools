@@ -189,6 +189,8 @@ doop {
   (such as .pro files). On Android, these are optional and will be
   autodetected if left empty.
 
+* String _ruleFile_: the rule file to use for automated repackaging.
+
 * String _useSourcesJar_: a sources JAR archive to be posted instead
   of using the output of the `sourcesJar` Gradle task. Used in Ant
   interoperability.

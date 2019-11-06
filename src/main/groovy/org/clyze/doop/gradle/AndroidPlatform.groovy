@@ -407,7 +407,7 @@ class AndroidPlatform extends Platform {
         codeTask.dependsOn assembleTask
 
         codeTask.doLast {
-            String output = getOutputCodeArchive(project)
+            String output = getOutputCodeArchive()
             if (output == null) {
                 project.logger.error "ERROR: could not determine code output."
                 return
@@ -418,7 +418,8 @@ class AndroidPlatform extends Platform {
         }
     }
 
-    String getOutputCodeArchive(Project project) {
+    @Override
+    public String getOutputCodeArchive() {
         List<String> outputs = AndroidAPI.getOutputs(project, doop.buildType, doop.flavor)
         project.logger.info "Found code outputs: ${outputs}"
         if (outputs.size() == 1) {

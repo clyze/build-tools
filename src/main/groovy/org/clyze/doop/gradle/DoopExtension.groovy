@@ -28,6 +28,7 @@ class DoopExtension {
     String convertUTF8Dir
     boolean dry
     String profile
+    String ruleFile
     // Android-only
     String subprojectName
     String flavor

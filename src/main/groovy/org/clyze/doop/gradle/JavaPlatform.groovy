@@ -97,12 +97,17 @@ class JavaPlatform extends Platform {
 
     @Override
     List<String> getInputFiles() {
+        return [getOutputCodeArchive()]
+    }
+
+    @Override
+    public String getOutputCodeArchive() {
         AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
         if (!jarTask) {
             project.logger.error "Could not find jar task ${jarTaskName()}"
             return [] as List<String>
         }
-        return [project.file(jarTask.archiveFile).canonicalPath]
+        return project.file(jarTask.archiveFile).canonicalPath
     }
 
     @Override

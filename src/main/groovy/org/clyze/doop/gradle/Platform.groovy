@@ -77,6 +77,7 @@ abstract class Platform {
     abstract boolean mustRunAgain()
     abstract void cleanUp()
     abstract void configureConfigurationsTask()
+    abstract String getOutputCodeArchive()
     // True if the metadata processor runs in a separate Gradle task,
     // false if the processor is integrated in an existing task.
     abstract boolean explicitScavengeTask()
