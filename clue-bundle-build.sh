@@ -13,7 +13,7 @@ function finallyRestoreTrap() {
 # Run actions that are compatible with default build (assumed
 # "minifyEnabled = true").
 function runDefaultBuildActions() {
-    time ${GRADLE} --info clean configurations
+    time ${GRADLE} --stacktrace --info clean configurations
 }
 
 # Build without minifyEnabled.
@@ -26,7 +26,7 @@ function runCustomBuildActions() {
     # If the user interrupts the build, restore build.gradle.
     finallyRestoreTrap
     mv ${BUILD2} build.gradle
-    time ${GRADLE} --info clean sourcesJar jcpluginZip codeApk
+    time ${GRADLE} --stacktrace --info clean sourcesJar jcpluginZip codeApk
     restoreBuildGradle
     # Revert to default trap behavior.
     defaultTrap
