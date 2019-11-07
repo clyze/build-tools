@@ -18,6 +18,7 @@ abstract class Platform {
     private static final String DEFAULT_HOST    = 'localhost'
     private static final String DEFAULT_PROFILE = 'apiTargetAndroid25'
     private static final String DEFAULT_PROJECT = 'scrap'
+    private static final String DEFAULT_RULES   = 'optimize.clue'
 
     protected Project project
     protected DoopExtension doopExt = null
@@ -60,6 +61,10 @@ abstract class Platform {
         if (doop.profile == null) {
             project.logger.debug "Missing property 'profile', assuming profile=${DEFAULT_PROFILE}"
             doop.profile = DEFAULT_PROFILE
+        }
+        if (doop.ruleFile == null) {
+            project.logger.debug "Missing property 'ruleFile', assuming ruleFile=${DEFAULT_RULES}"
+            doop.ruleFile = DEFAULT_RULES
         }
         return true
     }
