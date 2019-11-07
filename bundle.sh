@@ -2,9 +2,9 @@
 
 function usage() {
     echo "Post bundle:"
-    echo "  clue-bundle.sh postBundle"
+    echo "  bundle.sh postBundle"
     echo "Save bundle to directory:"
-    echo "  clue-bundle.sh save BUNDLE_DIR"
+    echo "  bundle.sh save BUNDLE_DIR"
     echo
     echo "Generates the appropriate files to be posted to the Web UI."
     echo "This script should be run in the application module directory."
@@ -47,8 +47,8 @@ fi
 SCRIPTS_DIR=$(dirname "$0")
 
 if [ "$1" == "save" ]; then
-    ${SCRIPTS_DIR}/clue-bundle-build.sh
+    ${SCRIPTS_DIR}/build-bundle.sh
     createBundleArchive "$2"
 elif [ "$1" == "postBundle" ]; then
-    ${SCRIPTS_DIR}/clue-bundle-build.sh postBundle
+    ${SCRIPTS_DIR}/build-bundle.sh postBundle
 fi

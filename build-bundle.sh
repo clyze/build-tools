@@ -42,7 +42,7 @@ function runBuildActions() {
 }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-    echo "Usage: clue-bundle-build.sh [postBundle]"
+    echo "Usage: build-bundle.sh [postBundle]"
     echo
     echo "Generates the appropriate files to be posted to the Web UI."
     echo "This script should be run in the application module directory."
