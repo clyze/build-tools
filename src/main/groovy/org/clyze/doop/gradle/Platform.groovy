@@ -19,6 +19,7 @@ abstract class Platform {
     private static final String DEFAULT_PROFILE = 'apiTargetAndroid25'
     private static final String DEFAULT_PROJECT = 'scrap'
     private static final String DEFAULT_RULES   = 'optimize.clue'
+    protected static final String MISSING_PROPERTIES = "WARNING: Bad 'doop' section found in build.gradle, skipping configuration."
 
     protected Project project
     protected DoopExtension doopExt = null

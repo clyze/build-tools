@@ -47,6 +47,12 @@ class JavaPlatform extends Platform {
         project.afterEvaluate {
             DoopExtension doop = DoopExtension.of(project)
 
+            // Read properties from build.gradle.
+            if (!definesRequiredProperties()) {
+                project.logger.warn MISSING_PROPERTIES
+                return
+            }
+
             String convPath = doop.convertUTF8Dir
             if (convPath != null) {
                 println "Converting to UTF-8 in ${convPath}..."

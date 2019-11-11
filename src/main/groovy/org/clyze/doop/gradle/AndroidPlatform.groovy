@@ -116,7 +116,7 @@ class AndroidPlatform extends Platform {
         project.afterEvaluate {
             // Read properties from build.gradle.
             if (!definesRequiredProperties()) {
-                project.logger.warn "WARNING: Bad 'doop' section found in build.gradle, skipping configuration."
+                project.logger.warn MISSING_PROPERTIES
                 return
             }
 
