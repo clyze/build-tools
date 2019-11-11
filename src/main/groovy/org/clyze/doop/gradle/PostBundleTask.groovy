@@ -5,11 +5,10 @@ import java.nio.file.Files
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.clyze.client.web.http.DefaultHttpClientLifeCycle
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
-class PostBundleTask extends DefaultTask {
+class PostBundleTask extends PostTask {
 
     @TaskAction
     void postBundle() {
@@ -22,7 +21,7 @@ class PostBundleTask extends DefaultTask {
         }
         
         // Package all information needed to post the bundle and the analysis.
-        PostState bundlePostState   = newBundlePostState(project)
+        PostState bundlePostState = newBundlePostState(project)
 
         if (doop.cachePost) {
             File tmpDir = Files.createTempDirectory("").toFile()
@@ -30,19 +29,16 @@ class PostBundleTask extends DefaultTask {
             println "Saved post state in ${tmpDir}"
         }
 
-        if (!doop.dry) {            
-            doPost(doop, bundlePostState)
+        if (!doop.dry) {
+            Helper.doPost(doop.host, doop.port, doop.username, doop.password,
+                          doop.clueProject, doop.profile, bundlePostState)
         }        
 
         p.cleanUp()
     }
 
-    static void doPost(DoopExtension doop, PostState bundlePostState) {
-        Helper.doPost(doop.host, doop.port, doop.username, doop.password, doop.clueProject, doop.profile, bundlePostState)
-    }
-
     //A PostState for preserving all the information required to replay a bundle post
-    private static final PostState newBundlePostState(Project project) {
+    private final PostState newBundlePostState(Project project) {
 
         /*         
         These are the options for bundles: 
@@ -69,8 +65,7 @@ class PostBundleTask extends DefaultTask {
             ps.addFileInput("HEAPDLS", it)
         }
 
-        addFileInput(project, ps, 'JCPLUGIN_METADATA', DoopPlugin.METADATA_FILE)
-        addFileInput(project, ps, 'PG_ZIP', DoopPlugin.CONFIGURATIONS_FILE)
+        addSourcesAndMetadata(project, ps)
 
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
@@ -115,21 +110,6 @@ class PostBundleTask extends DefaultTask {
         addFileInputFromDoopExtensionOption(ps, doop, "TAMIFLEX", "tamiflex")
 
         return ps
-    }
-
-    private static void addFileInput(Project project, PostState ps, String tag, String fName) {
-        DoopExtension doop = DoopExtension.of(project)
-        try {
-            File f = new File(doop.scavengeOutputDir, fName)
-            if (f.exists()) {
-                ps.addFileInput(tag, f.canonicalPath)
-                project.logger.info "Added local cached ${tag} item: ${f}"
-            } else {
-                project.logger.warn "WARNING: could not find ${tag} item: ${f}"
-            }
-        } catch (Throwable t) {
-            project.logger.warn "WARNING: could not upload ${tag} item: ${fName}"
-        }
     }
 
     private static void addStringInputFromDoopExtensionOption(PostState ps, DoopExtension doop, String inputId, String optionId) {

@@ -5,10 +5,9 @@ import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.clyze.client.web.api.AttachmentHandler
 import org.clyze.client.web.api.Remote
-import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-class RepackageTask extends DefaultTask {
+class RepackageTask extends PostTask {
 
     @TaskAction
     void repackage() {
@@ -27,6 +26,7 @@ class RepackageTask extends DefaultTask {
         PostState ps = new PostState()
         ps.addFileInput("INPUTS", doop.platform.getOutputCodeArchive())
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
+        addSourcesAndMetadata(project, ps)
 
         File out = File.createTempFile("repackaged-apk", ".apk")
 
