@@ -31,4 +31,9 @@ abstract class PostTask extends DefaultTask {
         addFileInput(project, ps, 'PG_ZIP', DoopPlugin.CONFIGURATIONS_FILE)
     }
 
+    protected void addCompileSdkVersion(Project project, PostState ps) {
+        if (DoopExtension.of(project).platform instanceof AndroidPlatform) {
+            ps.addStringInput('ANDROID_COMPILE_SDK_VERSION', AndroidAPI.getCompileSdkVersion(project))
+        }
+    }
 }

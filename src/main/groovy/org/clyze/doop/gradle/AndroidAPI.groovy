@@ -152,4 +152,15 @@ class AndroidAPI {
         }
         return ret
     }
+
+    static String getCompileSdkVersion(Project project) {
+        String compileSdkVersion = project.android.getCompileSdkVersion() as String
+        if (compileSdkVersion) {
+            project.logger.debug "compileSdkVersion = ${compileSdkVersion}"
+        } else {
+            project.logger.debug "Could not determine compileSdkVersion."
+        }
+        return compileSdkVersion
+    }
+
 }

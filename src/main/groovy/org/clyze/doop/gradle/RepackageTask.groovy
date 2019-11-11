@@ -27,6 +27,7 @@ class RepackageTask extends PostTask {
         ps.addFileInput("INPUTS", doop.platform.getOutputCodeArchive())
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
         addSourcesAndMetadata(project, ps)
+        addCompileSdkVersion(project, ps)
 
         File out = File.createTempFile("repackaged-apk", ".apk")
 

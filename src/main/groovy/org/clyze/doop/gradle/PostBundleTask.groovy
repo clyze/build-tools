@@ -66,6 +66,7 @@ class PostBundleTask extends PostTask {
         }
 
         addSourcesAndMetadata(project, ps)
+        addCompileSdkVersion(project, ps)
 
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
