@@ -14,14 +14,17 @@ function usage() {
     exit
 }
 
+function cleanBundleDir() {
+    mkdir -p $1
+    rm -f $1/*.apk $1/*.zip $1/*.jar java8.txt
+    rm -rf $1/json
+}
+
 function createBundleArchive() {
     local BUNDLE_DIR="$1"
-    local LOCAL_BUNDLE_DIR=".clue-bundle"
 
-    mkdir -p ${BUNDLE_DIR}
-    rm -f ${BUNDLE_DIR}/*.apk
-    rm -f ${BUNDLE_DIR}/*.zip
-    rm -f ${BUNDLE_DIR}/*.jar
+    cleanBundleDir "${LOCAL_BUNDLE_DIR}"
+    cleanBundleDir "${BUNDLE_DIR}"
 
     cp ${LOCAL_BUNDLE_DIR}/metadata.zip ${BUNDLE_DIR}
     cp ${LOCAL_BUNDLE_DIR}/configurations.zip ${BUNDLE_DIR}
@@ -44,11 +47,13 @@ elif [ "$1" == "save" ] && [ "$2" == "" ]; then
     usage
 fi
 
+LOCAL_BUNDLE_DIR=".clue-bundle"
 SCRIPTS_DIR=$(dirname "$0")
 
 if [ "$1" == "save" ]; then
     ${SCRIPTS_DIR}/build-bundle.sh
     createBundleArchive "$2"
 elif [ "$1" == "postBundle" ]; then
+    cleanBundleDir "${LOCAL_BUNDLE_DIR}"
     ${SCRIPTS_DIR}/build-bundle.sh postBundle
 fi
