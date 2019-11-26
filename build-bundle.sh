@@ -56,9 +56,9 @@ fi
 # Autodetect gradlew wrapper or system Gradle.
 if [ "${GRADLE}" == "" ]; then
     if [ -f "./gradlew" ]; then
-        GRADLE="./gradlew"
+        GRADLE=$(realpath "./gradlew")
     elif [ -f "../gradlew" ]; then
-        GRADLE="../gradlew"
+        GRADLE=$(realpath "../gradlew")
     elif command -v "gradle"; then
         GRADLE="gradle"
         echo "Found '${GRADLE}' command in path (set environment variable GRADLE to override it)."
