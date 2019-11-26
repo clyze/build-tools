@@ -66,11 +66,13 @@ class PostBundleTask extends PostTask {
             ps.addFileInput("HEAPDLS", it)
         }
 
+        boolean submitInputs = false
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
             if (n != DoopPlugin.SOURCES_FILE && (n.endsWith('.apk') || n.endsWith('.jar') || n.endsWith('.aar'))) {
                 addFileInput(project, ps, 'INPUTS', n)
                 project.logger.info "Added local cached input: ${n}"
+                submitInputs = true
             }
         }
 
@@ -78,6 +80,12 @@ class PostBundleTask extends PostTask {
         p.inputFiles.findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("INPUTS", it)
             project.logger.info "Added input: ${it}"
+            submitInputs = true
+        }
+
+        if (!submitInputs) {
+            project.logger.error "ERROR: No code inputs submitted, aborting task '${DoopPlugin.TASK_POST_BUNDLE}'."
+            return
         }
 
         // Filter out empty libraries.
