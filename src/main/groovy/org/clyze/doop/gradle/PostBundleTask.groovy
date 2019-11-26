@@ -69,7 +69,7 @@ class PostBundleTask extends PostTask {
         boolean submitInputs = false
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
-            if (n != DoopPlugin.SOURCES_FILE && (n.endsWith('.apk') || n.endsWith('.jar') || n.endsWith('.aar'))) {
+            if (!n.endsWith(DoopPlugin.SOURCES_FILE) && (n.endsWith('.apk') || n.endsWith('.jar') || n.endsWith('.aar'))) {
                 addFileInput(project, ps, 'INPUTS', n)
                 project.logger.info "Added local cached input: ${n}"
                 submitInputs = true
@@ -110,7 +110,13 @@ class PostBundleTask extends PostTask {
                 ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
             }
         } else {
-            addFileInput(project, ps, 'SOURCES_JAR', DoopPlugin.SOURCES_FILE)
+            doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
+                String n = f.name
+                if (n.endsWith(DoopPlugin.SOURCES_FILE)) {
+                    addFileInput(project, ps, 'SOURCES_JAR', n)
+                    project.logger.info "Added local cached sources archive: ${n}"
+                }
+            }
         }
 
         //tamiflex

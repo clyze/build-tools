@@ -151,8 +151,13 @@ class DoopPlugin implements Plugin<Project> {
         } else {
             throw new RuntimeException("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure Doop.")
         }
-        task.archiveFileName.set(SOURCES_FILE)
-        task.destinationDirectory.set(project.file(LOCAL_BUNDLE_DIR))
+
+        String prefix = project.name ? "${project.name}-": ""
+        String sourcesName = prefix + SOURCES_FILE
+        project.logger.info "Sources archive: ${sourcesName}"
+        task.archiveFileName.set(sourcesName)
+
+        task.destinationDirectory.set(DoopExtension.of(project).scavengeOutputDir)
         task.description = 'Generates the sources JAR'
         task.group = DOOP_GROUP
         task.archiveClassifier.set('sources')
