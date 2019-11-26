@@ -131,6 +131,9 @@ class DoopPlugin implements Plugin<Project> {
 
         task.archiveFileName.set(METADATA_FILE)
         File scavengeDir = DoopExtension.of(project).scavengeOutputDir
+        if (!scavengeDir.exists()) {
+            scavengeDir.mkdirs()
+        }
         task.destinationDirectory.set(scavengeDir)
         File jsonOutput = new File(scavengeDir, "json")
         task.from jsonOutput
