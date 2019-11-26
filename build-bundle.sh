@@ -61,7 +61,7 @@ if [ "${GRADLE}" == "" ]; then
         GRADLE="../gradlew"
     elif command -v "gradle"; then
         GRADLE="gradle"
-        echo "Found '${GRADLE}' command in path."
+        echo "Found '${GRADLE}' command in path (set environment variable GRADLE to override it)."
     else
         echo "Please set GRADLE to an appropriate Gradle binary (or wrapper)."
         exit
