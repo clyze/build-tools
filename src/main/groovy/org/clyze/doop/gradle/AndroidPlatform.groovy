@@ -180,7 +180,7 @@ class AndroidPlatform extends Platform {
             // If not using an explicit metadata scavenge task, hook into the
             // compiler instead. If this is a run that throws away code (because
             // no archive task is called), skip this integration.
-            if (!explicitScavengeTask() && !taskArch) {
+            if (!explicitScavengeTask() && taskArch) {
                 configureCompileHook()
             }
 
