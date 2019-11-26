@@ -94,8 +94,12 @@ class AndroidAPI {
 
     static void iterateOverVariants(Project project, Closure cl) {
         getInterestingProjects(project).forEach { p ->
-            p.android.applicationVariants.all { variant ->
-                cl(variant)
+            try {
+                p.android.applicationVariants.all { variant ->
+                    cl(variant)
+                }
+            } catch (all) {
+                project.logger.debug "Could not process variants for ${p}: ${all.message}"
             }
         }
     }
