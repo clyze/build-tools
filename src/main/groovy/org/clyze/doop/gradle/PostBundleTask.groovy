@@ -56,6 +56,7 @@ class PostBundleTask extends PostTask {
         DoopExtension doop = DoopExtension.of(project)
         Platform p = doop.platform
         PostState ps = new PostState(id:"bundle")
+        addBasicPostOptions(project, ps)
 
         // The aplication regex.
         addStringInputFromDoopExtensionOption(ps, doop, "APP_REGEX", "app_regex")
@@ -64,9 +65,6 @@ class PostBundleTask extends PostTask {
         doop.hprofs?.collect { 
             ps.addFileInput("HEAPDLS", it)
         }
-
-        addSourcesAndMetadata(project, ps)
-        addCompileSdkVersion(project, ps)
 
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name

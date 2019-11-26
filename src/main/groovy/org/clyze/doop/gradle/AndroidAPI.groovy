@@ -163,4 +163,13 @@ class AndroidAPI {
         return compileSdkVersion
     }
 
+    static String getShrinkResources(Project project, String buildType) {
+        String ret = "false"
+        iterateOverVariants project, { variant ->
+            if (variant.buildType.name == buildType && variant.buildType.shrinkResources) {
+                ret = "true"
+            }
+        }
+        return ret
+    }
 }

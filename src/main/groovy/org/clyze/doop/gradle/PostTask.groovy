@@ -26,14 +26,14 @@ abstract class PostTask extends DefaultTask {
         }
     }
 
-    protected void addSourcesAndMetadata(Project project, PostState ps) {
+    protected void addBasicPostOptions(Project project, PostState ps) {
         addFileInput(project, ps, 'JCPLUGIN_METADATA', DoopPlugin.METADATA_FILE)
         addFileInput(project, ps, 'PG_ZIP', DoopPlugin.CONFIGURATIONS_FILE)
-    }
 
-    protected void addCompileSdkVersion(Project project, PostState ps) {
-        if (DoopExtension.of(project).platform instanceof AndroidPlatform) {
+        DoopExtension doop = DoopExtension.of(project)
+        if (doop.platform instanceof AndroidPlatform) {
             ps.addStringInput('ANDROID_COMPILE_SDK_VERSION', AndroidAPI.getCompileSdkVersion(project))
+            ps.addStringInput('SHRINK_RESOURCES', AndroidAPI.getShrinkResources(project, doop.buildType))
         }
     }
 }
