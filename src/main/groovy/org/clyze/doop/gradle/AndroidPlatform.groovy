@@ -485,11 +485,7 @@ class AndroidPlatform extends Platform {
                 project.logger.warn "WARNING: file does not exist: ${conf}"
                 return
             }
-            String entryName = conf.canonicalPath
-            // Strip root directory prefix from absolute paths.
-            if (entryName.startsWith(File.separator)) {
-                entryName = entryName.substring(1)
-            }
+            String entryName = stripRootPrefix(conf.canonicalPath)
             out.putNextEntry(new ZipEntry(entryName))
             byte[] data = Files.readAllBytes(conf.toPath())
             out.write(data, 0, data.length)
@@ -498,6 +494,11 @@ class AndroidPlatform extends Platform {
         out.close()
 
         project.logger.info "Configurations written to: ${confZip.canonicalPath}"
+    }
+
+    // Strip root directory prefix to make absolute paths relative.
+    private static String stripRootPrefix(String s) {
+        return s.startsWith(File.separator) ? s.substring(1) : s
     }
 
     @Override
@@ -651,8 +652,16 @@ class AndroidPlatform extends Platform {
     @Override
     boolean definesRequiredProperties() {
         if (doop.subprojectName == null) {
-            project.logger.warn "WARNING: missing property 'subprojectName', using top-level directory"
-	        doop.subprojectName = DEFAULT_SUBPROJECT_NAME
+            String rootPath = project.rootDir.canonicalPath
+            String projPath = project.projectDir
+            if (projPath.startsWith(rootPath) && projPath.size() > rootPath.size()) {
+                String suffix = stripRootPrefix(projPath.substring(rootPath.size()))
+                doop.subprojectName = suffix
+                project.logger.warn "WARNING: missing property 'subprojectName', using: ${suffix}"
+            } else {
+                project.logger.warn "WARNING: missing property 'subprojectName', using top-level directory"
+	            doop.subprojectName = DEFAULT_SUBPROJECT_NAME
+            }
 	    }
         if (doop.buildType == null) {
             project.logger.warn "WARNING: missing property 'buildType', assuming buildType=${DEFAULT_BUILD_TYPE}"
