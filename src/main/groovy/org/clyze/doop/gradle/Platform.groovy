@@ -19,7 +19,7 @@ abstract class Platform {
     private static final String DEFAULT_PROFILE = 'apiTargetAndroid'
     private static final String DEFAULT_PROJECT = 'scrap'
     private static final String DEFAULT_RULES   = 'optimize.clue'
-    protected static final String MISSING_PROPERTIES = "WARNING: Bad 'doop' section found in build.gradle, skipping configuration."
+    protected static final String MISSING_PROPERTIES = "WARNING: No 'doop' section found in build.gradle, using defaults."
 
     protected Project project
     protected DoopExtension doopExt = null
@@ -46,7 +46,13 @@ abstract class Platform {
             doop.host = DEFAULT_HOST
         }
         if (doop.port == 0) {
-            err 'port'
+            String port = GradleProps.get(project, 'clue_port')
+            if (port) {
+                doop.port = port as Integer
+                project.logger.warn "WARNING: missing property 'port', using Gradle property 'clue_port'= ${doop.port}"
+            } else {
+                err 'port'
+            }
             return false
         }
         if (doop.username == null) {
