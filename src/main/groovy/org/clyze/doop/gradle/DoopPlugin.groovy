@@ -85,7 +85,7 @@ class DoopPlugin implements Plugin<Project> {
         doop.orgName = project.group
         doop.projectName = platform.getProjectName()
         doop.projectVersion = project.version?.toString()
-        doop.scavengeOutputDir = project.file(LOCAL_BUNDLE_DIR)
+        doop.scavengeOutputDir = new File(project.rootDir, LOCAL_BUNDLE_DIR)
         doop.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 

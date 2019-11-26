@@ -42,13 +42,14 @@ function runBuildActions() {
 }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-    echo "Usage: build-bundle.sh [postBundle]"
+    echo "Usage: build-bundle.sh ACTION [MODULE...]"
     echo
     echo "Generates the appropriate files to be posted to the Web UI."
     echo "This script should be run in the application module directory."
     echo
     echo "Options:"
-    echo "  postBundle    also post bundle to server"
+    echo "  ACTION   'postBundle' or 'dry-run'"
+    echo "  MODULE   the project modules to package/post (default is current directory)"
     echo
     exit
 fi
@@ -68,10 +69,27 @@ if [ "${GRADLE}" == "" ]; then
     fi
 fi
 
-
 defaultTrap
+
+# Read parameters and set defaults.
+ACTION="$1"
+if [ "$2" == "" ]; then
+    MODULES=( "." )
+else
+    shift
+    MODULES=( "$@" )
+fi
+echo "Modules: ${MODULES}"
+
 runBuildActions
 
-if [ "$1" == "postBundle" ]; then
-    time ${GRADLE} postBundle
+if [ "${ACTION}" == "postBundle" ]; then
+    for MODULE in "${MODULES[@]}"; do
+        echo "Posting bundle in module: ${MODULE}"
+        pushd ${MODULE}
+        time ${GRADLE} postBundle
+        popd
+    done
+elif [ "${ACTION}" == "dry-run" ]; then
+    echo "Dry run requested: will not post bundle to the server."
 fi
