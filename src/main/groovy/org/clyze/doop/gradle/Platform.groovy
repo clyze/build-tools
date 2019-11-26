@@ -19,7 +19,7 @@ abstract class Platform {
     private static final String DEFAULT_PROFILE = 'apiTargetAndroid'
     private static final String DEFAULT_PROJECT = 'scrap'
     private static final String DEFAULT_RULES   = 'optimize.clue'
-    protected static final String MISSING_PROPERTIES = "WARNING: No 'doop' section found in build.gradle, using defaults."
+    protected static final String MISSING_PROPERTIES = "WARNING: Cannot configure Clue plugin with defaults."
 
     protected Project project
     protected DoopExtension doopExt = null
@@ -52,8 +52,8 @@ abstract class Platform {
                 project.logger.warn "WARNING: missing property 'port', using Gradle property 'clue_port'= ${doop.port}"
             } else {
                 err 'port'
+                return false
             }
-            return false
         }
         if (doop.username == null) {
             doop.username = 'user'
