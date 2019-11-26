@@ -242,7 +242,7 @@ class AndroidPlatform extends Platform {
 
         Set<String> bTypes = AndroidAPI.getBuildTypes(project)
         if (!bTypes.contains(doop.buildType)) {
-            project.logger.warn "WARNING: Build type not found in project: ${doop.buildType} (values: ${bTypes})"
+            project.logger.warn "WARNING: Build type not found in project ${project.name}: ${doop.buildType} (values: ${bTypes})"
         }
 
         return doop.buildType
@@ -409,7 +409,7 @@ class AndroidPlatform extends Platform {
         codeTask.doLast {
             String output = getOutputCodeArchive()
             if (output == null) {
-                project.logger.error "ERROR: could not determine code output."
+                project.logger.warn "WARNING: could not determine code output of project ${project.name}."
                 return
             }
             File codeArchive = new File(output)
@@ -424,9 +424,9 @@ class AndroidPlatform extends Platform {
         project.logger.info "Found code outputs: ${outputs}"
         if (outputs.size() == 1) {
             return outputs[0]
-        }
-
-        if (doop.apkFilter != null) {
+        } else if (outputs.size() == 0) {
+            project.logger.warn "WARNING: no outputs for project in ${project.name}"
+        } else if (doop.apkFilter != null) {
             List<String> filteredOutputs = outputs.findAll { it.contains(doop.apkFilter) }
             int sz = filteredOutputs.size()
             if (sz == 0) {
