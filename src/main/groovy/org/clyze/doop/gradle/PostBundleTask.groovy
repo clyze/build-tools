@@ -69,7 +69,7 @@ class PostBundleTask extends PostTask {
         boolean submitInputs = false
         doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
-            if (!n.endsWith(DoopPlugin.SOURCES_FILE) && (n.endsWith('.apk') || n.endsWith('.jar') || n.endsWith('.aar'))) {
+            if (p.isCodeArtifact(n) && !n.endsWith(DoopPlugin.SOURCES_FILE)) {
                 addFileInput(project, ps, 'INPUTS', n)
                 project.logger.info "Added local cached input: ${n}"
                 submitInputs = true

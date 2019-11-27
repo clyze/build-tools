@@ -93,4 +93,5 @@ abstract class Platform {
     // True if the metadata processor runs in a separate Gradle task,
     // false if the processor is integrated in an existing task.
     abstract boolean explicitScavengeTask()
+    abstract boolean isCodeArtifact(String filename)
 }

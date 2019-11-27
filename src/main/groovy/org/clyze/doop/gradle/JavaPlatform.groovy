@@ -154,4 +154,9 @@ class JavaPlatform extends Platform {
     void configureConfigurationsTask() {
         println "WARNING: the configurations task is not yet implemented."
     }
+
+    @Override
+    boolean isCodeArtifact(String filename) {
+        return filename.toLowerCase().endsWith('.jar')
+    }
 }

@@ -675,4 +675,17 @@ class AndroidPlatform extends Platform {
         }
 	    return super.definesRequiredProperties()
     }
+
+    @Override
+    boolean isCodeArtifact(String filename) {
+        String n = filename.toLowerCase()
+        if (n.endsWith('.apk')) {
+            return true
+        } else if (n.endsWith('.aar')) {
+            // Ignore AAR artifacts, so that they are not posted when
+            // the user invokes the "post bundle" task globally.
+            project.logger.warn "WARNING: AAR artifact is currently ignored as a standalone artifact to post: ${filename}"
+        }
+        return false
+    }
 }
