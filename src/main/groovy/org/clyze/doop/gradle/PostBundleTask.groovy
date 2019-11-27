@@ -120,6 +120,8 @@ class PostBundleTask extends PostTask {
         //tamiflex
         addFileInputFromDoopExtensionOption(ps, doop, "TAMIFLEX", "tamiflex")
 
+        project.logger.info "PostState object: ${ps.toJSON()}"
+
         return ps
     }
 

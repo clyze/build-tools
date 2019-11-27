@@ -16,9 +16,13 @@ function runDefaultBuildActions() {
     time ${GRADLE} --stacktrace --info clean configurations
 }
 
-# Build without minifyEnabled.
 function runCustomBuildActions() {
-    BUILD2=build-minifyDisabled.gradle
+    time ${GRADLE} --stacktrace --info clean sourcesJar jcpluginZip $1
+}
+
+# Build without minifyEnabled.
+function runCustomBuildActionsNoMinify() {
+    local BUILD2=build-minifyDisabled.gradle
     grep -vF minifyEnabled build.gradle | grep -vF shrinkResources > ${BUILD2}
     # Temporarily swap build.gradle with custom one. We cannot use a build
     # script with a different name, as that may clash with existing settings files.
@@ -26,7 +30,7 @@ function runCustomBuildActions() {
     # If the user interrupts the build, restore build.gradle.
     finallyRestoreTrap
     mv ${BUILD2} build.gradle
-    time ${GRADLE} --stacktrace --info clean sourcesJar jcpluginZip codeApk
+    runCustomBuildActions codeApk
     restoreBuildGradle
     # Revert to default trap behavior.
     defaultTrap
@@ -39,6 +43,12 @@ function restoreBuildGradle() {
 function runBuildActions() {
     runDefaultBuildActions
     runCustomBuildActions
+    for MODULE in "${MODULES[@]}"; do
+        echo "Building module ${MODULE} without minification..."
+        pushd ${MODULE}
+        runCustomBuildActionsNoMinify
+        popd
+    done
 }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
