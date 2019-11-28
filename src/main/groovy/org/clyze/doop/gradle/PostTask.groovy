@@ -33,7 +33,9 @@ abstract class PostTask extends DefaultTask {
         DoopExtension doop = DoopExtension.of(project)
         if (doop.platform instanceof AndroidPlatform) {
             ps.addStringInput('ANDROID_COMPILE_SDK_VERSION', AndroidAPI.getCompileSdkVersion(project))
-            ps.addStringInput('SHRINK_RESOURCES', AndroidAPI.getShrinkResources(project, doop.buildType))
+            String buildType = doop.buildType
+            ps.addStringInput('BUILD_TYPE', buildType)
+            ps.addStringInput('SHRINK_RESOURCES', AndroidAPI.getShrinkResources(project, buildType))
         }
     }
 }
