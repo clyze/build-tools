@@ -32,7 +32,7 @@ configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 
-String jcpluginVersion = "org.clyze:doop-jcplugin:2.0.21"
+String jcpluginVersion = "org.clyze:doop-jcplugin:2.0.22"
 
 dependencies {
     compile localGroovy(),
