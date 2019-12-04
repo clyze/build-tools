@@ -7,6 +7,8 @@ import org.clyze.client.web.PostState
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
+
 class PostBundleTask extends PostTask {
 
     @TaskAction
