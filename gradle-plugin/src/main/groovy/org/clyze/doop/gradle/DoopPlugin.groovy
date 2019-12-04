@@ -165,7 +165,7 @@ class DoopPlugin implements Plugin<Project> {
         platform.gatherSources(task)
     }
 
-    private void configurePostBundleTask(Project project) {
+    private static void configurePostBundleTask(Project project) {
         PostBundleTask task = project.tasks.create(TASK_POST_BUNDLE, PostBundleTask)
         task.description = 'Posts the current project as a bundle'
         task.group = DOOP_GROUP
@@ -177,7 +177,7 @@ class DoopPlugin implements Plugin<Project> {
         task.group = DOOP_GROUP
     }
 
-    private void configureRepackageTask(Project project) {
+    private static void configureRepackageTask(Project project) {
         RepackageTask repackage = project.tasks.create(TASK_REPACKAGE, RepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules'
         repackage.group = DOOP_GROUP

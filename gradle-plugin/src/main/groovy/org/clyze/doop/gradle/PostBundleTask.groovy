@@ -84,7 +84,7 @@ class PostBundleTask extends PostTask {
 
         if (!submitInputs) {
             project.logger.error "ERROR: No code inputs submitted, aborting task '${DoopPlugin.TASK_POST_BUNDLE}'."
-            return
+            return null
         }
 
         // Filter out empty libraries.

@@ -11,7 +11,7 @@ import org.gradle.api.Project
 @TypeChecked
 abstract class PostTask extends DefaultTask {
 
-    protected void addFileInput(Project project, PostState ps, String tag, String fName) {
+    protected static void addFileInput(Project project, PostState ps, String tag, String fName) {
         DoopExtension doop = DoopExtension.of(project)
         try {
             File f = new File(doop.scavengeOutputDir, fName)
@@ -22,7 +22,7 @@ abstract class PostTask extends DefaultTask {
                 project.logger.warn "WARNING: could not find ${tag} item: ${f}"
             }
         } catch (Throwable t) {
-            project.logger.warn "WARNING: could not upload ${tag} item: ${fName}"
+            project.logger.warn "WARNING: could not upload ${tag} item: ${fName} (reason: ${t.message})"
         }
     }
 

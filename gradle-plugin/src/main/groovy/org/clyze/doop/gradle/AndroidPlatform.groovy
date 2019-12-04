@@ -419,7 +419,7 @@ class AndroidPlatform extends Platform {
     }
 
     @Override
-    public String getOutputCodeArchive() {
+    String getOutputCodeArchive() {
         List<String> outputs = AndroidAPI.getOutputs(project, doop.buildType, doop.flavor)
         project.logger.info "Found code outputs: ${outputs}"
         if (outputs.size() == 1) {
@@ -479,7 +479,7 @@ class AndroidPlatform extends Platform {
         }
 
         File confZip = getConfFile()
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip));
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))
         allPros.each { File conf ->
             if (!conf.exists()) {
                 project.logger.warn "WARNING: file does not exist: ${conf}"

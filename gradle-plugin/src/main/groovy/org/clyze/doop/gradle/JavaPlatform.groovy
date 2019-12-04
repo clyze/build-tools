@@ -107,7 +107,7 @@ class JavaPlatform extends Platform {
     }
 
     @Override
-    public String getOutputCodeArchive() {
+    String getOutputCodeArchive() {
         AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
         if (!jarTask) {
             project.logger.error "Could not find jar task ${jarTaskName()}"
