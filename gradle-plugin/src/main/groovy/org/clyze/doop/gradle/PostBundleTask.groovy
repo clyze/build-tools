@@ -23,16 +23,18 @@ class PostBundleTask extends PostTask {
         // Package all information needed to post the bundle and the analysis.
         PostState bundlePostState = newBundlePostState(project)
 
-        if (doop.cachePost) {
-            File tmpDir = Files.createTempDirectory("").toFile()
-            bundlePostState.saveTo(tmpDir)            
-            println "Saved post state in ${tmpDir}"
-        }
+        if (bundlePostState) {
+            if (doop.cachePost) {
+                File tmpDir = Files.createTempDirectory("").toFile()
+                bundlePostState.saveTo(tmpDir)
+                println "Saved post state in ${tmpDir}"
+            }
 
-        if (!doop.dry) {
-            Helper.doPost(doop.host, doop.port, doop.username, doop.password,
-                          doop.clueProject, doop.profile, bundlePostState)
-        }        
+            if (!doop.dry) {
+                Helper.doPost(doop.host, doop.port, doop.username, doop.password,
+                              doop.clueProject, doop.profile, bundlePostState)
+            }
+        }
 
         p.cleanUp()
     }
