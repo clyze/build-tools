@@ -38,7 +38,7 @@ task fatjar(type: Jar) {
         attributes 'Main-Class': 'org.clyze.buck.BundlerMain',
                    'Implementation-Version': version
     }
-    baseName = project.name + '-all'
+    archiveBaseName.set(project.name + '-all')
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
