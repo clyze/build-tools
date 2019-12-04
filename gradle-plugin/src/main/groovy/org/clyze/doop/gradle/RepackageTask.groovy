@@ -7,30 +7,32 @@ import org.clyze.client.web.api.AttachmentHandler
 import org.clyze.client.web.api.Remote
 import org.gradle.api.tasks.TaskAction
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
+
 class RepackageTask extends PostTask {
 
     @TaskAction
     void repackage() {
-        DoopExtension doop = DoopExtension.of(project)
-        if (doop.ruleFile == null) {
-            project.logger.error "ERROR: no 'ruleFile' set in build.gradle, cannot repackage."
+        Extension ext = Extension.of(project)
+        if (ext.ruleFile == null) {
+            project.logger.error msg("ERROR: no 'ruleFile' set in build.gradle, cannot repackage.")
             return
         }
 
-        File ruleFile = new File(doop.ruleFile)
+        File ruleFile = new File(ext.ruleFile)
         if (!ruleFile.exists()) {
-            project.logger.error "ERROR: rule file does not exist: ${doop.ruleFile}"
+            project.logger.error msg("ERROR: rule file does not exist: ${ext.ruleFile}")
             return
         }
 
         PostState ps = new PostState()
         addBasicPostOptions(project, ps)
-        ps.addFileInput("INPUTS", doop.platform.getOutputCodeArchive())
+        ps.addFileInput("INPUTS", ext.platform.getOutputCodeArchive())
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
 
         File out = File.createTempFile("repackaged-apk", ".apk")
 
-        Remote api = Helper.connect(doop.host, doop.port, doop.username, doop.password)
+        Remote api = Helper.connect(ext.host, ext.port, ext.username, ext.password)
 
         AttachmentHandler saveAttachment = new AttachmentHandler() {
             @Override
@@ -39,8 +41,8 @@ class RepackageTask extends PostTask {
                 return out.canonicalPath
             }
         }
-        api.repackageBundleForCI(doop.username, doop.clueProject, ps, saveAttachment)
+        api.repackageBundleForCI(ext.username, ext.clueProject, ps, saveAttachment)
 
-        println "Repackaged output: ${out.canonicalPath}"
+        println msg("Repackaged output: ${out.canonicalPath}")
     }
 }

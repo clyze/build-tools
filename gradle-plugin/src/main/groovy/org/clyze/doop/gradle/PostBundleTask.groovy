@@ -4,7 +4,6 @@ import groovy.io.FileType
 import java.nio.file.Files
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
-import org.clyze.client.web.http.DefaultHttpClientLifeCycle
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
@@ -13,10 +12,10 @@ class PostBundleTask extends PostTask {
     @TaskAction
     void postBundle() {
 
-        DoopExtension doop = DoopExtension.of(project)
-        Platform p = doop.platform
+        Extension ext = Extension.of(project)
+        Platform p = ext.platform
         if (p.mustRunAgain()) {
-            project.logger.error "ERROR: this looks like a first-time build, please run the '${DoopPlugin.TASK_POST_BUNDLE}' task again."
+            project.logger.error msg("ERROR: this looks like a first-time build, please run the '${RepackagePlugin.TASK_POST_BUNDLE}' task again.")
             return
         }
         
@@ -24,15 +23,15 @@ class PostBundleTask extends PostTask {
         PostState bundlePostState = newBundlePostState(project)
 
         if (bundlePostState) {
-            if (doop.cachePost) {
+            if (ext.cachePost) {
                 File tmpDir = Files.createTempDirectory("").toFile()
                 bundlePostState.saveTo(tmpDir)
-                println "Saved post state in ${tmpDir}"
+                println msg("Saved post state in ${tmpDir}")
             }
 
-            if (!doop.dry) {
-                Helper.doPost(doop.host, doop.port, doop.username, doop.password,
-                              doop.clueProject, doop.profile, bundlePostState)
+            if (!ext.dry) {
+                Helper.doPost(ext.host, ext.port, ext.username, ext.password,
+                              ext.clueProject, ext.profile, bundlePostState)
             }
         }
 
@@ -55,23 +54,23 @@ class PostBundleTask extends PostTask {
         --sources_jar <file>
         --tamiflex <file>
         */
-        DoopExtension doop = DoopExtension.of(project)
-        Platform p = doop.platform
+        Extension ext = Extension.of(project)
+        Platform p = ext.platform
         PostState ps = new PostState(id:"bundle")
         addBasicPostOptions(project, ps)
 
         // The aplication regex.
-        addStringInputFromDoopExtensionOption(ps, doop, "APP_REGEX", "app_regex")
+        addStringInputFromExtensionOption(ps, ext, "APP_REGEX", "app_regex")
 
         // The heap snapshots are optional.
-        doop.hprofs?.collect { 
+        ext.hprofs?.collect {
             ps.addFileInput("HEAPDLS", it)
         }
 
         boolean submitInputs = false
-        doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
+        ext.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
-            if (p.isCodeArtifact(n) && !n.endsWith(DoopPlugin.SOURCES_FILE)) {
+            if (p.isCodeArtifact(n) && !n.endsWith(RepackagePlugin.SOURCES_FILE)) {
                 addFileInput(project, ps, 'INPUTS', n)
                 submitInputs = true
             }
@@ -80,62 +79,62 @@ class PostBundleTask extends PostTask {
         // Filter out empty inputs.
         p.inputFiles.findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("INPUTS", it)
-            project.logger.info "Added input: ${it}"
+            project.logger.info msg("Added input: ${it}")
             submitInputs = true
         }
 
         if (!submitInputs) {
-            project.logger.error "ERROR: No code inputs submitted, aborting task '${DoopPlugin.TASK_POST_BUNDLE}'."
+            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${RepackagePlugin.TASK_POST_BUNDLE}'.")
             return null
         }
 
         // Filter out empty libraries.
         p.libraryFiles.findAll(Helper.checkFileEmpty).each {
             ps.addFileInput("LIBRARIES", it)
-            project.logger.info "Added library: ${it}"
+            project.logger.info msg("Added library: ${it}")
         }
 
         // The main class of the program. Usually empty on Android code.
-        addStringInputFromDoopExtensionOption(ps, doop, "MAIN_CLASS", "main_class")
+        addStringInputFromExtensionOption(ps, ext, "MAIN_CLASS", "main_class")
 
         // The platform to use when analyzing the code.
-        ps.addStringInput("PLATFORM", doop.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")        
+        ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")
 
         // Upload sources (user can override with alternative sources archive).
-        String altSourcesJar = doop.useSourcesJar
+        String altSourcesJar = ext.useSourcesJar
         if (altSourcesJar) {
             File sources = new File(altSourcesJar)
             if (!sources.exists()) {
-                project.logger.warn "WARNING: explicit sources JAR ${altSourcesJar} does not exist, no sources will be uploaded."
+                project.logger.warn msg("WARNING: explicit sources JAR ${altSourcesJar} does not exist, no sources will be uploaded.")
             } else {
                 ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
             }
         } else {
-            doop.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
+            ext.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
                 String n = f.name
-                if (n.endsWith(DoopPlugin.SOURCES_FILE)) {
+                if (n.endsWith(RepackagePlugin.SOURCES_FILE)) {
                     addFileInput(project, ps, 'SOURCES_JAR', n)
                 }
             }
         }
 
         //tamiflex
-        addFileInputFromDoopExtensionOption(ps, doop, "TAMIFLEX", "tamiflex")
+        addFileInputFromExtensionOption(ps, ext, "TAMIFLEX", "tamiflex")
 
-        project.logger.info "PostState object: ${ps.toJSON()}"
+        project.logger.info msg("PostState object: ${ps.toJSON()}")
 
         return ps
     }
 
-    private static void addStringInputFromDoopExtensionOption(PostState ps, DoopExtension doop, String inputId, String optionId) {
-        if (doop.options.containsKey(optionId)) {
-            ps.addStringInput(inputId, doop.options[(optionId)] as String)
+    private static void addStringInputFromExtensionOption(PostState ps, Extension ext, String inputId, String optionId) {
+        if (ext.options.containsKey(optionId)) {
+            ps.addStringInput(inputId, ext.options[(optionId)] as String)
         }
     }
 
-    private static void addFileInputFromDoopExtensionOption(PostState ps, DoopExtension doop, String inputId, String optionId) {
-        if (doop.options.containsKey(optionId)) {
-            ps.addFileInput(inputId, doop.options[(optionId)] as String)
+    private static void addFileInputFromExtensionOption(PostState ps, Extension ext, String inputId, String optionId) {
+        if (ext.options.containsKey(optionId)) {
+            ps.addFileInput(inputId, ext.options[(optionId)] as String)
         }
     }
 

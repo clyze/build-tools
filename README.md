@@ -1,12 +1,12 @@
-# Doop Gradle plugin #
+# Gradle plugin #
 
-This plugin integrates with Gradle builds for posting projects to Doop
-for analysis. Some support for Ant-based builds is also included (see
-below for details).
+This plugin integrates with Gradle builds for posting projects to the
+server for analysis. Some support for Ant-based builds is also included
+(see below for details).
 
 ## Setup ##
 
-Use the "doop" plugin in your Gradle build:
+Use the "repackage" plugin in your Gradle build:
 
 ```
 buildscript {
@@ -19,11 +19,10 @@ buildscript {
     }
 }
 
-apply plugin: 'doop'
+apply plugin: 'repackage'
 ```
 
-On Android, you must also use the "doop" annotation processor in your
-Gradle build:
+On Android, you must also use the metadata processor in your Gradle build:
 
 ```
 repositories {
@@ -49,7 +48,7 @@ Step 1. Put these lines in build.gradle (lines with default values can
 be omitted):
 
 ```
-doop {
+repackage {
     port = ...           // server UI port
     clueProject = ...    // default: 'scrap'
     buildType = ...      // default: 'debug'
@@ -84,9 +83,9 @@ sdk.dir=/home/user/Android/Sdk
 Step 2. Put these lines in Application/build.gradle:
 
 ```
-apply plugin: 'doop'
+apply plugin: 'repackage'
 ...
-doop {
+repackage {
     port = ...
     subprojectName = "Application"
     clueProject = ...
@@ -113,7 +112,7 @@ documentation](https://github.com/plast-lab/HeapDL).
 Step 2. Zip java.hprof to produce java.hprof.zip. (This step is
 optional, you can upload the java.hprof file but it might be big.)
 
-Step 3. In the 'doop' section in build.gradle, add this line:
+Step 3. In the plugin configuration section in build.gradle, add this line:
 
 ```
 hprofs = [ 'java.hprof.zip' ]
@@ -128,11 +127,11 @@ A sample build.gradle file to bundle an Ant project is the following:
 ```
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'doop'
+apply plugin: 'repackage'
 
 buildscript {
     repositories {
-        // Put here the repositories needed to find the Doop plugin.
+        // Put here the repositories needed to find the plugin.
     }
     dependencies {
         classpath ('org.clyze:gradle-plugin:4.0.+')
@@ -155,12 +154,12 @@ ant.importBuild('build.xml') { antTargetName ->
     'ant-' + antTargetName
 }
 
-doop {
+repackage {
     port = ...
     buildType = ...
     flavor = ...
 
-    // Put here the rest of the Doop options...
+    // Put here the rest of the options...
 
     // Build the sources archive separately and provide it here.
     useSourcesJar = "dist/source.zip"
@@ -202,7 +201,7 @@ doop {
    relative to the project root directory. This parameter can be used
    to add dependency JARs whose resolutions has failed or extra code.
 
-* Map<String, Object> _options_: the Doop options to use.
+* Map<String, Object> _options_: the Doop options to use (empty for R8).
 
 * boolean _cachePost_: cache the data before posting the analysis to
   the server, so that it can be later replayed.

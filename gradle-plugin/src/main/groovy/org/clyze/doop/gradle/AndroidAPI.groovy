@@ -6,12 +6,14 @@ import org.gradle.api.file.FileTree
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
+
 // This class provides access to the Android Gradle API (including
 // internals) without a compile-time dependency.
 class AndroidAPI {
     static void forEachSourceFile(Project project, def closure) {
         for (def set1 : project.android.sourceSets) {
-            println "Set: ${set1.class}"
+            println msg("Set: ${set1.class}")
             if (set1.name == "main") {
                 FileTree srcFiles = set1.java.sourceFiles
                 closure(srcFiles)
@@ -50,7 +52,7 @@ class AndroidAPI {
         try {
             return Class.forName(s)
         } catch (ClassNotFoundException ex) {
-            println "WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}"
+            println msg("WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}")
             return null
         }
     }
@@ -60,7 +62,6 @@ class AndroidAPI {
         Class pgTransform = getInternalClass("com.android.build.gradle.internal.transforms.ProguardConfigurable")
 
         if (!transformTask || !pgTransform) {
-            project.logger.info "Could not access internal Android Gradle API, ProGuard files may not be automatically resolved and must be provided via option \"doop.configurationFiles\" in build.gradle."
             return
         }
 
@@ -68,14 +69,14 @@ class AndroidAPI {
             if (transformTask.isInstance(it)) {
                 try {
                     if (it.transform && pgTransform.isInstance(it.transform)) {
-                        project.logger.info "Processing configuration files in transform: ${it} (${it.class} extends ${it.class.superclass})"
+                        project.logger.info msg("Processing configuration files in transform: ${it} (${it.class} extends ${it.class.superclass})")
                         FileCollection pros = it.transform.getAllConfigurationFiles()
                         closure(pros)
                     } else {
-                        project.logger.debug "Ignoring transform task: ${it}"
+                        project.logger.debug msg("Ignoring transform task: ${it}")
                     }
                 } catch (Throwable t) {
-                    println "Error reading task ${it.transform}: ${t.message}"
+                    println msg("Error reading task ${it.transform}: ${t.message}")
                 }
             }
         }
@@ -99,7 +100,7 @@ class AndroidAPI {
                     cl(variant)
                 }
             } catch (all) {
-                project.logger.debug "Could not process variants for ${p}: ${all.message}"
+                project.logger.debug msg("Could not process variants for ${p}: ${all.message}")
             }
         }
     }
@@ -140,19 +141,19 @@ class AndroidAPI {
         boolean ret = false
         try {
             iterateOverVariants project, { variant ->
-                // println "Examining: ${variant.buildType.name}"
+                // println msg("Examining: ${variant.buildType.name}")
                 if (variant.buildType.name == buildType) {
                     ret = variant.buildType.minifyEnabled
                 }
             }
         } catch (Throwable t) {
-            project.logger.error "ERROR: failed to read 'minifyEnabled' property for build type '${buildType}': ${t.message}"
+            project.logger.error msg("ERROR: failed to read 'minifyEnabled' property for build type '${buildType}': ${t.message}")
             // Just print the error message, without crashing. The
             // code above can fail but should only be used for warnings.
             t.printStackTrace()
         }
         if (reportError) {
-            project.logger.warn "WARNING: build type '${buildType}' has no 'minifyEnabled' property."
+            project.logger.warn msg("WARNING: build type '${buildType}' has no 'minifyEnabled' property.")
         }
         return ret
     }
@@ -160,9 +161,9 @@ class AndroidAPI {
     static String getCompileSdkVersion(Project project) {
         String compileSdkVersion = project.android.getCompileSdkVersion() as String
         if (compileSdkVersion) {
-            project.logger.debug "compileSdkVersion = ${compileSdkVersion}"
+            project.logger.debug msg("compileSdkVersion = ${compileSdkVersion}")
         } else {
-            project.logger.debug "Could not determine compileSdkVersion."
+            project.logger.debug msg("Could not determine compileSdkVersion.")
         }
         return compileSdkVersion
     }

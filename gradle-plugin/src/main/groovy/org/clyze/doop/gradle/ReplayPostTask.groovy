@@ -24,7 +24,7 @@ class ReplayPostTask extends DefaultTask {
     		bundlePostState = new PostState(id:"bundle")
     		bundlePostState.loadFrom(fromDir)
     	} catch (any) {
-    		project.logger.error "Error bundling state: ${any.getMessage()}"
+    		project.logger.error msg("Error bundling state: ${any.getMessage()}")
     		return
     	}
 
@@ -33,10 +33,10 @@ class ReplayPostTask extends DefaultTask {
 			analysisPostState = new PostState(id: "analysis")
 			analysisPostState.loadFrom(fromDir)
 		} catch (any) {
-			project.logger.error "Error bundling state: ${any.message}"
+			project.logger.error msg("Error bundling state: ${any.message}")
 			return
 		}
 
-		PostBundleTask.doPost(DoopExtension.of(project), bundlePostState, analysisPostState)
+		PostBundleTask.doPost(Extension.of(project), bundlePostState, analysisPostState)
     }
 }

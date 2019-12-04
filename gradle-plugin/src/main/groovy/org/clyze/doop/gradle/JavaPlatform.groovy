@@ -10,6 +10,8 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
+
 @TypeChecked
 @InheritConstructors
 class JavaPlatform extends Platform {
@@ -25,7 +27,7 @@ class JavaPlatform extends Platform {
         if (projectTestTask != null) {
             // We cannot combine the classpaths from the two tasks to create a
             // new classpath (Gradle complains), so we must use 'extraInputs'.
-            println "WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in build.gradle to fix missing classpath entries."
+            println msg("WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in build.gradle to fix missing classpath entries.")
             source.addAll(projectTestTask.source.getFiles())
         }
 
@@ -34,9 +36,9 @@ class JavaPlatform extends Platform {
 
     /** Things to do last are:
      *
-     * - Optional UTF-8 conversion ('convertUTF8Dir' Doop parameter).
+     * - Optional UTF-8 conversion ('convertUTF8Dir' parameter).
      *
-     * - Feed extra inputs to the scavenge task ('extraInputs' Doop
+     * - Feed extra inputs to the scavenge task ('extraInputs'
      *   parameter).
      *
      * - Set up 'sourcesJar' task according to 'useSourcesJar' parameter.
@@ -45,7 +47,7 @@ class JavaPlatform extends Platform {
     @Override
     void markMetadataToFix() {
         project.afterEvaluate {
-            DoopExtension doop = DoopExtension.of(project)
+            Extension ext = Extension.of(project)
 
             // Read properties from build.gradle.
             if (!definesRequiredProperties()) {
@@ -53,26 +55,26 @@ class JavaPlatform extends Platform {
                 return
             }
 
-            String convPath = doop.convertUTF8Dir
+            String convPath = ext.convertUTF8Dir
             if (convPath != null) {
-                println "Converting to UTF-8 in ${convPath}..."
+                println msg("Converting to UTF-8 in ${convPath}...")
                 SourceProcessor sp = new SourceProcessor()
                 sp.process(new File(convPath), true)
             }
 
-            List<String> extras = doop.getExtraInputFiles(project.rootDir)
+            List<String> extras = ext.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
                 String extraCp = extras.join(File.pathSeparator)
-                JavaCompile scavengeTask = project.tasks.findByName(DoopPlugin.TASK_SCAVENGE) as JavaCompile
+                JavaCompile scavengeTask = project.tasks.findByName(RepackagePlugin.TASK_SCAVENGE) as JavaCompile
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
             }
 
-            String sourcesJar = doop.useSourcesJar
+            String sourcesJar = ext.useSourcesJar
             if (sourcesJar != null) {
-                println "No setup for '${DoopPlugin.TASK_SOURCES_JAR}' task, using: ${sourcesJar}"
+                println msg("No setup for '${RepackagePlugin.TASK_SOURCES_JAR}' task, using: ${sourcesJar}")
             } else {
-                Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR) as Jar
+                Jar sourcesJarTask = project.tasks.findByName(RepackagePlugin.TASK_SOURCES_JAR) as Jar
                 sourcesJarTask.dependsOn project.tasks.findByName('classes')
             }
         }
@@ -88,7 +90,7 @@ class JavaPlatform extends Platform {
 
         final String TEST_SOURCE_SET = "test"
         if (sourceSets.hasProperty(TEST_SOURCE_SET)) {
-            println "Also adding sources from ${TEST_SOURCE_SET}"
+            println msg("Also adding sources from ${TEST_SOURCE_SET}")
             sourcesJarTask.from JavaAPI.getTestSources(project)
         }
     }
@@ -110,7 +112,7 @@ class JavaPlatform extends Platform {
     String getOutputCodeArchive() {
         AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
         if (!jarTask) {
-            project.logger.error "Could not find jar task ${jarTaskName()}"
+            project.logger.error msg("Could not find jar task ${jarTaskName()}")
             return [] as List<String>
         }
         return project.file(jarTask.archiveFile).canonicalPath
@@ -118,8 +120,8 @@ class JavaPlatform extends Platform {
 
     @Override
     List<String> getLibraryFiles() {
-        List<String> extraInputFiles = DoopExtension.of(project).getExtraInputFiles(project.rootDir)
-        println "project configuration type: ${project.configurations.class}"
+        List<String> extraInputFiles = Extension.of(project).getExtraInputFiles(project.rootDir)
+        println msg("project configuration type: ${project.configurations.class}")
         List<String> runtimeFiles = JavaAPI.getRuntimeFiles(project)
         return runtimeFiles + extraInputFiles
     }
@@ -152,7 +154,7 @@ class JavaPlatform extends Platform {
 
     @Override
     void configureConfigurationsTask() {
-        println "WARNING: the configurations task is not yet implemented."
+        println msg("WARNING: the configurations task is not yet implemented.")
     }
 
     @Override

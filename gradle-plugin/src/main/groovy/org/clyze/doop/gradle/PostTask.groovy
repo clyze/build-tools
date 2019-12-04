@@ -5,6 +5,8 @@ import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
+
 /**
  * This class represents tasks that post data to the server.
  */
@@ -12,28 +14,28 @@ import org.gradle.api.Project
 abstract class PostTask extends DefaultTask {
 
     protected static void addFileInput(Project project, PostState ps, String tag, String fName) {
-        DoopExtension doop = DoopExtension.of(project)
+        Extension ext = Extension.of(project)
         try {
-            File f = new File(doop.scavengeOutputDir, fName)
+            File f = new File(ext.scavengeOutputDir, fName)
             if (f.exists()) {
                 ps.addFileInput(tag, f.canonicalPath)
-                project.logger.info "Added local cached ${tag} item: ${f}"
+                project.logger.info msg("Added local cached ${tag} item: ${f}")
             } else {
-                project.logger.warn "WARNING: could not find ${tag} item: ${f}"
+                project.logger.warn msg("WARNING: could not find ${tag} item: ${f}")
             }
         } catch (Throwable t) {
-            project.logger.warn "WARNING: could not upload ${tag} item: ${fName} (reason: ${t.message})"
+            project.logger.warn msg("WARNING: could not upload ${tag} item: ${fName} (reason: ${t.message})")
         }
     }
 
     protected static void addBasicPostOptions(Project project, PostState ps) {
-        addFileInput(project, ps, 'JCPLUGIN_METADATA', DoopPlugin.METADATA_FILE)
-        addFileInput(project, ps, 'PG_ZIP', DoopPlugin.CONFIGURATIONS_FILE)
+        addFileInput(project, ps, 'JCPLUGIN_METADATA', RepackagePlugin.METADATA_FILE)
+        addFileInput(project, ps, 'PG_ZIP', RepackagePlugin.CONFIGURATIONS_FILE)
 
-        DoopExtension doop = DoopExtension.of(project)
-        if (doop.platform instanceof AndroidPlatform) {
+        Extension ext = Extension.of(project)
+        if (ext.platform instanceof AndroidPlatform) {
             ps.addStringInput('ANDROID_COMPILE_SDK_VERSION', AndroidAPI.getCompileSdkVersion(project))
-            String buildType = doop.buildType
+            String buildType = ext.buildType
             ps.addStringInput('BUILD_TYPE', buildType)
             ps.addStringInput('SHRINK_RESOURCES', AndroidAPI.getShrinkResources(project, buildType))
         }

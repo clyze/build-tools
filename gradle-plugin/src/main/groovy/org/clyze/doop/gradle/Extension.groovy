@@ -4,8 +4,12 @@ import groovy.transform.TypeChecked
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
+
 @TypeChecked
-class DoopExtension {
+class Extension {
+    static final String SECTION_NAME = "repackage"
+
     String host
     int port
     String username
@@ -51,21 +55,20 @@ class DoopExtension {
             return extraInputs.collect { String fName ->
                 File f = new File("${rootDir.canonicalPath}/${fName}")
                 if (!f.exists()) {
-                    println "Extra input ${f.canonicalPath} does not exist."
+                    println msg("Extra input ${f.canonicalPath} does not exist.")
                 } else {
-                    println "Using extra input ${f.canonicalPath}"
+                    println msg("Using extra input ${f.canonicalPath}")
                 }
                 f.canonicalPath
             }
         }
     }
 
-    static DoopExtension of(Project project) {
-        String sectionName = "doop"
-        Object sec = project.extensions.getByName(sectionName)
+    static Extension of(Project project) {
+        Object sec = project.extensions.getByName(SECTION_NAME)
         if (sec == null) {
-            throw new RuntimeException("Missing section \"${sectionName}\" in build.gradle.")
+            throw new RuntimeException(msg("Missing section \"${SECTION_NAME}\" in build.gradle."))
         }
-        return (sec instanceof DoopExtension) ? sec : null
+        return (sec instanceof Extension) ? sec : null
     }
 }

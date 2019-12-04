@@ -14,16 +14,16 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 
+import static org.clyze.doop.gradle.RepackagePlugin.msg
 import static org.clyze.utils.JHelper.throwRuntimeException
 
 @TypeChecked
 class AndroidPlatform extends Platform {
 
-    // The name of the Doop Gradle plugin task that will generate the
-    // code input for Doop.
+    // The name of the Gradle plugin task that will generate the
+    // code input for the server.
     static final String TASK_CODE_ARCHIVE = 'codeApk'
     // The name prefix of the Android Gradle plugin task that will
     // compile and package the program.
@@ -34,7 +34,7 @@ class AndroidPlatform extends Platform {
     final String DEFAULT_BUILD_TYPE = "debug"
 
     private AndroidDepResolver resolver
-    // Flag used to prompt the user to run again the Doop plugin when
+    // Flag used to prompt the user to run again the plugin when
     // needed files have not been generated yet.
     private boolean runAgain = false
     // Flag: true = AAR project, false = APK project.
@@ -70,20 +70,20 @@ class AndroidPlatform extends Platform {
                 // the configuration of the top-level project that is
                 // just a container of sub-projects.
                 if ((srcFiles.size() == 0) && (isDefinedSubProject())) {
-                    throwRuntimeException("No Java source files found for subproject " + doop.subprojectName)
+                    throwRuntimeException(msg("No Java source files found for subproject " + repackageExt.subprojectName))
                 } else {
                     task.source = srcFiles
                 }
             })
         if (task.source == null) {
-            throwRuntimeException("Could not find sourceSet")
+            throwRuntimeException(msg("Could not find sourceSet"))
         }
     }
 
     // Checks if the current project is a Gradle sub-project (with a
-    // non-"." value for doop.subprojectName in its build.gradle).
+    // non-"." value for option 'subprojectName' in its build.gradle).
     private boolean isDefinedSubProject() {
-        return ((doop.subprojectName != null) &&
+        return ((repackageExt.subprojectName != null) &&
                 getSubprojectName() != ".")
     }
 
@@ -102,7 +102,7 @@ class AndroidPlatform extends Platform {
     // 3. It sets the location of the auto-generated Java sources in
     // the sources JAR task.
     //
-    // 4. It creates dynamic dependencies of Doop tasks.
+    // 4. It creates dynamic dependencies of plugin tasks.
     //
     // 5. It copies the source file location from the configured
     // Android sourceSet.
@@ -121,31 +121,31 @@ class AndroidPlatform extends Platform {
             }
 
             def tasks = project.gradle.startParameter.taskNames
-            // Skip configuration if no Doop tasks will run (this can only be
+            // Skip configuration if no plugin tasks will run (this can only be
             // determined when no integration with existing tasks happens).
             if (explicitScavengeTask() && !tasks.any {
                     it.endsWith(TASK_CODE_ARCHIVE) ||
-                    it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) ||
-                    it.endsWith(DoopPlugin.TASK_SCAVENGE) ||
-                    it.endsWith(DoopPlugin.TASK_JCPLUGIN_ZIP) ||
-                    it.endsWith(DoopPlugin.TASK_POST_BUNDLE) ||
-                    it.endsWith(DoopPlugin.TASK_SOURCES_JAR)
+                    it.endsWith(RepackagePlugin.TASK_CONFIGURATIONS) ||
+                    it.endsWith(RepackagePlugin.TASK_SCAVENGE) ||
+                    it.endsWith(RepackagePlugin.TASK_JCPLUGIN_ZIP) ||
+                    it.endsWith(RepackagePlugin.TASK_POST_BUNDLE) ||
+                    it.endsWith(RepackagePlugin.TASK_SOURCES_JAR)
                 }) {
-                project.logger.warn "WARNING: No ${DoopPlugin.DOOP_GROUP} task invoked, skipping configuration."
+                project.logger.warn msg("WARNING: No ${RepackagePlugin.NAME} task invoked, skipping configuration.")
                 return
             }
 
             def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) }
-            def taskConf = tasks.find { it.endsWith(DoopPlugin.TASK_CONFIGURATIONS) }
+            def taskConf = tasks.find { it.endsWith(RepackagePlugin.TASK_CONFIGURATIONS) }
             String bType = getBuildType()
             if (taskArch && taskConf) {
-                project.logger.error "ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${DoopPlugin.TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation."
+                project.logger.error msg("ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${RepackagePlugin.TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation.")
                 return
             } else if (taskConf && !AndroidAPI.isMinifyEnabled(project, bType, true)) {
-                project.logger.error "ERROR: Option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'."
+                project.logger.error msg("ERROR: Option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'.")
                 return
             } else if (taskArch && AndroidAPI.isMinifyEnabled(project, bType, false)) {
-                project.logger.warn "WARNING: Option 'minifyEnabled' is enabled, the posted APK will be already optimized for build type '${buildType}'."
+                project.logger.warn msg("WARNING: Option 'minifyEnabled' is enabled, the posted APK will be already optimized for build type '${buildType}'.")
             }
 
             String flavorDir = getFlavorDir()
@@ -153,7 +153,7 @@ class AndroidPlatform extends Platform {
 
             configureCodeJarTaskAfterEvaluate(appBuildHome)
 
-            Jar sourcesJarTask = project.tasks.findByName(DoopPlugin.TASK_SOURCES_JAR) as Jar
+            Jar sourcesJarTask = project.tasks.findByName(RepackagePlugin.TASK_SOURCES_JAR) as Jar
             gatherSourcesAfterEvaluate(sourcesJarTask)
 
             // For AAR libraries, attempt to read autogenerated sources.
@@ -161,11 +161,11 @@ class AndroidPlatform extends Platform {
                 def genSourceDirs = findGeneratedSourceDirs(appBuildHome, flavorDir)
                 genSourceDirs.each { dir -> sourcesJarTask.from dir}
                 if (explicitScavengeTask()) {
-                    JavaCompile scavengeTask = project.tasks.findByName(DoopPlugin.TASK_SCAVENGE) as JavaCompile
+                    JavaCompile scavengeTask = project.tasks.findByName(RepackagePlugin.TASK_SCAVENGE) as JavaCompile
                     if (scavengeTask) {
                         scavengeTask.source(genSourceDirs)
                     } else {
-                        project.logger.error "Error: scavenge task is missing."
+                        project.logger.error msg("ERROR: scavenge task is missing.")
                     }
                 }
                 // Create dependency on source JAR task in order to create
@@ -184,7 +184,7 @@ class AndroidPlatform extends Platform {
                 configureCompileHook()
             }
 
-            Task confTask = project.tasks.findByName(DoopPlugin.TASK_CONFIGURATIONS) as Task
+            Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
         }
     }
@@ -196,21 +196,21 @@ class AndroidPlatform extends Platform {
         // Find the location of the Android SDK.
         resolver.findSDK(project.rootDir.canonicalPath)
         // Don't resolve dependencies the user overrides.
-        resolver.ignoredArtifacts.addAll(doop.replacedByExtraInputs ?: [])
+        resolver.ignoredArtifacts.addAll(repackageExt.replacedByExtraInputs ?: [])
 
         project.configurations.each { conf ->
-            // println "Configuration: ${conf.name}"
+            // println msg("Configuration: ${conf.name}")
             conf.allDependencies.each { dep ->
                 String group = dep.group
                 if (group == null) {
                     return
                 } else if (group == project.group.toString()) {
-                    // We do not resolve dependencies whose group is
-                    // that of the current build. This means that
-                    // other subprojects in the same tree must be
-                    // separately built and their code provided using
-                    // 'extraInputs' in build.gradle's 'doop' section.
-                    println "Ignoring own dependency ${group}:${dep.name}"
+                    // We do not resolve dependencies whose group is that of
+                    // the current build. This means that other subprojects
+                    // in the same tree must be separately built and their
+                    // code provided using 'extraInputs' in build.gradle's
+                    // plugin configuration section.
+                    println msg("Ignoring own dependency ${group}:${dep.name}")
                     return
                 }
 
@@ -226,7 +226,7 @@ class AndroidPlatform extends Platform {
     // Calculates the scavenge dependencies of the project.
     private void calcScavengeDeps(Set<String> deps) {
         Set<String> deferredDeps = resolver.getLatestDelayedArtifacts()
-        List<String> extraInputs = doop.getExtraInputFiles(project.rootDir)
+        List<String> extraInputs = repackageExt.getExtraInputFiles(project.rootDir)
         scavengeDeps.addAll(deferredDeps)
         scavengeDeps.addAll(deps)
         scavengeDeps.addAll(extraInputs)
@@ -234,37 +234,37 @@ class AndroidPlatform extends Platform {
 
     // Returns the build type.
     String getBuildType() {
-        if (doop.buildType == null) {
-            throw new RuntimeException("Please set doop.buildType to the type of the existing build ('debug' or 'release').")
-        } else if ((doop.buildType != 'debug') && (doop.buildType != 'release')) {
-            project.logger.info "Property doop.buildType should probably be 'debug' or 'release' (current value: ${doop.buildType})."
+        if (repackageExt.buildType == null) {
+            throw new RuntimeException(msg("Please set option 'buildType' to the type of the existing build ('debug' or 'release')."))
+        } else if ((repackageExt.buildType != 'debug') && (repackageExt.buildType != 'release')) {
+            project.logger.info msg("Property 'buildType' should probably be 'debug' or 'release' (current value: ${repackageExt.buildType}).")
         }
 
         Set<String> bTypes = AndroidAPI.getBuildTypes(project)
-        if (!bTypes.contains(doop.buildType)) {
-            project.logger.warn "WARNING: Build type not found in project ${project.name}: ${doop.buildType} (values: ${bTypes})"
+        if (!bTypes.contains(repackageExt.buildType)) {
+            project.logger.warn msg("WARNING: Build type not found in project ${project.name}: ${repackageExt.buildType} (values: ${bTypes})")
         }
 
-        return doop.buildType
+        return repackageExt.buildType
     }
 
     private String getAssembleTaskName() {
-        String flavor = doop.flavor
+        String flavor = repackageExt.flavor
         String flavorPart = flavor == null ? "" : flavor.capitalize()
         String buildType = getBuildType()
         if (!buildType) {
-            throw new RuntimeException("Error: could not determine build type")
+            throw new RuntimeException(msg("ERROR: could not determine build type"))
         }
         String taskName = TASK_ASSEMBLE_PRE + flavorPart + buildType.capitalize()
         if (buildType != 'debug' && buildType != 'release') {
-            project.logger.info "Unknown build type ${buildType}, assuming \"assemble\" task: ${taskName}"
+            project.logger.info msg("Unknown build type ${buildType}, assuming \"assemble\" task: ${taskName}")
         }
         return taskName
     }
 
     private void createSourcesJarDep(Jar sourcesJarTask) {
         String assembleTaskDep = getAssembleTaskName()
-        project.logger.info "Using task '${assembleTaskDep}' to generate the sources JAR."
+        project.logger.info msg("Using task '${assembleTaskDep}' to generate the sources JAR.")
         sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
     }
 
@@ -275,7 +275,7 @@ class AndroidPlatform extends Platform {
         def generatedSources = "${appBuildHome}/generated/source"
         File genDir = new File(generatedSources)
         if (!genDir.exists()) {
-            project.logger.warn "WARNING: Generated sources dir does not exist: ${generatedSources}"
+            project.logger.warn msg("WARNING: Generated sources dir does not exist: ${generatedSources}")
             runAgain = true
             return []
         }
@@ -283,7 +283,7 @@ class AndroidPlatform extends Platform {
             dir.eachFile (FileType.DIRECTORIES) { bPath ->
                 if (bPath.canonicalPath.endsWith(flavorDir)) {
                     // Add subdirectories containing .java files.
-                    project.logger.info "Adding sources in ${bPath}"
+                    project.logger.info msg("Adding sources in ${bPath}")
                     def containsJava = false
                     bPath.eachFileRecurse (FileType.FILES) { f ->
                         def fName = f.name
@@ -291,7 +291,7 @@ class AndroidPlatform extends Platform {
                             containsJava = true
                     }
                     if (containsJava) {
-                        project.logger.info "Found generated Java sources in ${bPath}"
+                        project.logger.info msg("Found generated Java sources in ${bPath}")
                         genSourceDirs << bPath.getAbsolutePath()
                     }
                 }
@@ -306,7 +306,7 @@ class AndroidPlatform extends Platform {
     }
 
     /**
-     * This happens in the "afterEvaluate" stage, since the "doop" section
+     * This happens in the "afterEvaluate" stage, since the configuration section
      * must have already been read (to determine build-type-specific tasks).
      */
     @Override
@@ -337,7 +337,7 @@ class AndroidPlatform extends Platform {
             cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
             cp.each {
                 if (!(new File(it)).exists())
-                    project.logger.warn "WARNING: classpath entry to add does not exist: ${it}"
+                    project.logger.warn msg("WARNING: classpath entry to add does not exist: ${it}")
             }
             scavengeTask.options.compilerArgs << "-cp"
             scavengeTask.options.compilerArgs << cp.join(File.pathSeparator)
@@ -350,7 +350,7 @@ class AndroidPlatform extends Platform {
 
     /**
      * This should run in the "afterEvaluate" stage, to find the subproject
-     * name from the parsed "doop" section.
+     * name from the parsed configuration section.
      */
     void gatherSourcesAfterEvaluate(Jar sourcesJarTask) {
         String subprojectName = getSubprojectName()
@@ -360,22 +360,22 @@ class AndroidPlatform extends Platform {
         String srcMaven = "src/main/java"
         String srcSimple = "src/"
         if ((new File("${appPath}/${srcMaven}")).exists()) {
-            project.logger.info "Using Maven-style source directories: ${srcMaven}"
+            project.logger.info msg("Using Maven-style source directories: ${srcMaven}")
             sourcesJarTask.from srcMaven
         } else if ((new File("${appPath}/${srcSimple}")).exists()) {
-            project.logger.info "Using sources: ${srcSimple}"
+            project.logger.info msg("Using sources: ${srcSimple}")
             sourcesJarTask.from srcSimple
         } else if (isDefinedSubProject()) {
-            throwRuntimeException("Could not find source directory")
+            throwRuntimeException(msg("Could not find source directory"))
         }
         String srcTestMaven = "src/test/java"
         if ((new File("${appPath}/${srcTestMaven}")).exists()) {
-            project.logger.info "Using Maven-style test directories: ${srcTestMaven}"
+            project.logger.info msg("Using Maven-style test directories: ${srcTestMaven}")
             sourcesJarTask.from srcTestMaven
         }
         String srcAndroidTestMaven = "src/androidTest/java"
         if ((new File("${appPath}/${srcAndroidTestMaven}")).exists()) {
-            project.logger.info "Using Maven-style Android test directories: ${srcAndroidTestMaven}"
+            project.logger.info msg("Using Maven-style Android test directories: ${srcAndroidTestMaven}")
             sourcesJarTask.from srcAndroidTestMaven
         }
     }
@@ -390,7 +390,7 @@ class AndroidPlatform extends Platform {
     void configureCodeJarTask() {
         Jar codeJarTask = project.tasks.create(TASK_CODE_ARCHIVE, Jar)
         codeJarTask.description = 'Generates the code archive'
-        codeJarTask.group = DoopPlugin.DOOP_GROUP
+        codeJarTask.group = RepackagePlugin.NAME
     }
 
     /**
@@ -401,7 +401,7 @@ class AndroidPlatform extends Platform {
         Jar codeTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
         codeTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
 
-        // Create dependency (needs doop section so it must happen late).
+        // Create dependency (needs configuration section so it must happen late).
         // Copy compiled outputs to local bundle cache.
         Task assembleTask = project.tasks.findByName(assembleTaskName)
         codeTask.dependsOn assembleTask
@@ -409,48 +409,48 @@ class AndroidPlatform extends Platform {
         codeTask.doLast {
             String output = getOutputCodeArchive()
             if (output == null) {
-                project.logger.warn "WARNING: could not determine code output of project ${project.name}."
+                project.logger.warn msg("WARNING: could not determine code output of project ${project.name}.")
                 return
             }
             File codeArchive = new File(output)
-            File target = new File(doop.scavengeOutputDir, codeArchive.name)
+            File target = new File(repackageExt.scavengeOutputDir, codeArchive.name)
             Files.copy(codeArchive.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
     }
 
     @Override
     String getOutputCodeArchive() {
-        List<String> outputs = AndroidAPI.getOutputs(project, doop.buildType, doop.flavor)
-        project.logger.info "Found code outputs: ${outputs}"
+        List<String> outputs = AndroidAPI.getOutputs(project, repackageExt.buildType, repackageExt.flavor)
+        project.logger.info msg("Found code outputs: ${outputs}")
         if (outputs.size() == 1) {
             return outputs[0]
         } else if (outputs.size() == 0) {
-            project.logger.warn "WARNING: no outputs for project in ${project.name}"
-        } else if (doop.apkFilter != null) {
-            List<String> filteredOutputs = outputs.findAll { it.contains(doop.apkFilter) }
+            project.logger.warn msg("WARNING: no outputs for project in ${project.name}")
+        } else if (repackageExt.apkFilter != null) {
+            List<String> filteredOutputs = outputs.findAll { it.contains(repackageExt.apkFilter) }
             int sz = filteredOutputs.size()
             if (sz == 0) {
-                project.logger.error "ERROR: filter '${doop.apkFilter}' does not match any code output."
+                project.logger.error msg("ERROR: filter '${repackageExt.apkFilter}' does not match any code output.")
             } else if (sz == 1) {
                 return filteredOutputs[0]
             } else {
-                project.logger.error "ERROR: filter '${doop.apkFilter}' matches too many code outputs: ${filteredOutputs}"
+                project.logger.error msg("ERROR: filter '${repackageExt.apkFilter}' matches too many code outputs: ${filteredOutputs}")
             }
         } else {
-            project.logger.error "ERROR: too many outputs (${outputs}), please set filter via option 'apkFilter'."
+            project.logger.error msg("ERROR: too many outputs (${outputs}), please set filter via option 'apkFilter'.")
         }
         return null
     }
 
     File getConfFile() {
-        return new File(doop.scavengeOutputDir, DoopPlugin.CONFIGURATIONS_FILE)
+        return new File(repackageExt.scavengeOutputDir, RepackagePlugin.CONFIGURATIONS_FILE)
     }
 
     @Override
     void configureConfigurationsTask() {
-        Task confTask = project.tasks.create(DoopPlugin.TASK_CONFIGURATIONS, Task)
+        Task confTask = project.tasks.create(RepackagePlugin.TASK_CONFIGURATIONS, Task)
         confTask.description = 'Generates the configurations archive'
-        confTask.group = DoopPlugin.DOOP_GROUP
+        confTask.group = RepackagePlugin.NAME
         confTask.doFirst {
             readConfigurationFiles()
         }
@@ -465,16 +465,16 @@ class AndroidPlatform extends Platform {
             project,
             { FileCollection pros -> allPros.addAll(pros) })
 
-        project.logger.info "Found ${allPros.size()} configuration files:"
-        if (!doop.configurationFiles) {
-            doop.configurationFiles = new ArrayList<>()
+        project.logger.info msg("Found ${allPros.size()} configuration files:")
+        if (!repackageExt.configurationFiles) {
+            repackageExt.configurationFiles = new ArrayList<>()
         }
         allPros.each {
-            project.logger.info "Using rules from configuration file: ${it.canonicalPath}"
-            doop.configurationFiles.add(it.canonicalPath)
+            project.logger.info msg("Using rules from configuration file: ${it.canonicalPath}")
+            repackageExt.configurationFiles.add(it.canonicalPath)
         }
         if (allPros.size() == 0) {
-            project.logger.info "No project configuration files were found."
+            project.logger.info msg("No project configuration files were found.")
             return
         }
 
@@ -482,7 +482,7 @@ class AndroidPlatform extends Platform {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))
         allPros.each { File conf ->
             if (!conf.exists()) {
-                project.logger.warn "WARNING: file does not exist: ${conf}"
+                project.logger.warn msg("WARNING: file does not exist: ${conf}")
                 return
             }
             String entryName = stripRootPrefix(conf.canonicalPath)
@@ -493,7 +493,7 @@ class AndroidPlatform extends Platform {
         }
         out.close()
 
-        project.logger.info "Configurations written to: ${confZip.canonicalPath}"
+        project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
     }
 
     // Strip root directory prefix to make absolute paths relative.
@@ -507,9 +507,9 @@ class AndroidPlatform extends Platform {
     @Override
     List<String> getInputFiles() {
         String outputsTask = getAssembleTaskName()
-        project.logger.info "Using non-library outputs from task ${outputsTask}"
+        project.logger.info msg("Using non-library outputs from task ${outputsTask}")
         List<String> ars = AndroidAPI.getOutputs(project, outputsTask)
-        project.logger.info "Calculated non-library outputs: ${ars}"
+        project.logger.info msg("Calculated non-library outputs: ${ars}")
         return ars
     }
 
@@ -520,15 +520,15 @@ class AndroidPlatform extends Platform {
             return null
         }
 
-        project.logger.info "Detecting library outputs..."
-        List<String> extraInputFiles = doop.getExtraInputFiles(project.rootDir)
+        project.logger.info msg("Detecting library outputs...")
+        List<String> extraInputFiles = repackageExt.getExtraInputFiles(project.rootDir)
         return getDependencies().asList() + extraInputFiles
     }
 
     private Set<String> getDependencies() {
         Set<String> ret = cachedDeps.collect { File f ->
             if (!f.exists()) {
-                throwRuntimeException("Dependency ${f} does not exist!")
+                throwRuntimeException(msg("Dependency ${f} does not exist!"))
             }
             f.canonicalPath
         } as Set
@@ -554,25 +554,25 @@ class AndroidPlatform extends Platform {
         }
 
         if (cpList == null) {
-            throwRuntimeException('AndroidPlatform: cannot get classpath for jcplugin, cLoader is ' + cLoader)
+            throwRuntimeException(msg('AndroidPlatform: cannot get classpath for jcplugin, cLoader is ' + cLoader))
         }
         return cpList.collect().join(File.pathSeparator).replaceAll('file://', '')
     }
 
     private String getFlavorDir() {
         String buildType = getBuildType()
-        String flavor = doop.flavor
+        String flavor = repackageExt.flavor
         return flavor == null? "${buildType}" : "${flavor}/${buildType}"
     }
 
     private String getSubprojectName(boolean crash = true) {
-        if (doop.subprojectName == null) {
+        if (repackageExt.subprojectName == null) {
             if (crash) {
-                throwRuntimeException("Please set doop.subprojectName to the name of the app subproject (e.g. 'Application').")
+                throwRuntimeException(msg("Please set subprojectName to the name of the app subproject (e.g. 'Application')."))
             }
             return ""
         } else
-            return doop.subprojectName
+            return repackageExt.subprojectName
     }
 
     // Android projects may have project.name be the default name of
@@ -623,7 +623,7 @@ class AndroidPlatform extends Platform {
                     jcpluginVersion = txtReader.readLine()
                 }
             } else {
-                println "Could not read resource: ${JCPLUGIN_VERSION_FILE}"
+                println msg("Could not read resource: ${JCPLUGIN_VERSION_FILE}")
             }
         } catch (Throwable t) {
             t.printStackTrace()
@@ -632,45 +632,45 @@ class AndroidPlatform extends Platform {
         if (jcpluginVersion) {
             project.dependencies.add('annotationProcessor', jcpluginVersion)
         } else {
-            project.logger.warn "WARNING: Could not integrate metadata processor, sources will not be processed"
+            project.logger.warn msg("WARNING: Could not integrate metadata processor, sources will not be processed")
             return
         }
 
         Set<JavaCompile> tasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
         if (tasks.size() == 0) {
-            project.logger.error "Could not integrate metadata processor, no compile tasks found."
+            project.logger.error msg("Could not integrate metadata processor, no compile tasks found.")
             return
         }
 
         tasks.each { task ->
-            project.logger.info "Plugging metadata processor into task ${task.name}"
-            DoopPlugin.addPluginCommandArgs(task, doop.scavengeOutputDir)
+            project.logger.info msg("Plugging metadata processor into task ${task.name}")
+            RepackagePlugin.addPluginCommandArgs(task, repackageExt.scavengeOutputDir)
         }
     }
 
-    // Check 'doop' sections in Android Gradle scripts.
+    // Check configuration sections in Android Gradle scripts.
     @Override
     boolean definesRequiredProperties() {
-        if (doop.subprojectName == null) {
+        if (repackageExt.subprojectName == null) {
             String rootPath = project.rootDir.canonicalPath
             String projPath = project.projectDir
             if (projPath.startsWith(rootPath) && projPath.size() > rootPath.size()) {
                 String suffix = stripRootPrefix(projPath.substring(rootPath.size()))
-                doop.subprojectName = suffix
-                project.logger.warn "WARNING: missing property 'subprojectName', using: ${suffix}"
+                repackageExt.subprojectName = suffix
+                project.logger.warn msg("WARNING: missing property 'subprojectName', using: ${suffix}")
             } else {
-                project.logger.warn "WARNING: missing property 'subprojectName', using top-level directory"
-	            doop.subprojectName = DEFAULT_SUBPROJECT_NAME
+                project.logger.warn msg("WARNING: missing property 'subprojectName', using top-level directory")
+	            repackageExt.subprojectName = DEFAULT_SUBPROJECT_NAME
             }
 	    }
-        if (doop.buildType == null) {
-            project.logger.warn "WARNING: missing property 'buildType', assuming buildType=${DEFAULT_BUILD_TYPE}"
-            doop.buildType = DEFAULT_BUILD_TYPE
+        if (repackageExt.buildType == null) {
+            project.logger.warn msg("WARNING: missing property 'buildType', assuming buildType=${DEFAULT_BUILD_TYPE}")
+            repackageExt.buildType = DEFAULT_BUILD_TYPE
 	    }
-        if (doop.flavor == null) {
+        if (repackageExt.flavor == null) {
             Set<String> pFlavors = AndroidAPI.getFlavors(project)
             if (pFlavors.size() > 0) {
-                project.logger.warn "WARNING: property 'flavor' not set but these flavors were found: ${pFlavors}"
+                project.logger.warn msg("WARNING: property 'flavor' not set but these flavors were found: ${pFlavors}")
             }
         }
 	    return super.definesRequiredProperties()
@@ -684,7 +684,7 @@ class AndroidPlatform extends Platform {
         } else if (n.endsWith('.aar')) {
             // Ignore AAR artifacts, so that they are not posted when
             // the user invokes the "post bundle" task globally.
-            project.logger.warn "WARNING: AAR artifact is currently ignored as a standalone artifact to post: ${filename}"
+            project.logger.warn msg("WARNING: AAR artifact is currently ignored as a standalone artifact to post: ${filename}")
         }
         return false
     }
