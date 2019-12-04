@@ -3,11 +3,11 @@
 
 #gradle dirs
 /.gradle
-/build/
+/gradle-plugin/build
 
 #intellij idea files
 /.idea
-/doop-gradle-plugin.iml
+/build-tools.iml
 
 #cached states
 /states/

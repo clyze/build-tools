@@ -15,7 +15,7 @@ buildscript {
         maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
     }
     dependencies {
-       classpath 'org.clyze:doop-gradle-plugin:4.0.+'
+       classpath 'org.clyze:gradle-plugin:4.0.+'
     }
 }
 
@@ -135,7 +135,7 @@ buildscript {
         // Put here the repositories needed to find the Doop plugin.
     }
     dependencies {
-        classpath ('org.clyze:doop-gradle-plugin:4.0.+')
+        classpath ('org.clyze:gradle-plugin:4.0.+')
     }
 }
 
