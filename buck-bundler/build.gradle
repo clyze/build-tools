@@ -1,0 +1,45 @@
+plugins {
+    id 'application'
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "${artifactory_contextUrl}/plast-public" }
+    // maven {
+    //     credentials {
+    //         username artifactory_user
+    //         password artifactory_password
+    //     }
+    //     url "${artifactory_contextUrl}/plast-private"
+    // }
+}
+
+dependencies {
+    // compile 'info.picocli:picocli:3.9.6'
+    compile 'commons-cli:commons-cli:1.2'
+
+    compile("org.clyze:clue-client:${clientVersion}") {
+        exclude module: "groovy-all"
+    }
+
+    runtime(jcpluginArtifact) {
+        exclude module: "groovy-all"
+    }
+
+    runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
+}
+
+task fatjar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'org.clyze.buck.BundlerMain',
+                   'Implementation-Version': version
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
