@@ -40,7 +40,7 @@ class PostBundleTask extends PostTask {
     }
 
     //A PostState for preserving all the information required to replay a bundle post
-    private final PostState newBundlePostState(Project project) {
+    private static final PostState newBundlePostState(Project project) {
 
         /*         
         These are the options for bundles: 

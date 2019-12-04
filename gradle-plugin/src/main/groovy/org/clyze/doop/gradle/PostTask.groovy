@@ -26,7 +26,7 @@ abstract class PostTask extends DefaultTask {
         }
     }
 
-    protected void addBasicPostOptions(Project project, PostState ps) {
+    protected static void addBasicPostOptions(Project project, PostState ps) {
         addFileInput(project, ps, 'JCPLUGIN_METADATA', DoopPlugin.METADATA_FILE)
         addFileInput(project, ps, 'PG_ZIP', DoopPlugin.CONFIGURATIONS_FILE)
 
