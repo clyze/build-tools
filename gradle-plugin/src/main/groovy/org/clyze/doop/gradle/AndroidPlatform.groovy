@@ -7,6 +7,7 @@ import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.apache.commons.io.FileUtils
+import org.clyze.build.tools.JcPlugin
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
@@ -612,25 +613,17 @@ class AndroidPlatform extends Platform {
      * @parameter project   the current project
      */
     private void configureCompileHook() {
-        String jcpluginVersion = null
+
+        String javacPluginArtifact;
 
         try {
-            String JCPLUGIN_VERSION_FILE = 'jcplugin.version'
-            InputStream is = this.class.classLoader.getResourceAsStream(JCPLUGIN_VERSION_FILE)
-            if (is) {
-                is.withCloseable {
-                    BufferedReader txtReader = new BufferedReader(new InputStreamReader(it))
-                    jcpluginVersion = txtReader.readLine()
-                }
-            } else {
-                println msg("Could not read resource: ${JCPLUGIN_VERSION_FILE}")
-            }
-        } catch (Throwable t) {
-            t.printStackTrace()
+            javacPluginArtifact = JcPlugin.jcPluginArtifact
+        } catch (Exception ex) {
+            ex.printStackTrace()
         }
 
-        if (jcpluginVersion) {
-            project.dependencies.add('annotationProcessor', jcpluginVersion)
+        if (javacPluginArtifact) {
+            project.dependencies.add('annotationProcessor', javacPluginArtifact)
         } else {
             project.logger.warn msg("WARNING: Could not integrate metadata processor, sources will not be processed")
             return

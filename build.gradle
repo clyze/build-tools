@@ -1,23 +1,12 @@
 ext.clientVersion='4.1.4'
 ext.groovyVersion='2.4.7'
-ext.jcpluginArtifact='org.clyze:doop-jcplugin:2.0.22'
 
-allprojects.findAll { it.name=='gradle-plugin' || it.name=='buck-bundler' }.each { p ->
+subprojects {
     group = 'org.clyze'
 
     wrapper {
         gradleVersion = '5.4.1'
         distributionType = Wrapper.DistributionType.ALL
     }
-
-    // Communicate jcplugin dependency to code, to be inserted as a
-    // dependency on the target project.
-    task writeMetadataDependecy() {
-        String JCPLUGIN_VERSION = 'src/main/resources/jcplugin.version'
-        File f = p.file(JCPLUGIN_VERSION)
-        delete f
-        f.withWriterAppend { w -> w.writeLine(jcpluginArtifact) }
-    }
-    p.getTasksByName('build', false).each { it.dependsOn writeMetadataDependecy }
 
 }

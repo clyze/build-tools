@@ -1,2 +1,4 @@
 rootProject.name = 'build-tools'
+include 'build-integration-lib'
 include 'gradle-plugin'
+include 'buck-bundler'

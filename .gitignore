@@ -3,7 +3,9 @@
 
 #gradle dirs
 /.gradle
+/build-integration-lib/build
 /gradle-plugin/build
+/buck-bundler/build/
 
 #intellij idea files
 /.idea

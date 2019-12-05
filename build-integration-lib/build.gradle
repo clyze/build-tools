@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+
+String jcpluginArtifact='org.clyze:doop-jcplugin:2.0.22'
+
+dependencies {
+    runtime(jcpluginArtifact) {
+        exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }
+}
+
+// Communicate jcplugin dependency to code, to be inserted as a
+// dependency on the target project.
+task writeMetadataDependecy() {
+    String JCPLUGIN_VERSION = 'src/main/resources/jcplugin.version'
+    File f = project.file(JCPLUGIN_VERSION)
+    delete f
+    f.withWriterAppend { w -> w.writeLine(jcpluginArtifact) }
+}
+build.dependsOn writeMetadataDependecy

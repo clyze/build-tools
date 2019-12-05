@@ -32,10 +32,7 @@ dependencies {
     compile("org.clyze:clue-client:${clientVersion}") {
         exclude module: "groovy-all"
     }
-
-    runtime(jcpluginArtifact) {
-        exclude module: "groovy-all"
-    }
+    compile project(":build-integration-lib")
 
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
