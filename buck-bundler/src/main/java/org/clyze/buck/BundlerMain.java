@@ -1,9 +1,11 @@
 package org.clyze.buck;
 
 import com.google.gson.Gson;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -161,6 +163,7 @@ class BundlerMain {
     private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir) throws IOException {
         System.out.println("Gathering metadata and configurations using '" + traceFile +"'...");
 
+        String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
         Map[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
         for (Map map : json) {
             Object argsEntry = map.get("args");
@@ -171,7 +174,7 @@ class BundlerMain {
                     if (desc.contains("javac "))
                         processJavacInvocation(desc);
                     else if (desc.contains("java ") && desc.contains("tools/proguard/lib/proguard.jar"))
-                        processProguardInvocation(desc);
+                        processProguardInvocation(desc, configurationsFile);
                 }
             }
         }
@@ -194,14 +197,44 @@ class BundlerMain {
             }
         }
 
-        String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
         return new BundleMetadataConf(metadataFile, configurationsFile);
     }
 
     private static void processJavacInvocation(String desc) {
     }
 
-    private static void processProguardInvocation(String desc) {
+    private static void processProguardInvocation(String desc, String configurationsFile) {
+        int atIndex = desc.indexOf('@');
+        if (atIndex == -1) {
+            System.err.println("ERROR: could not find arguments file of proguard command: " + desc);
+            return;
+        }
+        int endIndex = desc.indexOf(')');
+        if (endIndex == -1)
+            endIndex = desc.indexOf(' ');
+        String argsFile = endIndex == -1 ? desc.substring(atIndex+1) : desc.substring(atIndex+1, endIndex);
+        System.out.println("Reading proguard args from file: " + argsFile);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(argsFile))) {
+            String line;
+            boolean nextLineIsRulesFile = false;
+            while ((line = reader.readLine()) != null) {
+                line = line.replaceAll("\n", "").replaceAll("\"", "");
+                // System.out.println("["+line+"]");
+                if (line.equals("-include")) {
+                    nextLineIsRulesFile = true;
+                    continue;
+                } else if (nextLineIsRulesFile) {
+                    // System.out.println(configurationsFile + ": adding configuration file [" + line + "]");
+                    String[] cmd = new String[] { "zip", "-r", configurationsFile, line };
+                    JHelper.runWithOutput(cmd, "PG_CONF");
+                }
+                nextLineIsRulesFile = false;
+            }
+        } catch (IOException e) {
+            System.err.println("Could not parse proguard args file: " + argsFile);
+            e.printStackTrace();
+        }
     }
 
     private static void postBundle(CommandLine cmd, String bundleApk,
