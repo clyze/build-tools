@@ -1,12 +1,11 @@
 ext.clientVersion='4.1.4'
 ext.groovyVersion='2.4.7'
 
+wrapper {
+    gradleVersion = '5.4.1'
+    distributionType = Wrapper.DistributionType.ALL
+}
+
 subprojects {
     group = 'org.clyze'
-
-    wrapper {
-        gradleVersion = '5.4.1'
-        distributionType = Wrapper.DistributionType.ALL
-    }
-
 }
