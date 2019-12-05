@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -74,7 +75,7 @@ class BundlerMain {
     private static void gatherApk(String apk) {
         File target = new File(Conventions.CLUE_BUNDLE_DIR, new File(apk).getName());
         try {
-            Files.copy(Paths.get(apk), target.toPath());
+            Files.copy(Paths.get(apk), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             System.err.println("Failed to copy '" + apk + "' to '" + target + "'");
             ex.printStackTrace();
