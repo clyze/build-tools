@@ -30,9 +30,15 @@ dependencies {
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
 
+String mainClass = 'org.clyze.buck.BundlerMain'
+
+application {
+    mainClassName = mainClass
+}
+
 task fatjar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'org.clyze.buck.BundlerMain',
+        attributes 'Main-Class': mainClass,
                    'Implementation-Version': version
     }
     archiveBaseName.set(project.name + '-all')
