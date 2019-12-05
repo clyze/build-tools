@@ -2,6 +2,8 @@ package org.clyze.doop.gradle
 
 import groovy.io.FileType
 import groovy.transform.TypeChecked
+import org.clyze.build.tools.Conventions
+
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
@@ -444,7 +446,7 @@ class AndroidPlatform extends Platform {
     }
 
     File getConfFile() {
-        return new File(repackageExt.scavengeOutputDir, RepackagePlugin.CONFIGURATIONS_FILE)
+        return new File(repackageExt.scavengeOutputDir, Conventions.CONFIGURATIONS_FILE)
     }
 
     @Override

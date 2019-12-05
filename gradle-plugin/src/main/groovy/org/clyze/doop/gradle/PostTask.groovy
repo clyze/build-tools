@@ -1,6 +1,7 @@
 package org.clyze.doop.gradle
 
 import groovy.transform.TypeChecked
+import org.clyze.build.tools.Conventions
 import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -29,8 +30,8 @@ abstract class PostTask extends DefaultTask {
     }
 
     protected static void addBasicPostOptions(Project project, PostState ps) {
-        addFileInput(project, ps, 'JCPLUGIN_METADATA', RepackagePlugin.METADATA_FILE)
-        addFileInput(project, ps, 'PG_ZIP', RepackagePlugin.CONFIGURATIONS_FILE)
+        addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
+        addFileInput(project, ps, 'PG_ZIP', Conventions.CONFIGURATIONS_FILE)
 
         Extension ext = Extension.of(project)
         if (ext.platform instanceof AndroidPlatform) {

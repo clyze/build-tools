@@ -17,10 +17,6 @@ class RepackagePlugin implements Plugin<Project> {
 
     static final String NAME                = 'Repackage'
 
-    static final String METADATA_FILE       = 'metadata.zip'
-    static final String CONFIGURATIONS_FILE = 'configurations.zip'
-    static final String SOURCES_FILE        = 'sources.jar'
-
     static final String TASK_SCAVENGE       = 'scavenge'
     static final String TASK_JCPLUGIN_ZIP   = 'jcpluginZip'
     static final String TASK_SOURCES_JAR    = 'sourcesJar'
@@ -130,7 +126,7 @@ class RepackagePlugin implements Plugin<Project> {
 	        task.dependsOn project.tasks.findByName(platform.jarTaskName())
         }
 
-        task.archiveFileName.set(METADATA_FILE)
+        task.archiveFileName.set(Conventions.METADATA_FILE)
         File scavengeDir = Extension.of(project).scavengeOutputDir
         if (!scavengeDir.exists()) {
             scavengeDir.mkdirs()
@@ -154,7 +150,7 @@ class RepackagePlugin implements Plugin<Project> {
         }
 
         String prefix = project.name ? "${project.name}-": ""
-        String sourcesName = prefix + SOURCES_FILE
+        String sourcesName = prefix + Conventions.SOURCES_FILE
         project.logger.info msg("Sources archive: ${sourcesName}")
         task.archiveFileName.set(sourcesName)
 
