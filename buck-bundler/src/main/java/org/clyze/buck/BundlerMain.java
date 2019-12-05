@@ -4,6 +4,8 @@ import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.JcPlugin;
+import org.clyze.client.web.Helper;
+import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
 import java.io.File;
@@ -13,6 +15,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 
 class BundlerMain {
 
@@ -23,6 +27,12 @@ class BundlerMain {
         opts.addOption("s", "source-dir", true, "Add source directory to bundle.");
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
+        opts.addOption(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
+        opts.addOption(null, "port", true, "The server port (default: "+Conventions.DEFAULT_PORT+").");
+        opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
+        opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
+        opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
+        opts.addOption(null, "profile", true, "The profile (default: "+Conventions.DEFAULT_PROFILE+").");
 
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = parser.parse(opts, args);
@@ -51,10 +61,8 @@ class BundlerMain {
 
         Collection<String> sourceDirs = new HashSet<>();
         if (cmd.hasOption("s")) {
-            for (String sourceDir: cmd.getOptionValues("s")) {
-                System.out.println("Adding source directory: " + sourceDir);
+            for (String sourceDir: cmd.getOptionValues("s"))
                 sourceDirs.add(sourceDir);
-            }
         } else {
             System.err.println("Warning: No sources were given.");
         }
@@ -62,9 +70,17 @@ class BundlerMain {
         System.out.println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
         new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
 
-        gatherApk(apk);
-        gatherSources(sourceDirs);
-        gatherMetadataAndConfigurations();
+        String bundleApk = gatherApk(apk);
+        Collection<String> sourceJars = gatherSources(sourceDirs);
+        BundleMetadataConf bmc = gatherMetadataAndConfigurations();
+
+        if (cmd.hasOption("p")) {
+            postBundle(cmd, bundleApk, sourceJars, bmc);
+        }
+    }
+
+    private static String optValOrDefault(CommandLine cmd, String id, String defaultValue) {
+        return cmd.hasOption(id) ? cmd.getOptionValue(id) : defaultValue;
     }
 
     private static void showUsage(Options opts) {
@@ -76,18 +92,21 @@ class BundlerMain {
      * Copies the APK to the bundle directory.
      *
      * @param apk  the path to the APK archive
+     * @return     the path of the APK inside the bundle directory (null on failure)
      */
-    private static void gatherApk(String apk) {
+    private static String gatherApk(String apk) {
         File target = new File(Conventions.CLUE_BUNDLE_DIR, new File(apk).getName());
         try {
             Files.copy(Paths.get(apk), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return target.getCanonicalPath();
         } catch (IOException ex) {
             System.err.println("Failed to copy '" + apk + "' to '" + target + "'");
             ex.printStackTrace();
         }
+        return null;
     }
 
-    private static void gatherSources(Collection<String> sourceDirs) {
+    private static Collection<String> gatherSources(Collection<String> sourceDirs) {
         System.out.println("Gathering sources...");
         File sourcesJar = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.SOURCES_FILE);
         sourcesJar.delete();
@@ -98,7 +117,7 @@ class BundlerMain {
         } catch (IOException ex) {
             System.err.println("Error creating sources JAR file: " + sourcesJar);
             ex.printStackTrace();
-            return;
+            return null;
         }
         for (String sourceDir : sourceDirs) {
             System.out.println("Reading source directory: " + sourceDir);
@@ -112,11 +131,53 @@ class BundlerMain {
                 ex.printStackTrace();
             }
         }
+        Collection<String> ret = new HashSet<>();
+        ret.add(Conventions.CLUE_BUNDLE_DIR + File.separator + Conventions.SOURCES_FILE);
+        return ret;
     }
 
-    private static void gatherMetadataAndConfigurations() {
+    private static BundleMetadataConf gatherMetadataAndConfigurations() {
         System.out.println("Gathering metadata and configurations...");
+        try {
+            String metadataFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.METADATA_FILE).getCanonicalPath();
+            String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
+            return new BundleMetadataConf(metadataFile, configurationsFile);
+        } catch (IOException ex) {
+            System.err.println("Error gathering metadata/configurations.");
+            ex.printStackTrace();
+            return null;
+        }
     }
 
+    private static void postBundle(CommandLine cmd, String bundleApk,
+                                   Collection<String> sourceJars,
+                                   BundleMetadataConf bmc) {
+        System.out.println("Posting bundle to the server...");
+        String host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
+        int port = Integer.valueOf(optValOrDefault(cmd, "port", Conventions.DEFAULT_PORT));
+        String username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
+        String password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
+        String project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
+        String profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_PROFILE);
 
+        PostState ps = new PostState();
+        ps.setId(Conventions.BUNDLE_ID);
+        ps.addFileInput("INPUTS", bundleApk);
+        sourceJars.forEach (sj -> ps.addFileInput("SOURCES_JAR", sj));
+        if (bmc != null) {
+            ps.addFileInput("JCPLUGIN_METADATA", bmc.metadata);
+            ps.addFileInput("PG_ZIP", bmc.configuration);
+        }
+        ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
+        Helper.doPost(host, port, username, password, project, profile, ps);
+    }
+}
+
+class BundleMetadataConf {
+    final String metadata;
+    final String configuration;
+    BundleMetadataConf(String metadata, String configuration) {
+        this.metadata = metadata;
+        this.configuration = configuration;
+    }
 }

@@ -1,6 +1,7 @@
 package org.clyze.doop.gradle
 
 import groovy.transform.CompileStatic
+import org.clyze.build.tools.Conventions
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -17,9 +18,6 @@ import static org.clyze.doop.gradle.RepackagePlugin.msg
 @CompileStatic
 abstract class Platform {
 
-    private static final String DEFAULT_HOST    = 'localhost'
-    private static final String DEFAULT_PROFILE = 'apiTargetAndroid'
-    private static final String DEFAULT_PROJECT = 'scrap'
     private static final String DEFAULT_RULES   = 'optimize.clue'
     protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${RepackagePlugin.NAME} plugin with defaults.")
 
@@ -44,8 +42,8 @@ abstract class Platform {
         // initialized to defaults).
         def err = { project.logger.error msg("ERROR: missing property: '${it}'") }
         if (ext.host == null) {
-            project.logger.warn msg("WARNING: missing property 'host', assuming host=${DEFAULT_HOST}")
-            ext.host = DEFAULT_HOST
+            project.logger.warn msg("WARNING: missing property 'host', assuming host=${Conventions.DEFAULT_HOST}")
+            ext.host = Conventions.DEFAULT_HOST
         }
         if (ext.port == 0) {
             String port = GradleProps.get(project, 'clue_port')
@@ -58,18 +56,18 @@ abstract class Platform {
             }
         }
         if (ext.username == null) {
-            ext.username = 'user'
+            ext.username = Conventions.DEFAULT_USERNAME
         }
         if (ext.password == null) {
-            ext.password = 'user123'
+            ext.password = Conventions.DEFAULT_PASSWORD
         }
         if (ext.clueProject == null) {
-            project.logger.warn msg("WARNING: missing property 'clueProject', assuming host=${DEFAULT_PROJECT}")
-            ext.clueProject = DEFAULT_PROJECT
+            project.logger.warn msg("WARNING: missing property 'clueProject', assuming host=${Conventions.DEFAULT_PROJECT}")
+            ext.clueProject = Conventions.DEFAULT_PROJECT
         }
         if (ext.profile == null) {
-            project.logger.debug msg("Missing property 'profile', assuming profile=${DEFAULT_PROFILE}")
-            ext.profile = DEFAULT_PROFILE
+            project.logger.debug msg("Missing property 'profile', assuming profile=${Conventions.DEFAULT_PROFILE}")
+            ext.profile = Conventions.DEFAULT_PROFILE
         }
         if (ext.ruleFile == null) {
             project.logger.debug msg("Missing property 'ruleFile', assuming ruleFile=${DEFAULT_RULES}")

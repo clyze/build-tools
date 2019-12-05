@@ -14,9 +14,7 @@ repositories {
 dependencies {
     compile 'commons-cli:commons-cli:1.2'
 
-    compile("org.clyze:clue-client:${clientVersion}") {
-        exclude module: "groovy-all"
-    }
+    compile("org.clyze:clue-client:${clientVersion}")
     compile project(":build-integration-lib")
 
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"

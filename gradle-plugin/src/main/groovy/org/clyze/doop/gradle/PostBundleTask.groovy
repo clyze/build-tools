@@ -2,6 +2,7 @@ package org.clyze.doop.gradle
 
 import groovy.io.FileType
 import java.nio.file.Files
+import org.clyze.build.tools.Conventions
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.gradle.api.Project
@@ -58,7 +59,7 @@ class PostBundleTask extends PostTask {
         */
         Extension ext = Extension.of(project)
         Platform p = ext.platform
-        PostState ps = new PostState(id:"bundle")
+        PostState ps = new PostState(id:Conventions.BUNDLE_ID)
         addBasicPostOptions(project, ps)
 
         // The aplication regex.
@@ -72,7 +73,7 @@ class PostBundleTask extends PostTask {
         boolean submitInputs = false
         ext.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
             String n = f.name
-            if (p.isCodeArtifact(n) && !n.endsWith(RepackagePlugin.SOURCES_FILE)) {
+            if (p.isCodeArtifact(n) && !n.endsWith(Conventions.SOURCES_FILE)) {
                 addFileInput(project, ps, 'INPUTS', n)
                 submitInputs = true
             }
@@ -100,7 +101,7 @@ class PostBundleTask extends PostTask {
         addStringInputFromExtensionOption(ps, ext, "MAIN_CLASS", "main_class")
 
         // The platform to use when analyzing the code.
-        ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? "android_25_fulljars" : "java_8")
+        ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? Conventions.getR8AndroidPlatform("25") : "java_8")
 
         // Upload sources (user can override with alternative sources archive).
         String altSourcesJar = ext.useSourcesJar
@@ -114,7 +115,7 @@ class PostBundleTask extends PostTask {
         } else {
             ext.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
                 String n = f.name
-                if (n.endsWith(RepackagePlugin.SOURCES_FILE)) {
+                if (n.endsWith(Conventions.SOURCES_FILE)) {
                     addFileInput(project, ps, 'SOURCES_JAR', n)
                 }
             }
