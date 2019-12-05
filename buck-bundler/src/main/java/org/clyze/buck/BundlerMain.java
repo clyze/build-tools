@@ -72,7 +72,7 @@ class BundlerMain {
      * @param apk  the path to the APK archive
      */
     private static void gatherApk(String apk) {
-        File target = new File(Conventions.CLUE_BUNDLE_DIR, apk);
+        File target = new File(Conventions.CLUE_BUNDLE_DIR, new File(apk).getName());
         try {
             Files.copy(Paths.get(apk), target.toPath());
         } catch (IOException ex) {
