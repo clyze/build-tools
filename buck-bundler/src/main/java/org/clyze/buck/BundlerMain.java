@@ -1,5 +1,23 @@
 package org.clyze.buck;
 
+import com.google.gson.Gson;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.clyze.build.tools.Conventions;
@@ -8,17 +26,10 @@ import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Map;
-
 class BundlerMain {
+
+    private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
+    private static final String DEFAULT_JSON_DIR = "json";
 
     public static void main(String[] args) throws ParseException {
         Options opts = new Options();
@@ -33,8 +44,10 @@ class BundlerMain {
         opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
         opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
         opts.addOption(null, "profile", true, "The profile (default: "+Conventions.DEFAULT_PROFILE+").");
+        opts.addOption(null, "trace", true, "The Buck trace file (default: "+DEFAULT_TRACE_FILE+").");
+        opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
 
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(opts, args);
 
         if (cmd.hasOption("h")) {
@@ -67,12 +80,21 @@ class BundlerMain {
             System.err.println("Warning: No sources were given.");
         }
 
+        String jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
+
         System.out.println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
         new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
 
         String bundleApk = gatherApk(apk);
         Collection<String> sourceJars = gatherSources(sourceDirs);
-        BundleMetadataConf bmc = gatherMetadataAndConfigurations();
+        String traceFile = optValOrDefault(cmd, "trace", DEFAULT_TRACE_FILE);
+        BundleMetadataConf bmc = null;
+        try {
+            bmc = gatherMetadataAndConfigurations(traceFile, jsonDir);
+        } catch (IOException ex) {
+            System.err.println("Error gathering metadata/configurations, will try to continue...");
+            ex.printStackTrace();
+        }
 
         if (cmd.hasOption("p")) {
             postBundle(cmd, bundleApk, sourceJars, bmc);
@@ -136,17 +158,50 @@ class BundlerMain {
         return ret;
     }
 
-    private static BundleMetadataConf gatherMetadataAndConfigurations() {
-        System.out.println("Gathering metadata and configurations...");
-        try {
-            String metadataFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.METADATA_FILE).getCanonicalPath();
-            String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
-            return new BundleMetadataConf(metadataFile, configurationsFile);
-        } catch (IOException ex) {
-            System.err.println("Error gathering metadata/configurations.");
-            ex.printStackTrace();
-            return null;
+    private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir) throws IOException {
+        System.out.println("Gathering metadata and configurations using '" + traceFile +"'...");
+
+        Map[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
+        for (Map map : json) {
+            Object argsEntry = map.get("args");
+            if (argsEntry != null && argsEntry instanceof Map) {
+                Object descEntry = ((Map<String, Object>)argsEntry).get("description");
+                if (descEntry != null) {
+                    String desc = descEntry.toString();
+                    if (desc.contains("javac "))
+                        processJavacInvocation(desc);
+                    else if (desc.contains("java ") && desc.contains("tools/proguard/lib/proguard.jar"))
+                        processProguardInvocation(desc);
+                }
+            }
         }
+
+        String metadataFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.METADATA_FILE).getCanonicalPath();
+        System.out.println("Adding JSON metadata to file: " + metadataFile);
+
+        try (FileOutputStream fos = new FileOutputStream(metadataFile);
+             ZipOutputStream metadataZip = new ZipOutputStream(fos)) {
+
+            List<File> jsonFiles = Files.walk(Paths.get(jsonDir)).filter(Files::isRegularFile).map(Path::toFile).collect(Collectors.toList());
+            for (File jsonFile : jsonFiles) {
+                FileInputStream fis = new FileInputStream(jsonFile);
+                metadataZip.putNextEntry(new ZipEntry(jsonFile.getName()));
+                byte[] bytes = new byte[1024];
+                int length;
+                while((length = fis.read(bytes)) >= 0)
+                    metadataZip.write(bytes, 0, length);
+                fis.close();
+            }
+        }
+
+        String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
+        return new BundleMetadataConf(metadataFile, configurationsFile);
+    }
+
+    private static void processJavacInvocation(String desc) {
+    }
+
+    private static void processProguardInvocation(String desc) {
     }
 
     private static void postBundle(CommandLine cmd, String bundleApk,

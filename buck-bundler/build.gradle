@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-cli:commons-cli:1.2'
+    compile 'commons-cli:commons-cli:1.4'
 
     compile("org.clyze:clue-client:${clientVersion}")
     compile project(":build-integration-lib")
@@ -24,6 +24,11 @@ String mainClass = 'org.clyze.buck.BundlerMain'
 
 application {
     mainClassName = mainClass
+}
+
+compileJava {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:deprecation'
 }
 
 task fatjar(type: Jar) {
