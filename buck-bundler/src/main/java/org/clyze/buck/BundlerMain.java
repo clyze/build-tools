@@ -17,19 +17,21 @@ import java.util.HashSet;
 class BundlerMain {
 
     public static void main(String[] args) throws ParseException {
-        System.out.println("Buck bundler main.");
-
-        System.out.println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
-        new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
-
         Options opts = new Options();
         opts.addOption("a", "apk", true, "The APK file to bundle.");
         opts.addOption("j", "jcplugin", true, "The path to the javac plugin to use for Java sources.");
         opts.addOption("s", "source-dir", true, "Add source directory to bundle.");
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
+        opts.addOption("h", "help", false, "Show this help text.");
 
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = parser.parse(opts, args);
+
+        if (cmd.hasOption("h")) {
+            showUsage(opts);
+            return;
+        }
+
         String apk;
         if (cmd.hasOption("a")) {
             apk = cmd.getOptionValue("a");
@@ -56,6 +58,9 @@ class BundlerMain {
         } else {
             System.err.println("Warning: No sources were given.");
         }
+
+        System.out.println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
+        new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
 
         gatherApk(apk);
         gatherSources(sourceDirs);
