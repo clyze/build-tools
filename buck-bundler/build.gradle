@@ -9,17 +9,9 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url "${artifactory_contextUrl}/plast-public" }
-    // maven {
-    //     credentials {
-    //         username artifactory_user
-    //         password artifactory_password
-    //     }
-    //     url "${artifactory_contextUrl}/plast-private"
-    // }
 }
 
 dependencies {
-    // compile 'info.picocli:picocli:3.9.6'
     compile 'commons-cli:commons-cli:1.2'
 
     compile("org.clyze:clue-client:${clientVersion}") {
