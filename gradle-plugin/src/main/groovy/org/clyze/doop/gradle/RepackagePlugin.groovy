@@ -1,6 +1,7 @@
 package org.clyze.doop.gradle
 
 import groovy.transform.TypeChecked
+import org.clyze.build.tools.Conventions
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -16,7 +17,6 @@ class RepackagePlugin implements Plugin<Project> {
 
     static final String NAME                = 'Repackage'
 
-    static final String LOCAL_BUNDLE_DIR    = '.clue-bundle'
     static final String METADATA_FILE       = 'metadata.zip'
     static final String CONFIGURATIONS_FILE = 'configurations.zip'
     static final String SOURCES_FILE        = 'sources.jar'
@@ -86,7 +86,7 @@ class RepackagePlugin implements Plugin<Project> {
         ext.orgName = project.group
         ext.projectName = platform.getProjectName()
         ext.projectVersion = project.version?.toString()
-        ext.scavengeOutputDir = new File(project.rootDir, LOCAL_BUNDLE_DIR)
+        ext.scavengeOutputDir = new File(project.rootDir, Conventions.CLUE_BUNDLE_DIR)
         ext.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 
@@ -184,7 +184,7 @@ class RepackagePlugin implements Plugin<Project> {
         repackage.group = NAME
     }
 
-    public static String msg(String s) {
+    static String msg(String s) {
         "[${NAME}] ${s}"
     }
 }
