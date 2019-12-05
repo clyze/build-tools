@@ -4,13 +4,13 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-class JcPlugin {
+public class JcPlugin {
 
     /*
-     * Returns the metadata plugin artifact, so that it can be used
-     * with javac invocations.
+     * Returns the metadata plugin artifact, so that it can be
+     * integrated as a dependency.
      *
-     * @return the path to the javac metadata plugin
+     * @return the artifact id of the javac metadata plugin
      */
     public static String getJcPluginArtifact() {
         String JCPLUGIN_VERSION_FILE = "jcplugin.version";
