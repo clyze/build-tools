@@ -2,7 +2,16 @@ plugins {
     id 'java-library'
 }
 
-String jcpluginArtifact='org.clyze:doop-jcplugin:2.0.22'
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "${artifactory_contextUrl}/plast-public" }
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+String jcpluginArtifact='org.clyze:doop-jcplugin:2.0.23'
 
 dependencies {
     runtime(jcpluginArtifact) {
