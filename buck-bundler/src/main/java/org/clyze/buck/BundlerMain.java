@@ -33,6 +33,8 @@ class BundlerMain {
     private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
     private static final String DEFAULT_JSON_DIR = "json";
 
+    private static List<String> cachedJcpluginClasspath = null;
+
     public static void main(String[] args) throws ParseException {
         Options opts = new Options();
         opts.addOption("a", "apk", true, "The APK file to bundle.");
@@ -71,7 +73,7 @@ class BundlerMain {
             System.out.println("Using javac plugin in path: " + javacPluginPath);
         } else {
             String javacPlugin = JcPlugin.getJcPluginArtifact();
-            System.out.println("Using javacPlugin artifact: " + javacPlugin);
+            System.out.println("Using javac plugin artifact: " + javacPlugin);
         }
 
         Collection<String> sourceDirs = new HashSet<>();
@@ -161,7 +163,7 @@ class BundlerMain {
     }
 
     private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir) throws IOException {
-        System.out.println("Gathering metadata and configurations using '" + traceFile +"'...");
+        System.out.println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
         String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
         Map[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
@@ -172,7 +174,7 @@ class BundlerMain {
                 if (descEntry != null) {
                     String desc = descEntry.toString();
                     if (desc.contains("javac "))
-                        processJavacInvocation(desc);
+                        processJavacInvocation(jsonDir, desc);
                     else if (desc.contains("java ") && desc.contains("tools/proguard/lib/proguard.jar"))
                         processProguardInvocation(desc, configurationsFile);
                 }
@@ -200,7 +202,32 @@ class BundlerMain {
         return new BundleMetadataConf(metadataFile, configurationsFile);
     }
 
-    private static void processJavacInvocation(String desc) {
+    private static void processJavacInvocation(String jsonDir, String desc) {
+        // Read classpath from contents of bundled jcplugin dir.
+        if (cachedJcpluginClasspath == null)
+            cachedJcpluginClasspath = JcPlugin.getJcPluginClasspath(BundlerMain.class.getClassLoader(), "jcplugin/");
+
+        final String CP_OPT = "-classpath";
+        int cpIndex = desc.indexOf(CP_OPT);
+        if (cpIndex == -1)
+            System.err.println("ERROR: could not find classpath option in: " + desc);
+        else {
+            int cpStart = cpIndex + CP_OPT.length() + 1;
+            StringBuilder newEntries = new StringBuilder();
+            for (String jar : cachedJcpluginClasspath)
+                newEntries.append(jar).append(":");
+            // The extra flag stops the command line from interpreting
+            // the next argument in a wrong way.
+            String plugin = "-Xplugin:TypeInfoPlugin -AjcpluginJSONDir="+jsonDir;
+            desc = desc.substring(0, cpIndex) + plugin + " " + desc.substring(cpIndex, cpStart) + newEntries.toString() + desc.substring(cpStart);
+            System.out.println("== Changed command: " + desc + " ==");
+            try {
+                int exitCode = JHelper.runCommand(desc, "JC", System.out::println);
+                System.out.println("== Command finished, exit code: " + exitCode + " ==");
+            } catch (Exception ex) {
+                System.out.println("== Command failed: " + desc + " ==");
+            }
+        }
     }
 
     private static void processProguardInvocation(String desc, String configurationsFile) {

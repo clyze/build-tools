@@ -11,8 +11,6 @@ repositories {
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
-String jcpluginArtifact='org.clyze:doop-jcplugin:2.0.23'
-
 dependencies {
     runtime(jcpluginArtifact) {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
