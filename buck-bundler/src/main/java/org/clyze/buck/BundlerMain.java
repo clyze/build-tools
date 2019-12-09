@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.JcPlugin;
@@ -32,88 +31,59 @@ import static org.clyze.build.tools.Conventions.msg;
 
 class BundlerMain {
 
-    private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
-    private static final String DEFAULT_JSON_DIR = "json";
-
     private static List<String> cachedJcpluginClasspath = null;
 
-    public static void main(String[] args) throws ParseException {
-        Options opts = new Options();
-        opts.addOption("a", "apk", true, "The APK file to bundle.");
-        opts.addOption("j", "jcplugin", true, "The path to the javac plugin to use for Java sources.");
-        opts.addOption("s", "source-dir", true, "Add source directory to bundle.");
-        opts.addOption("p", "post", false, "Posts the bundle to the server.");
-        opts.addOption("h", "help", false, "Show this help text.");
-        opts.addOption(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
-        opts.addOption(null, "port", true, "The server port (default: "+Conventions.DEFAULT_PORT+").");
-        opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
-        opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
-        opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
-        opts.addOption(null, "profile", true, "The profile (default: "+Conventions.DEFAULT_PROFILE+").");
-        opts.addOption(null, "trace", true, "The Buck trace file (default: "+DEFAULT_TRACE_FILE+").");
-        opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
+    public static void main(String[] args) {
 
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse(opts, args);
-
-        if (cmd.hasOption("h")) {
-            showUsage(opts);
+        Config conf;
+        try {
+            conf = new Config(args);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Config.showUsage();
             return;
         }
 
-        String apk;
-        if (cmd.hasOption("a")) {
-            apk = cmd.getOptionValue("a");
+        if (conf.help) {
+            Config.showUsage();
+            return;
+        }
+
+        String apk = conf.apk;
+        if (apk != null)
             println("APK: " + apk);
-        } else {
+        else {
             logError("Error: No APK was given.");
-            showUsage(opts);
+            Config.showUsage();
             return;
         }
-        if (cmd.hasOption("j")) {
-            String javacPluginPath = cmd.getOptionValue("j");
+        String javacPluginPath = conf.javacPluginPath;
+        if (javacPluginPath != null)
             println("Using javac plugin in path: " + javacPluginPath);
-        } else {
+        else {
             String javacPlugin = JcPlugin.getJcPluginArtifact();
             println("Using javac plugin artifact: " + javacPlugin);
         }
 
-        Collection<String> sourceDirs = new HashSet<>();
-        if (cmd.hasOption("s")) {
-            for (String sourceDir: cmd.getOptionValues("s"))
-                sourceDirs.add(sourceDir);
-        } else {
+        Collection<String> sourceDirs = conf.sourceDirs;
+        if (sourceDirs == null)
             logError("Warning: No sources were given.");
-        }
-
-        String jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
 
         println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
         new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
 
         String bundleApk = gatherApk(apk);
         Collection<String> sourceJars = gatherSources(sourceDirs);
-        String traceFile = optValOrDefault(cmd, "trace", DEFAULT_TRACE_FILE);
         BundleMetadataConf bmc = null;
         try {
-            bmc = gatherMetadataAndConfigurations(traceFile, jsonDir);
+            bmc = gatherMetadataAndConfigurations(conf.traceFile, conf.jsonDir, conf.proguard);
         } catch (IOException ex) {
             logError("Error gathering metadata/configurations, will try to continue...");
             ex.printStackTrace();
         }
 
-        if (cmd.hasOption("p")) {
-            postBundle(cmd, bundleApk, sourceJars, bmc);
-        }
-    }
-
-    private static String optValOrDefault(CommandLine cmd, String id, String defaultValue) {
-        return cmd.hasOption(id) ? cmd.getOptionValue(id) : defaultValue;
-    }
-
-    private static void showUsage(Options opts) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("buck-bundler", opts);
+        if (conf.post)
+            postBundle(bundleApk, sourceJars, bmc, conf);
     }
 
     /**
@@ -164,7 +134,7 @@ class BundlerMain {
         return ret;
     }
 
-    private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir) throws IOException {
+    private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir, String proguard) throws IOException {
         println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
         String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
@@ -177,7 +147,8 @@ class BundlerMain {
                     String desc = descEntry.toString();
                     if (desc.contains("javac "))
                         processJavacInvocation(jsonDir, desc);
-                    else if (desc.contains("java ") && desc.contains("tools/proguard/lib/proguard.jar"))
+                    else if (desc.contains("java ") && desc.contains("-jar") &&
+                             desc.contains(proguard))
                         processProguardInvocation(desc, configurationsFile);
                 }
             }
@@ -254,7 +225,7 @@ class BundlerMain {
                     nextLineIsRulesFile = true;
                     continue;
                 } else if (nextLineIsRulesFile) {
-                    // println(configurationsFile + ": adding configuration file [" + line + "]");
+                    println("Adding configuration file: " + line);
                     String[] cmd = new String[] { "zip", "-r", configurationsFile, line };
                     JHelper.runWithOutput(cmd, "PG_CONF");
                 }
@@ -266,16 +237,9 @@ class BundlerMain {
         }
     }
 
-    private static void postBundle(CommandLine cmd, String bundleApk,
-                                   Collection<String> sourceJars,
-                                   BundleMetadataConf bmc) {
+    private static void postBundle(String bundleApk, Collection<String> sourceJars,
+                                   BundleMetadataConf bmc, Config conf) {
         println("Posting bundle to the server...");
-        String host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
-        int port = Integer.valueOf(optValOrDefault(cmd, "port", Conventions.DEFAULT_PORT));
-        String username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
-        String password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
-        String project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
-        String profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_PROFILE);
 
         PostState ps = new PostState();
         ps.setId(Conventions.BUNDLE_ID);
@@ -286,7 +250,7 @@ class BundlerMain {
             ps.addFileInput("PG_ZIP", bmc.configuration);
         }
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
-        Helper.doPost(host, port, username, password, project, profile, ps);
+        Helper.doPost(conf.host, conf.port, conf.username, conf.password, conf.project, conf.profile, ps);
     }
 
     static void println(String s) {
