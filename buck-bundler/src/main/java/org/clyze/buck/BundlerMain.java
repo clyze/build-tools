@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.types.Commandline;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.JcPlugin;
 import org.clyze.client.web.Helper;
@@ -175,31 +177,66 @@ class BundlerMain {
         return new BundleMetadataConf(metadataFile, configurationsFile);
     }
 
+    private static String[] insertSpace(String[] src, int pos, int extraElems) throws IOException {
+        String[] ret = new String[src.length + extraElems];
+        System.arraycopy(src, 0, ret, 0, pos);
+        System.arraycopy(src, pos, ret, pos + extraElems, src.length - pos);
+        return ret;
+    }
+
     private static void processJavacInvocation(String jsonDir, String desc) {
         // Read classpath from contents of bundled jcplugin dir.
         if (cachedJcpluginClasspath == null)
             cachedJcpluginClasspath = JcPlugin.getJcPluginClasspath(BundlerMain.class.getClassLoader(), "jcplugin/");
+        StringBuilder newEntries = new StringBuilder();
+        for (int i = 0; i < cachedJcpluginClasspath.size(); i++) {
+            String jar = cachedJcpluginClasspath.get(i);
+            if (i == 0)
+                newEntries.append(jar);
+            else
+                newEntries.append(":").append(jar);
+        }
 
-        final String CP_OPT = "-classpath";
-        int cpIndex = desc.indexOf(CP_OPT);
-        if (cpIndex == -1)
-            logError("ERROR: could not find classpath option in: " + desc);
+        // Convert string command (plus javac plugin) to array.
+        String plugin = "-Xplugin:TypeInfoPlugin " + jsonDir;
+        String args[] = Commandline.translateCommandline(desc + " '" + plugin + "'");
+        if (!args[0].endsWith("javac")) {
+            logError("Warning: command line does not look like a javac invocation: " + desc);
+        }
+
+        int processorpathIdx = -1;
+        int idx = 0;
+        while (idx < args.length) {
+            if (args[idx].equals("-processorpath")) {
+                processorpathIdx = idx + 1;
+                idx += 2;
+            } else
+                idx += 1;
+        }
+        String jcCP = newEntries.toString();
+        if (processorpathIdx != -1)
+            args[processorpathIdx] += ":" + jcCP;
         else {
-            int cpStart = cpIndex + CP_OPT.length() + 1;
-            StringBuilder newEntries = new StringBuilder();
-            for (String jar : cachedJcpluginClasspath)
-                newEntries.append(jar).append(":");
-            // The extra flag stops the command line from interpreting
-            // the next argument in a wrong way.
-            String plugin = "-Xplugin:TypeInfoPlugin -AjcpluginJSONDir="+jsonDir;
-            desc = desc.substring(0, cpIndex) + plugin + " " + desc.substring(cpIndex, cpStart) + newEntries.toString() + desc.substring(cpStart);
-            println("== Changed command: " + desc + " ==");
+            int pos = 1;
+            int extraElems = 2;
+            final String PP_FLAG = "-processorpath";
             try {
-                int exitCode = JHelper.runCommand(desc, "JC", System.out::println);
-                println("== Command finished, exit code: " + exitCode + " ==");
-            } catch (Exception ex) {
-                println("== Command failed: " + desc + " ==");
+                String[] argsWithJcCP = insertSpace(args, pos, extraElems);
+                argsWithJcCP[pos] = PP_FLAG;
+                argsWithJcCP[pos + 1] = jcCP;
+                args = argsWithJcCP;
+            } catch (IOException ex) {
+                logError("Error: could not integrate compiler plugin in javac invocation using '" + PP_FLAG + "'.");
+                ex.printStackTrace();
             }
+        }
+
+        String newCmd = Arrays.asList(args).toString();
+        println("Changed command: " + newCmd);
+        try {
+            JHelper.runWithOutput(args, "JC", null);
+        } catch (Exception ex) {
+            println("Command failed: " + newCmd);
         }
     }
 

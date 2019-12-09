@@ -17,6 +17,7 @@ configurations {
 
 dependencies {
     compile 'commons-cli:commons-cli:1.4'
+    compile 'org.apache.ant:ant:1.10.7'
 
     compile 'org.clyze:clue-common:3.19.0'
     compile("org.clyze:clue-client:${clientVersion}")
