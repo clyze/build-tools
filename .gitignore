@@ -6,6 +6,7 @@
 /build-integration-lib/build
 /gradle-plugin/build
 /buck-bundler/build/
+/buck-bundler/src/main/resources/jcplugin
 
 #intellij idea files
 /.idea
