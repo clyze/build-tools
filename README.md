@@ -7,4 +7,4 @@ build systems:
 
 * [Buck bundler](buck-bundler/README.md)
 
-* [Ant (simple projects)](gradle-plugin/README.md#Interoperability with Ant)
+For simple Ant-based projects, check section "Interoperability with Ant" in the [Gradle plugin documentation]((gradle-plugin/README.md)).
