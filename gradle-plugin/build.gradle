@@ -15,6 +15,9 @@ repositories {
 }
 
 configurations.all {
+    //This is required for SNAPSHOT dependencies
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    //This is required for dependencies using the "+" notation
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 
