@@ -36,3 +36,25 @@ publishing {
         }
     }
 }
+
+if (project.hasProperty('artifactory_user')) {
+publishing {
+    repositories {
+        maven {
+            credentials {
+                username artifactory_user
+                password artifactory_password
+            }
+
+            url "${artifactory_contextUrl}/plugins-release-local"
+        }
+    }
+}
+}
+
+release {
+    //failOnUnversionedFiles = false
+    //use the defaults, see https://github.com/researchgate/gradle-release
+}
+
+afterReleaseBuild.dependsOn publish
