@@ -1,6 +1,6 @@
 # Buck bundler #
 
-The Buck bundler tool handles projects that use the [https://github.com/facebook/buck/](Buck) build system.
+The Buck bundler tool handles projects that use the [Buck](https://github.com/facebook/buck/) build system.
 
 ## Setup ##
 
