@@ -6,3 +6,5 @@ build systems:
 * [Gradle plugin](gradle-plugin/README.md)
 
 * [Buck bundler](buck-bundler/README.md)
+
+* [Ant (simple projects)](gradle-plugin/README.md#Interoperability with Ant)
