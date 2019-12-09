@@ -8,7 +8,7 @@ import static org.clyze.doop.gradle.RepackagePlugin.msg
 
 @TypeChecked
 class Extension {
-    static final String SECTION_NAME = "repackage"
+    static final String SECTION_NAME = "closer"
 
     String host
     int port

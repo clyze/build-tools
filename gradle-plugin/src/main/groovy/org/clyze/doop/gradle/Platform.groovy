@@ -19,7 +19,7 @@ import static org.clyze.doop.gradle.RepackagePlugin.msg
 abstract class Platform {
 
     private static final String DEFAULT_RULES   = 'optimize.clue'
-    protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${RepackagePlugin.NAME} plugin with defaults.")
+    protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${Conventions.TOOL_NAME} plugin with defaults.")
 
     protected Project project
     private Extension repackageExt = null

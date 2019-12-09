@@ -6,7 +6,7 @@ server for analysis. Some support for Ant-based builds is also included
 
 ## Setup ##
 
-Use the "repackage" plugin in your Gradle build:
+Use the "closer" plugin in your Gradle build:
 
 ```
 buildscript {
@@ -19,7 +19,7 @@ buildscript {
     }
 }
 
-apply plugin: 'repackage'
+apply plugin: 'closer'
 ```
 
 On Android, you must also use the metadata processor in your Gradle build:
@@ -48,7 +48,7 @@ Step 1. Put these lines in build.gradle (lines with default values can
 be omitted):
 
 ```
-repackage {
+closer {
     port = ...           // server UI port
     clueProject = ...    // default: 'scrap'
     buildType = ...      // default: 'debug'
@@ -83,9 +83,9 @@ sdk.dir=/home/user/Android/Sdk
 Step 2. Put these lines in Application/build.gradle:
 
 ```
-apply plugin: 'repackage'
+apply plugin: 'closer'
 ...
-repackage {
+closer {
     port = ...
     subprojectName = "Application"
     clueProject = ...
@@ -127,7 +127,7 @@ A sample build.gradle file to bundle an Ant project is the following:
 ```
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'repackage'
+apply plugin: 'closer'
 
 buildscript {
     repositories {
@@ -154,7 +154,7 @@ ant.importBuild('build.xml') { antTargetName ->
     'ant-' + antTargetName
 }
 
-repackage {
+closer {
     port = ...
     buildType = ...
     flavor = ...

@@ -39,7 +39,7 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        repackagePlugin {
+        closerPlugin {
             id = "org.clyze.gradle-plugin"
             implementationClass = "org.clyze.doop.gradle.RepackagePlugin"
         }

@@ -134,7 +134,7 @@ class AndroidPlatform extends Platform {
                     it.endsWith(RepackagePlugin.TASK_POST_BUNDLE) ||
                     it.endsWith(RepackagePlugin.TASK_SOURCES_JAR)
                 }) {
-                project.logger.warn msg("WARNING: No ${RepackagePlugin.NAME} task invoked, skipping configuration.")
+                project.logger.warn msg("WARNING: No ${Conventions.TOOL_NAME} task invoked, skipping configuration.")
                 return
             }
 
@@ -393,7 +393,7 @@ class AndroidPlatform extends Platform {
     void configureCodeJarTask() {
         Jar codeJarTask = project.tasks.create(TASK_CODE_ARCHIVE, Jar)
         codeJarTask.description = 'Generates the code archive'
-        codeJarTask.group = RepackagePlugin.NAME
+        codeJarTask.group = Conventions.TOOL_NAME
     }
 
     /**
@@ -453,7 +453,7 @@ class AndroidPlatform extends Platform {
     void configureConfigurationsTask() {
         Task confTask = project.tasks.create(RepackagePlugin.TASK_CONFIGURATIONS, Task)
         confTask.description = 'Generates the configurations archive'
-        confTask.group = RepackagePlugin.NAME
+        confTask.group = Conventions.TOOL_NAME
         confTask.doFirst {
             readConfigurationFiles()
         }
