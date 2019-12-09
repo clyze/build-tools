@@ -6,7 +6,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 
-import static org.clyze.doop.gradle.RepackagePlugin.msg
+import static org.clyze.build.tools.Conventions.msg
 
 // This class provides access to the Android Gradle API (including
 // internals) without a compile-time dependency.

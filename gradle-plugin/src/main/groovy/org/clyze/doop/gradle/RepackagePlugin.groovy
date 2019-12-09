@@ -9,6 +9,8 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 
+import static org.clyze.build.tools.Conventions.msg
+
 /**
  * The Gradle plugin that integrates builds with the server.
  */
@@ -175,9 +177,5 @@ class RepackagePlugin implements Plugin<Project> {
         RepackageTask repackage = project.tasks.create(TASK_REPACKAGE, RepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules'
         repackage.group = Conventions.TOOL_NAME
-    }
-
-    static String msg(String s) {
-        "[${Conventions.TOOL_NAME}] ${s}"
     }
 }

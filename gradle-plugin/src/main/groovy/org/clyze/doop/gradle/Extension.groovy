@@ -4,7 +4,7 @@ import groovy.transform.TypeChecked
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
-import static org.clyze.doop.gradle.RepackagePlugin.msg
+import static org.clyze.build.tools.Conventions.msg
 
 @TypeChecked
 class Extension {

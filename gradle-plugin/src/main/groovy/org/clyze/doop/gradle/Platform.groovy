@@ -6,7 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
-import static org.clyze.doop.gradle.RepackagePlugin.msg
+import static org.clyze.build.tools.Conventions.msg
 
 /**
  * The Java platform used: plain Java or Android. Each platform is

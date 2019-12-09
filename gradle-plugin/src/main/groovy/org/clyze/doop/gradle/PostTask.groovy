@@ -6,7 +6,7 @@ import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 
-import static org.clyze.doop.gradle.RepackagePlugin.msg
+import static org.clyze.build.tools.Conventions.msg
 
 /**
  * This class represents tasks that post data to the server.

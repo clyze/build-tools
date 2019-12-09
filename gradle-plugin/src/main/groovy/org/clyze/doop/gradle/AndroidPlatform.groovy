@@ -19,7 +19,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
-import static org.clyze.doop.gradle.RepackagePlugin.msg
+import static org.clyze.build.tools.Conventions.msg
 import static org.clyze.utils.JHelper.throwRuntimeException
 
 @TypeChecked

@@ -17,4 +17,8 @@ public class Conventions {
     public static final String getR8AndroidPlatform(String apiLevel) {
         return "android_" + apiLevel + "_stubs";
     }
+
+    public static String msg(String s) {
+        return "[" + TOOL_NAME + "] " + s;
+    }
 }

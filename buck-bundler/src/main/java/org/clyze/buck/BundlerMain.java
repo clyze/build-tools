@@ -28,6 +28,8 @@ import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
+import static org.clyze.build.tools.Conventions.msg;
+
 class BundlerMain {
 
     private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
@@ -62,18 +64,18 @@ class BundlerMain {
         String apk;
         if (cmd.hasOption("a")) {
             apk = cmd.getOptionValue("a");
-            System.out.println("APK: " + apk);
+            println("APK: " + apk);
         } else {
-            System.err.println("Error: No APK was given.");
+            logError("Error: No APK was given.");
             showUsage(opts);
             return;
         }
         if (cmd.hasOption("j")) {
             String javacPluginPath = cmd.getOptionValue("j");
-            System.out.println("Using javac plugin in path: " + javacPluginPath);
+            println("Using javac plugin in path: " + javacPluginPath);
         } else {
             String javacPlugin = JcPlugin.getJcPluginArtifact();
-            System.out.println("Using javac plugin artifact: " + javacPlugin);
+            println("Using javac plugin artifact: " + javacPlugin);
         }
 
         Collection<String> sourceDirs = new HashSet<>();
@@ -81,12 +83,12 @@ class BundlerMain {
             for (String sourceDir: cmd.getOptionValues("s"))
                 sourceDirs.add(sourceDir);
         } else {
-            System.err.println("Warning: No sources were given.");
+            logError("Warning: No sources were given.");
         }
 
         String jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
 
-        System.out.println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
+        println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
         new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
 
         String bundleApk = gatherApk(apk);
@@ -96,7 +98,7 @@ class BundlerMain {
         try {
             bmc = gatherMetadataAndConfigurations(traceFile, jsonDir);
         } catch (IOException ex) {
-            System.err.println("Error gathering metadata/configurations, will try to continue...");
+            logError("Error gathering metadata/configurations, will try to continue...");
             ex.printStackTrace();
         }
 
@@ -126,14 +128,14 @@ class BundlerMain {
             Files.copy(Paths.get(apk), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return target.getCanonicalPath();
         } catch (IOException ex) {
-            System.err.println("Failed to copy '" + apk + "' to '" + target + "'");
+            logError("Failed to copy '" + apk + "' to '" + target + "'");
             ex.printStackTrace();
         }
         return null;
     }
 
     private static Collection<String> gatherSources(Collection<String> sourceDirs) {
-        System.out.println("Gathering sources...");
+        println("Gathering sources...");
         File sourcesJar = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.SOURCES_FILE);
         sourcesJar.delete();
         String sourcesJarPath;
@@ -141,19 +143,19 @@ class BundlerMain {
             FileUtils.touch(sourcesJar);
             sourcesJarPath = sourcesJar.getCanonicalPath();
         } catch (IOException ex) {
-            System.err.println("Error creating sources JAR file: " + sourcesJar);
+            logError("Error creating sources JAR file: " + sourcesJar);
             ex.printStackTrace();
             return null;
         }
         for (String sourceDir : sourceDirs) {
-            System.out.println("Reading source directory: " + sourceDir);
+            println("Reading source directory: " + sourceDir);
             // TODO: this does not handle repeating entries (which will pause
             //  execution to prompt the user in the console and thus get stuck).
             String[] args = new String[] {"jar", "-uf", sourcesJarPath, "-C", sourceDir, "."};
             try {
                 JHelper.runWithOutput(args, "JAR");
             } catch (IOException ex) {
-                System.err.println("Error adding sources directory contents (" + sourceDir + ") to JAR file '" + sourcesJarPath + "'");
+                logError("Error adding sources directory contents (" + sourceDir + ") to JAR file '" + sourcesJarPath + "'");
                 ex.printStackTrace();
             }
         }
@@ -163,7 +165,7 @@ class BundlerMain {
     }
 
     private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir) throws IOException {
-        System.out.println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
+        println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
         String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
         Map[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
@@ -182,7 +184,7 @@ class BundlerMain {
         }
 
         String metadataFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.METADATA_FILE).getCanonicalPath();
-        System.out.println("Adding JSON metadata to file: " + metadataFile);
+        println("Adding JSON metadata to file: " + metadataFile);
 
         try (FileOutputStream fos = new FileOutputStream(metadataFile);
              ZipOutputStream metadataZip = new ZipOutputStream(fos)) {
@@ -210,7 +212,7 @@ class BundlerMain {
         final String CP_OPT = "-classpath";
         int cpIndex = desc.indexOf(CP_OPT);
         if (cpIndex == -1)
-            System.err.println("ERROR: could not find classpath option in: " + desc);
+            logError("ERROR: could not find classpath option in: " + desc);
         else {
             int cpStart = cpIndex + CP_OPT.length() + 1;
             StringBuilder newEntries = new StringBuilder();
@@ -220,12 +222,12 @@ class BundlerMain {
             // the next argument in a wrong way.
             String plugin = "-Xplugin:TypeInfoPlugin -AjcpluginJSONDir="+jsonDir;
             desc = desc.substring(0, cpIndex) + plugin + " " + desc.substring(cpIndex, cpStart) + newEntries.toString() + desc.substring(cpStart);
-            System.out.println("== Changed command: " + desc + " ==");
+            println("== Changed command: " + desc + " ==");
             try {
                 int exitCode = JHelper.runCommand(desc, "JC", System.out::println);
-                System.out.println("== Command finished, exit code: " + exitCode + " ==");
+                println("== Command finished, exit code: " + exitCode + " ==");
             } catch (Exception ex) {
-                System.out.println("== Command failed: " + desc + " ==");
+                println("== Command failed: " + desc + " ==");
             }
         }
     }
@@ -233,33 +235,33 @@ class BundlerMain {
     private static void processProguardInvocation(String desc, String configurationsFile) {
         int atIndex = desc.indexOf('@');
         if (atIndex == -1) {
-            System.err.println("ERROR: could not find arguments file of proguard command: " + desc);
+            logError("ERROR: could not find arguments file of proguard command: " + desc);
             return;
         }
         int endIndex = desc.indexOf(')');
         if (endIndex == -1)
             endIndex = desc.indexOf(' ');
         String argsFile = endIndex == -1 ? desc.substring(atIndex+1) : desc.substring(atIndex+1, endIndex);
-        System.out.println("Reading proguard args from file: " + argsFile);
+        println("Reading proguard args from file: " + argsFile);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(argsFile))) {
             String line;
             boolean nextLineIsRulesFile = false;
             while ((line = reader.readLine()) != null) {
                 line = line.replaceAll("\n", "").replaceAll("\"", "");
-                // System.out.println("["+line+"]");
+                // println("["+line+"]");
                 if (line.equals("-include")) {
                     nextLineIsRulesFile = true;
                     continue;
                 } else if (nextLineIsRulesFile) {
-                    // System.out.println(configurationsFile + ": adding configuration file [" + line + "]");
+                    // println(configurationsFile + ": adding configuration file [" + line + "]");
                     String[] cmd = new String[] { "zip", "-r", configurationsFile, line };
                     JHelper.runWithOutput(cmd, "PG_CONF");
                 }
                 nextLineIsRulesFile = false;
             }
         } catch (IOException e) {
-            System.err.println("Could not parse proguard args file: " + argsFile);
+            logError("Could not parse proguard args file: " + argsFile);
             e.printStackTrace();
         }
     }
@@ -267,7 +269,7 @@ class BundlerMain {
     private static void postBundle(CommandLine cmd, String bundleApk,
                                    Collection<String> sourceJars,
                                    BundleMetadataConf bmc) {
-        System.out.println("Posting bundle to the server...");
+        println("Posting bundle to the server...");
         String host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
         int port = Integer.valueOf(optValOrDefault(cmd, "port", Conventions.DEFAULT_PORT));
         String username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
@@ -285,6 +287,14 @@ class BundlerMain {
         }
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
         Helper.doPost(host, port, username, password, project, profile, ps);
+    }
+
+    static void println(String s) {
+        System.out.println(msg(s));
+    }
+
+    static void logError(String s) {
+        System.err.println(msg(s));
     }
 }
 

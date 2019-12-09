@@ -7,7 +7,7 @@ import org.clyze.client.web.api.AttachmentHandler
 import org.clyze.client.web.api.Remote
 import org.gradle.api.tasks.TaskAction
 
-import static org.clyze.doop.gradle.RepackagePlugin.msg
+import static org.clyze.build.tools.Conventions.msg
 
 class RepackageTask extends PostTask {
 
