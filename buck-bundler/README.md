@@ -36,7 +36,8 @@ buck-bundler --help
 
 This example uses
 [bucksamples](https://github.com/fbsamples/bucksamples). Assume the
-server runs on localhost, port 8010.
+server runs on localhost, port 8010. The following commands will build
+the Android app and post it (with processed sources) to the server.
 
 ```
 git clone https://github.com/fbsamples/bucksamples.git
