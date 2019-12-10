@@ -52,6 +52,16 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
     from groovydoc.destinationDir
 }
 
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Version': project.version
+    }
+    baseName = project.name + '-with-dependencies'
+    from { configurations.runtime.collect { println("dep: ${it}") ; it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+fatJar.dependsOn ':build-integration-lib:jar'
+
 artifacts {
     archives sourcesJar
     archives groovydocJar
