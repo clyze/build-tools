@@ -3,6 +3,7 @@ plugins {
     id 'groovy'
     id 'maven-publish'
     id 'net.researchgate.release' version '2.6.0'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 sourceCompatibility = "1.8"
@@ -22,7 +23,8 @@ configurations.all {
 }
 
 dependencies {
-    compile localGroovy()
+    implementation gradleApi()
+    implementation localGroovy()
     compile 'commons-cli:commons-cli:1.2'
 
     compile("org.clyze:clue-client:${clientVersion}") {
@@ -52,16 +54,6 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
     from groovydoc.destinationDir
 }
 
-task fatJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Version': project.version
-    }
-    baseName = project.name + '-with-dependencies'
-    from { configurations.runtime.collect { println("dep: ${it}") ; it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}
-fatJar.dependsOn ':build-integration-lib:jar'
-
 artifacts {
     archives sourcesJar
     archives groovydocJar
@@ -71,6 +63,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            artifact shadowJar
         }
     }
 }
