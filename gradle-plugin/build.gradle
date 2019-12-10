@@ -78,6 +78,7 @@ shadowJar {
 }
 
 artifacts {
+    shadowJar
     archives sourcesJar
     archives groovydocJar
 }
