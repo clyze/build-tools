@@ -18,7 +18,7 @@ import static org.clyze.build.tools.Conventions.msg
 @CompileStatic
 abstract class Platform {
 
-    private static final String DEFAULT_RULES   = 'optimize.clue'
+    private static final String DEFAULT_RULES = 'optimize.clue'
     protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${Conventions.TOOL_NAME} plugin with defaults.")
 
     protected Project project
@@ -35,7 +35,11 @@ abstract class Platform {
         return repackageExt
     }
 
-    // Check if the build.gradle section defines the needed properties.
+    /**
+     * Check if the build.gradle section defines the needed properties.
+     *
+     * @return true if build.gradle defines the section
+     */
     boolean definesRequiredProperties() {
         Extension ext = getRepackageExt()
         // We don't check for 'options', as that is never empty (but
@@ -90,8 +94,14 @@ abstract class Platform {
     abstract void cleanUp()
     abstract void configureConfigurationsTask()
     abstract String getOutputCodeArchive()
-    // True if the metadata processor runs in a separate Gradle task,
-    // false if the processor is integrated in an existing task.
-    abstract boolean explicitScavengeTask()
     abstract boolean isCodeArtifact(String filename)
+
+    /**
+     * Helper test method to control the creation of the "scavenge" task.
+     *
+     * @return true if the metadata processor runs in a separate Gradle task,
+     *         false if the processor is integrated in an existing task.
+     */
+    abstract boolean explicitScavengeTask()
+
 }
