@@ -22,8 +22,14 @@ configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 
+// Prevent inclusion of gradle-api into shadow JAR. (See:
+// https://imperceptiblethoughts.com/shadow/plugins/#special-handling-of-the-java-gradle-plugin-development-plugin)
+configurations.compile.dependencies.remove dependencies.gradleApi()
+
 dependencies {
-    implementation gradleApi()
+    // See: https://github.com/johnrengelman/shadow/issues/414
+    compileOnly gradleApi()
+
     implementation localGroovy()
     compile 'commons-cli:commons-cli:1.2'
 
@@ -34,6 +40,7 @@ dependencies {
 
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
+
 
 gradlePlugin {
     plugins {
