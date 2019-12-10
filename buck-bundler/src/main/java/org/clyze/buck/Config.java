@@ -1,5 +1,6 @@
 package org.clyze.buck;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import org.apache.commons.cli.*;
@@ -31,7 +32,7 @@ class Config {
         this.help = cmd.hasOption("h");
         this.post = cmd.hasOption("p");
         this.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
-        this.port = Integer.valueOf(optValOrDefault(cmd, "port", Conventions.DEFAULT_PORT));
+        this.port = Integer.parseInt(optValOrDefault(cmd, "port", Conventions.DEFAULT_PORT));
         this.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
         this.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
         this.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
@@ -44,8 +45,7 @@ class Config {
 
         if (cmd.hasOption("s")) {
             this.sourceDirs = new HashSet<>();
-            for (String sourceDir: cmd.getOptionValues("s"))
-                sourceDirs.add(sourceDir);
+            sourceDirs.addAll(Arrays.asList(cmd.getOptionValues("s")));
         } else
             this.sourceDirs = null;
     }

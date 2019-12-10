@@ -15,7 +15,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,6 +33,9 @@ import static org.clyze.build.tools.Conventions.msg;
 class BundlerMain {
 
     private static List<String> cachedJcpluginClasspath = null;
+
+    // Set to true for extra debug messages.
+    private static final boolean debug = false;
 
     public static void main(String[] args) {
 
@@ -72,7 +74,8 @@ class BundlerMain {
             logError("Warning: No sources were given.");
 
         println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
-        new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
+        boolean mk = new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
+        logDebug("Directory " + Conventions.CLUE_BUNDLE_DIR + " created: " + mk);
 
         String bundleApk = gatherApk(apk);
         Collection<String> sourceJars = gatherSources(sourceDirs);
@@ -86,6 +89,11 @@ class BundlerMain {
 
         if (conf.post)
             postBundle(bundleApk, sourceJars, bmc, conf);
+    }
+
+    private static void logDebug(String s) {
+        if (debug)
+            System.err.println(msg(s));
     }
 
     /**
@@ -109,7 +117,8 @@ class BundlerMain {
     private static Collection<String> gatherSources(Collection<String> sourceDirs) {
         println("Gathering sources...");
         File sourcesJar = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.SOURCES_FILE);
-        sourcesJar.delete();
+        boolean del = sourcesJar.delete();
+        logDebug("Delete " + sourcesJar + ": " + del);
         String sourcesJarPath;
         try {
             FileUtils.touch(sourcesJar);
@@ -140,10 +149,10 @@ class BundlerMain {
         println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
         String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
-        Map[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
-        for (Map map : json) {
+        Map<String, Object>[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
+        for (Map<String, Object> map : json) {
             Object argsEntry = map.get("args");
-            if (argsEntry != null && argsEntry instanceof Map) {
+            if (argsEntry instanceof Map) {
                 Object descEntry = ((Map<String, Object>)argsEntry).get("description");
                 if (descEntry != null) {
                     String desc = descEntry.toString();
@@ -177,7 +186,7 @@ class BundlerMain {
         return new BundleMetadataConf(metadataFile, configurationsFile);
     }
 
-    private static String[] insertSpace(String[] src, int pos, int extraElems) throws IOException {
+    private static String[] insertSpace(String[] src, int pos, int extraElems) {
         String[] ret = new String[src.length + extraElems];
         System.arraycopy(src, 0, ret, 0, pos);
         System.arraycopy(src, pos, ret, pos + extraElems, src.length - pos);
@@ -188,6 +197,13 @@ class BundlerMain {
         // Read classpath from contents of bundled jcplugin dir.
         if (cachedJcpluginClasspath == null)
             cachedJcpluginClasspath = JcPlugin.getJcPluginClasspath(BundlerMain.class.getClassLoader(), "jcplugin/");
+        // If no metadata plugin was found, skip javac rerun but allow for the
+        // rest of the operations to continue.
+        if (cachedJcpluginClasspath == null) {
+            logError("Internal error: no javac plugin found -- continuing without source metadata");
+            return;
+        }
+
         StringBuilder newEntries = new StringBuilder();
         for (int i = 0; i < cachedJcpluginClasspath.size(); i++) {
             String jar = cachedJcpluginClasspath.get(i);
@@ -199,7 +215,7 @@ class BundlerMain {
 
         // Convert string command (plus javac plugin) to array.
         String plugin = "-Xplugin:TypeInfoPlugin " + jsonDir;
-        String args[] = Commandline.translateCommandline(desc + " '" + plugin + "'");
+        String[] args = Commandline.translateCommandline(desc + " '" + plugin + "'");
         if (!args[0].endsWith("javac")) {
             logError("Warning: command line does not look like a javac invocation: " + desc);
         }
@@ -281,7 +297,8 @@ class BundlerMain {
         PostState ps = new PostState();
         ps.setId(Conventions.BUNDLE_ID);
         ps.addFileInput("INPUTS", bundleApk);
-        sourceJars.forEach (sj -> ps.addFileInput("SOURCES_JAR", sj));
+        if (sourceJars != null)
+            sourceJars.forEach (sj -> ps.addFileInput("SOURCES_JAR", sj));
         if (bmc != null) {
             ps.addFileInput("JCPLUGIN_METADATA", bmc.metadata);
             ps.addFileInput("PG_ZIP", bmc.configuration);

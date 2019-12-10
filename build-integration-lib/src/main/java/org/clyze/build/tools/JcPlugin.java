@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.*;
@@ -20,7 +19,10 @@ public class JcPlugin {
     public static String getJcPluginArtifact() {
         String JCPLUGIN_VERSION_FILE = "jcplugin.version";
         ClassLoader cl = JcPlugin.class.getClassLoader();
-        try (BufferedReader txtReader = new BufferedReader(new InputStreamReader(cl.getResourceAsStream(JCPLUGIN_VERSION_FILE)))) {
+        InputStream resIs = cl.getResourceAsStream(JCPLUGIN_VERSION_FILE);
+        if (resIs == null)
+            throw new RuntimeException("Could not read resource " + JCPLUGIN_VERSION_FILE);
+        try (BufferedReader txtReader = new BufferedReader(new InputStreamReader(resIs))) {
             return txtReader.readLine();
         } catch (Exception ex) {
             throw new RuntimeException("Could not read resource " + JCPLUGIN_VERSION_FILE + ": " + ex.getMessage());
@@ -57,7 +59,7 @@ public class JcPlugin {
         // System.out.println(zip + ":" + entry + " -> " + f);
         try (InputStream is = zip.getInputStream(entry);
              OutputStream os = new BufferedOutputStream(new FileOutputStream(f))){
-            byte buffer[] = new byte[4096];
+            byte[] buffer = new byte[4096];
             int readCount;
             while ((readCount = is.read(buffer)) > 0) {
                 os.write(buffer, 0, readCount);

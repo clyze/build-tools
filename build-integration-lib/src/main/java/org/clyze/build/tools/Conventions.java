@@ -14,7 +14,7 @@ public class Conventions {
     public static final String DEFAULT_PROFILE     = "apiTargetAndroid";
     public static final String BUNDLE_ID           = "bundle";
 
-    public static final String getR8AndroidPlatform(String apiLevel) {
+    public static String getR8AndroidPlatform(String apiLevel) {
         return "android_" + apiLevel + "_stubs";
     }
 

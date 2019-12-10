@@ -616,7 +616,7 @@ class AndroidPlatform extends Platform {
      */
     private void configureCompileHook() {
 
-        String javacPluginArtifact;
+        String javacPluginArtifact
 
         try {
             javacPluginArtifact = JcPlugin.jcPluginArtifact

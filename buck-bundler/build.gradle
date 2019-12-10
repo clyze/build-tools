@@ -52,7 +52,7 @@ clean.dependsOn cleanJcPluginDir
 task fatjar(type: Jar) {
     manifest {
         attributes 'Main-Class': mainClass,
-                   'Implementation-Version': version
+                   'Implementation-Version': project.version
     }
     archiveBaseName.set(project.name + '-all')
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
