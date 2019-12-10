@@ -1,7 +1,5 @@
 plugins {
     id 'java-library'
-    id 'maven-publish'
-    id 'net.researchgate.release' version '2.6.0'
 }
 
 repositories {
@@ -28,33 +26,3 @@ task writeMetadataDependecy() {
     f.withWriterAppend { w -> w.writeLine(jcpluginArtifact) }
 }
 build.dependsOn writeMetadataDependecy
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
-if (project.hasProperty('artifactory_user')) {
-publishing {
-    repositories {
-        maven {
-            credentials {
-                username artifactory_user
-                password artifactory_password
-            }
-
-            url "${artifactory_contextUrl}/plugins-release-local"
-        }
-    }
-}
-}
-
-release {
-    //failOnUnversionedFiles = false
-    //use the defaults, see https://github.com/researchgate/gradle-release
-}
-
-afterReleaseBuild.dependsOn publish

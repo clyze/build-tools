@@ -61,6 +61,22 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
     from groovydoc.destinationDir
 }
 
+// Take care of race condition when generating the shadow JAR as main
+// artifact (https://github.com/uber/NullAway/blob/master/nullaway/build.gradle).
+shadowJar.dependsOn jar
+
+shadowJar {
+    // Set classifier to "null", to make the shadow JAR the main published artifact.
+    classifier = null
+
+    // Delete problematic subproject dependency.
+    dependencies {
+        // exclude(project(':build-integration-lib'))
+        // exclude(dependency { println "${it.moduleGroup}, ${it.moduleName}"; false })
+        // exclude(dependency('org.clyze:build-integration-lib:4.0.19'))
+    }
+}
+
 artifacts {
     archives sourcesJar
     archives groovydocJar
@@ -68,9 +84,19 @@ artifacts {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from components.java
+        mavenJava(MavenPublication) { publication ->
             artifact shadowJar
+        }
+    }
+}
+
+// The pom created when publishing the shadow JAR is wrong: it still contains
+// dependencies to be resolved (including the non-published shared library
+// subproject). Thus, we delete these dependencies here.
+shadowJar.doLast {
+    tasks.findAll { it instanceof org.gradle.api.publish.maven.tasks.AbstractPublishToMaven }.each {
+        it.publication.pom.withXml {
+            asNode().dependencies.dependency.each { it.parent().remove(it) }
         }
     }
 }
