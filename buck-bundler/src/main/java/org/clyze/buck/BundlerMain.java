@@ -236,15 +236,10 @@ class BundlerMain {
             int pos = 1;
             int extraElems = 2;
             final String PP_FLAG = "-processorpath";
-            try {
-                String[] argsWithJcCP = insertSpace(args, pos, extraElems);
-                argsWithJcCP[pos] = PP_FLAG;
-                argsWithJcCP[pos + 1] = jcCP;
-                args = argsWithJcCP;
-            } catch (IOException ex) {
-                logError("Error: could not integrate compiler plugin in javac invocation using '" + PP_FLAG + "'.");
-                ex.printStackTrace();
-            }
+            String[] argsWithJcCP = insertSpace(args, pos, extraElems);
+            argsWithJcCP[pos] = PP_FLAG;
+            argsWithJcCP[pos + 1] = jcCP;
+            args = argsWithJcCP;
         }
 
         String newCmd = Arrays.asList(args).toString();
