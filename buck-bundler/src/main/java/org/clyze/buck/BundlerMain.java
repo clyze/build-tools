@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.clyze.build.tools.JcPlugin;
 import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
+import org.zeroturnaround.zip.*;
 
 import static org.clyze.build.tools.Conventions.msg;
 
@@ -130,15 +132,7 @@ class BundlerMain {
         }
         for (String sourceDir : sourceDirs) {
             println("Reading source directory: " + sourceDir);
-            // TODO: this does not handle repeating entries (which will pause
-            //  execution to prompt the user in the console and thus get stuck).
-            String[] args = new String[] {"jar", "-uf", sourcesJarPath, "-C", sourceDir, "."};
-            try {
-                JHelper.runWithOutput(args, "JAR");
-            } catch (IOException ex) {
-                logError("Error adding sources directory contents (" + sourceDir + ") to JAR file '" + sourcesJarPath + "'");
-                ex.printStackTrace();
-            }
+            ZipUtil.pack(new File(sourceDir), new File(sourcesJarPath));
         }
         Collection<String> ret = new HashSet<>();
         ret.add(Conventions.CLUE_BUNDLE_DIR + File.separator + Conventions.SOURCES_FILE);
@@ -148,7 +142,7 @@ class BundlerMain {
     private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir, String proguard) throws IOException {
         println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
-        String configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE).getCanonicalPath();
+        File configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE);
         Map<String, Object>[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
         for (Map<String, Object> map : json) {
             Object argsEntry = map.get("args");
@@ -251,7 +245,7 @@ class BundlerMain {
         }
     }
 
-    private static void processProguardInvocation(String desc, String configurationsFile) {
+    private static void processProguardInvocation(String desc, File configurationsFile) {
         int atIndex = desc.indexOf('@');
         if (atIndex == -1) {
             logError("ERROR: could not find arguments file of proguard command: " + desc);
@@ -263,6 +257,7 @@ class BundlerMain {
         String argsFile = endIndex == -1 ? desc.substring(atIndex+1) : desc.substring(atIndex+1, endIndex);
         println("Reading proguard args from file: " + argsFile);
 
+        List<FileSource> entries = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(argsFile))) {
             String line;
             boolean nextLineIsRulesFile = false;
@@ -274,11 +269,17 @@ class BundlerMain {
                     continue;
                 } else if (nextLineIsRulesFile) {
                     println("Adding configuration file: " + line);
-                    String[] cmd = new String[] { "zip", "-r", configurationsFile, line };
-                    JHelper.runWithOutput(cmd, "PG_CONF");
+                    File rulesFile = new File(line);
+                    try {
+                        entries.add(new FileSource(rulesFile.getCanonicalPath(), rulesFile));
+                    } catch (Exception ex) {
+                        logError("Could not process file: " + rulesFile);
+                    }
                 }
                 nextLineIsRulesFile = false;
             }
+            FileUtils.touch(configurationsFile);
+            ZipUtil.pack(entries.toArray(new FileSource[0]), configurationsFile);
         } catch (IOException e) {
             logError("Could not parse proguard args file: " + argsFile);
             e.printStackTrace();
@@ -296,7 +297,11 @@ class BundlerMain {
             sourceJars.forEach (sj -> ps.addFileInput("SOURCES_JAR", sj));
         if (bmc != null) {
             ps.addFileInput("JCPLUGIN_METADATA", bmc.metadata);
-            ps.addFileInput("PG_ZIP", bmc.configuration);
+            try {
+                ps.addFileInput("PG_ZIP", bmc.configuration.getCanonicalPath());
+            } catch (IOException ex) {
+                logError("Error: could not bundle configurations file: " + bmc.configuration);
+            }
         }
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
         Helper.doPost(conf.host, conf.port, conf.username, conf.password, conf.project, conf.profile, ps);
@@ -313,8 +318,8 @@ class BundlerMain {
 
 class BundleMetadataConf {
     final String metadata;
-    final String configuration;
-    BundleMetadataConf(String metadata, String configuration) {
+    final File configuration;
+    BundleMetadataConf(String metadata, File configuration) {
         this.metadata = metadata;
         this.configuration = configuration;
     }
