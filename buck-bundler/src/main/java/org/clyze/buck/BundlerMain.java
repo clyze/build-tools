@@ -45,7 +45,7 @@ class BundlerMain {
         try {
             conf = new Config(args);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.err.println("Error: " + ex.getMessage());
             Config.showUsage();
             return;
         }
