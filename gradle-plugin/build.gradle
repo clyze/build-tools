@@ -25,20 +25,20 @@ configurations.all {
 // Prevent inclusion of gradle-api into shadow JAR. (See:
 // https://imperceptiblethoughts.com/shadow/plugins/#special-handling-of-the-java-gradle-plugin-development-plugin)
 configurations.compile.dependencies.remove dependencies.gradleApi()
+// Similar exclusion of Groovy runtime (provided at Gradle runtime).
+configurations.compile.dependencies.remove dependencies.localGroovy()
 
 dependencies {
     // See: https://github.com/johnrengelman/shadow/issues/414
     compileOnly gradleApi()
 
-    implementation localGroovy()
+    compileOnly localGroovy()
     compile 'commons-cli:commons-cli:1.2'
 
     compile("org.clyze:clue-client:${clientVersion}") {
         exclude module: "groovy-all"
     }
     compile project(":build-integration-lib")
-
-    runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
 
 
