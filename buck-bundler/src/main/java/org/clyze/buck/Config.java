@@ -3,6 +3,7 @@ package org.clyze.buck;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import org.apache.commons.cli.*;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.Settings;
@@ -21,7 +22,7 @@ class Config {
     final String jsonDir;
     final String traceFile;
     final String host;
-    final String apk;
+    final List<String> codeFiles;
     final String javacPluginPath;
     final Collection<String> sourceDirs;
     final String proguard;
@@ -40,20 +41,16 @@ class Config {
         this.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_PROFILE);
         this.jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
         this.traceFile = optValOrDefault(cmd, "trace", DEFAULT_TRACE_FILE);
-        this.apk = optValOrDefault(cmd, "a", null);
         this.javacPluginPath = optValOrDefault(cmd, "j", null);
         this.proguard = optValOrDefault(cmd, "proguard-binary", "/proguard.jar");
 
-        if (cmd.hasOption("s")) {
-            this.sourceDirs = new HashSet<>();
-            sourceDirs.addAll(Arrays.asList(cmd.getOptionValues("s")));
-        } else
-            this.sourceDirs = null;
+        this.sourceDirs = optVals(cmd, "s");
+        this.codeFiles = optVals(cmd, "c");
     }
 
     private static Options opts() {
         Options opts = new Options();
-        opts.addOption("a", "apk", true, "The APK file to bundle.");
+        opts.addOption("c", "code", true, "An appliction code file to bundle (e.g., a file in APK format).");
         opts.addOption("j", "jcplugin", true, "The path to the javac plugin to use for Java sources.");
         opts.addOption("s", "source-dir", true, "Add source directory to bundle.");
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
@@ -72,6 +69,10 @@ class Config {
 
     private static String optValOrDefault(CommandLine cmd, String id, String defaultValue) {
         return cmd.hasOption(id) ? cmd.getOptionValue(id) : defaultValue;
+    }
+
+    private static List<String> optVals(CommandLine cmd, String id) {
+        return cmd.hasOption(id) ? Arrays.asList(cmd.getOptionValues(id)) : null;
     }
 
     static void showUsage() {

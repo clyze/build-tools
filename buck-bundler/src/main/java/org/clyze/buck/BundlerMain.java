@@ -55,11 +55,15 @@ class BundlerMain {
             return;
         }
 
-        String apk = conf.apk;
-        if (apk != null)
-            println("APK: " + apk);
-        else {
-            logError("Error: No APK was given.");
+        List<String> codeFiles = conf.codeFiles;
+        if (codeFiles != null && codeFiles.size() > 0) {
+            println("Code files: " + codeFiles);
+            if (codeFiles.size() > 1) {
+                logError("More than one code files given, this is not supported yet.");
+                return;
+            }
+        } else {
+            logError("Error: No code was given.");
             Config.showUsage();
             return;
         }
@@ -79,7 +83,7 @@ class BundlerMain {
         boolean mk = new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
         logDebug("Directory " + Conventions.CLUE_BUNDLE_DIR + " created: " + mk);
 
-        String bundleApk = gatherApk(apk);
+        String bundleApk = gatherApk(codeFiles.get(0));
         Collection<String> sourceJars = gatherSources(sourceDirs);
         BundleMetadataConf bmc = null;
         try {
@@ -99,18 +103,18 @@ class BundlerMain {
     }
 
     /**
-     * Copies the APK to the bundle directory.
+     * Copies the code archive to the bundle directory.
      *
-     * @param apk  the path to the APK archive
-     * @return     the path of the APK inside the bundle directory (null on failure)
+     * @param code the path to the code archive
+     * @return     the path of the code inside the bundle directory (null on failure)
      */
-    private static String gatherApk(String apk) {
-        File target = new File(Conventions.CLUE_BUNDLE_DIR, new File(apk).getName());
+    private static String gatherApk(String code) {
+        File target = new File(Conventions.CLUE_BUNDLE_DIR, new File(code).getName());
         try {
-            Files.copy(Paths.get(apk), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Paths.get(code), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return target.getCanonicalPath();
         } catch (IOException ex) {
-            logError("Failed to copy '" + apk + "' to '" + target + "'");
+            logError("Failed to copy '" + code + "' to '" + target + "'");
             ex.printStackTrace();
         }
         return null;
