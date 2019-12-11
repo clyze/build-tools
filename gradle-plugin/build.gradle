@@ -68,13 +68,6 @@ shadowJar.dependsOn jar
 shadowJar {
     // Set classifier to "null", to make the shadow JAR the main published artifact.
     classifier = null
-
-    // Delete problematic subproject dependency.
-    dependencies {
-        // exclude(project(':build-integration-lib'))
-        // exclude(dependency { println "${it.moduleGroup}, ${it.moduleName}"; false })
-        // exclude(dependency('org.clyze:build-integration-lib:4.0.19'))
-    }
 }
 
 artifacts {
