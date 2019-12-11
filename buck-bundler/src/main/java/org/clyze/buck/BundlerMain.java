@@ -353,9 +353,13 @@ class BundlerMain {
                 packageDir = parentDir;
             else {
                 String packagePath = packageName.replaceAll("\\.", File.separator);
-                if (parentDir.endsWith(packagePath))
-                    packageDir = parentDir.substring(0, parentDir.length() - packagePath.length() - File.separator.length());
-                else {
+                if (parentDir.endsWith(packagePath)) {
+                    packageDir = parentDir.substring(0, parentDir.length() - packagePath.length());
+                    // Separate modification here, so that absolute paths that
+                    // coincide with package paths do not cause a crash.
+                    if (packageDir.endsWith(File.separator))
+                        packageDir = packageDir.substring(0, packageDir.length() - File.separator.length());
+                } else {
                     logError("Warning: Could not determine package directory structure for file " + p + ", using parent directory " + parentDir);
                     packageDir = parentDir;
                 }
