@@ -12,6 +12,8 @@ class Config {
     private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
     private static final String DEFAULT_JSON_DIR = "json";
 
+    public static final String AUTODETECT_SOURCES_OPT = "autodetect-sources";
+
     final boolean help;
     final boolean post;
     final int port;
@@ -26,6 +28,7 @@ class Config {
     final String javacPluginPath;
     final Collection<String> sourceDirs;
     final String proguard;
+    final boolean autodetectSources;
 
     Config(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
@@ -33,6 +36,7 @@ class Config {
 
         this.help = cmd.hasOption("h");
         this.post = cmd.hasOption("p");
+        this.autodetectSources = cmd.hasOption(AUTODETECT_SOURCES_OPT);
         this.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
         this.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
         this.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
@@ -50,9 +54,12 @@ class Config {
 
     private static Options opts() {
         Options opts = new Options();
+        String SOURCE_DIR_S = "s";
+        String SOURCE_DIR_L = "source-dir";
+
         opts.addOption("c", "code", true, "An appliction code file to bundle (e.g., a file in APK format).");
         opts.addOption("j", "jcplugin", true, "The path to the javac plugin to use for Java sources.");
-        opts.addOption("s", "source-dir", true, "Add source directory to bundle.");
+        opts.addOption(SOURCE_DIR_S, SOURCE_DIR_L, true, "Add source directory to bundle.");
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
         opts.addOption(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
@@ -64,6 +71,7 @@ class Config {
         opts.addOption(null, "trace", true, "The Buck trace file (default: "+DEFAULT_TRACE_FILE+").");
         opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
         opts.addOption(null, "proguard-binary", true, "The location of the proguard binary.");
+        opts.addOption(null, AUTODETECT_SOURCES_OPT, false, "Attempt to automatically detect source directories. Companion to options '" + SOURCE_DIR_S + "'/'" + SOURCE_DIR_L + "'");
         return opts;
     }
 

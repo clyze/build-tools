@@ -76,8 +76,21 @@ class BundlerMain {
         }
 
         Collection<String> sourceDirs = conf.sourceDirs;
-        if (sourceDirs == null)
-            logError("Warning: No sources were given.");
+        if (sourceDirs == null) {
+            String nsErr = "Warning: No sources were given explicitly.";
+            if (!conf.autodetectSources)
+                nsErr += " Consider using option: --" + Config.AUTODETECT_SOURCES_OPT;
+            logError(nsErr);
+        }
+        if (conf.autodetectSources) {
+            if (sourceDirs == null)
+                sourceDirs = new HashSet<>();
+            autodetectSourceDirs(sourceDirs);
+        }
+        if (sourceDirs != null) {
+            println("Source directories:");
+            sourceDirs.forEach(BundlerMain::println);
+        }
 
         println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
         boolean mk = new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
@@ -309,6 +322,52 @@ class BundlerMain {
         }
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
         Helper.doPost(conf.host, conf.port, conf.username, conf.password, conf.project, conf.profile, ps);
+    }
+
+    private static void autodetectSourceDirs(Collection<String> sourceDirs) {
+        try {
+            Files.walk(Paths.get("."))
+                .filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".java"))
+                .forEach(p -> registerJavaSourceDir(p, sourceDirs));
+        } catch(IOException ex) {
+            logError("Could not autodect source directories: " + ex.getMessage());
+        }
+    }
+
+    private static void registerJavaSourceDir(Path p, Collection<String> sourceDirs) {
+        File sourceFile = p.toFile();
+        String packageDir;
+        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
+            final String PACKAGE_PREFIX = "package ";
+            String packageName = null;
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith(PACKAGE_PREFIX)) {
+                    int semiIndex = line.indexOf(";");
+                    if (semiIndex != -1)
+                        packageName = line.substring(PACKAGE_PREFIX.length(), semiIndex).trim();
+                }
+            }
+            String parentDir = sourceFile.getParent();
+            if (packageName == null)
+                packageDir = parentDir;
+            else {
+                String packagePath = packageName.replaceAll("\\.", File.separator);
+                if (parentDir.endsWith(packagePath))
+                    packageDir = parentDir.substring(0, parentDir.length() - packagePath.length() - File.separator.length());
+                else {
+                    logError("Warning: Could not determine package directory structure for file " + p + ", using parent directory " + parentDir);
+                    packageDir = parentDir;
+                }
+            }
+        } catch (IOException ex) {
+            logError("Could not register Java source in file: " + p);
+            return;
+        }
+        final String DOT_SLASH = "." + File.separator;
+        if (packageDir.startsWith(DOT_SLASH))
+            packageDir = packageDir.substring(DOT_SLASH.length());
+        sourceDirs.add(packageDir);
     }
 
     static void println(String s) {
