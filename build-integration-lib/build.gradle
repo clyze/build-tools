@@ -12,6 +12,7 @@ sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
 dependencies {
+    compile 'com.google.code.gson:gson:2.8.0'
     runtime(jcpluginArtifact) {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
     }

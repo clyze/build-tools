@@ -2,6 +2,7 @@ package org.clyze.doop.gradle
 
 import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.Settings
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -50,13 +51,19 @@ abstract class Platform {
             ext.host = Conventions.DEFAULT_HOST
         }
         if (ext.port == 0) {
-            String port = GradleProps.get(project, 'clue_port')
+            String port = Settings.getDefaultPort()
             if (port) {
                 ext.port = port as Integer
-                project.logger.warn msg("WARNING: missing property 'port', using Gradle property 'clue_port'= ${ext.port}")
+                project.logger.warn msg("Using configured port ${ext.port}")
             } else {
-                err 'port'
-                return false
+                port = GradleProps.get(project, 'clue_port')
+                if (port) {
+                    ext.port = port as Integer
+                    project.logger.warn msg("WARNING: missing property 'port', using Gradle property 'clue_port'= ${ext.port}")
+                } else {
+                    err 'port'
+                    return false
+                }
             }
         }
         if (ext.username == null) {

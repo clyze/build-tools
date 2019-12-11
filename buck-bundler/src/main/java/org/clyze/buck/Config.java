@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import org.apache.commons.cli.*;
 import org.clyze.build.tools.Conventions;
+import org.clyze.build.tools.Settings;
 
 class Config {
     private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
@@ -32,7 +33,7 @@ class Config {
         this.help = cmd.hasOption("h");
         this.post = cmd.hasOption("p");
         this.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
-        this.port = Integer.parseInt(optValOrDefault(cmd, "port", Conventions.DEFAULT_PORT));
+        this.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
         this.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
         this.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
         this.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
@@ -58,7 +59,7 @@ class Config {
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
         opts.addOption(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
-        opts.addOption(null, "port", true, "The server port (default: "+Conventions.DEFAULT_PORT+").");
+        opts.addOption(null, "port", true, "The server port (default: "+getDefaultPort()+").");
         opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
         opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
         opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
@@ -78,4 +79,10 @@ class Config {
         formatter.printHelp("buck-bundler", opts());
     }
 
+    private static String getDefaultPort() {
+        String port = Settings.getDefaultPort();
+        if (port != null)
+            return port;
+        return Conventions.DEFAULT_PORT;
+    }
 }
