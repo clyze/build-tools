@@ -20,7 +20,7 @@ dependencies {
     compile 'org.apache.ant:ant:1.10.7'
     compile 'org.zeroturnaround:zt-zip:1.13'
 
-    compile 'org.clyze:clue-common:3.19.0'
+    compile 'org.clyze:clue-common:3.19.1'
     compile("org.clyze:clue-client:${clientVersion}")
     compile project(":build-integration-lib")
     jcplugin jcpluginArtifact
