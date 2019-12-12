@@ -18,6 +18,11 @@ dependencies {
     }
 }
 
+compileJava {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
 // Communicate jcplugin dependency to code, to be inserted as a
 // dependency on the target project.
 task writeMetadataDependecy() {

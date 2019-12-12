@@ -59,7 +59,8 @@ public class Settings {
                 File config = new File(sDir, "config.json");
                 if (config.exists()) {
                     try {
-                        return (new Gson()).fromJson(new InputStreamReader(new FileInputStream(config)), Map.class);
+                        @SuppressWarnings("unchecked") Map<String, Object> json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(config)), Map.class);
+                        return json;
                     } catch (FileNotFoundException ex) {
                         // This should not normally happen, as we just checked if the file exists.
                         ex.printStackTrace();

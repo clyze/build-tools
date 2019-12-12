@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,14 +31,11 @@ import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 import org.zeroturnaround.zip.*;
 
-import static org.clyze.build.tools.Conventions.msg;
+import static org.clyze.buck.BundlerUtil.*;
 
 class BundlerMain {
 
     private static List<String> cachedJcpluginClasspath = null;
-
-    // Set to true for extra debug messages.
-    private static final boolean debug = false;
 
     public static void main(String[] args) {
 
@@ -75,29 +73,19 @@ class BundlerMain {
             println("Using javac plugin artifact: " + javacPlugin);
         }
 
-        Collection<String> sourceDirs = conf.sourceDirs;
-        if (sourceDirs == null) {
-            String nsErr = "Warning: No sources were given explicitly.";
-            if (!conf.autodetectSources)
-                nsErr += " Consider using option: --" + Config.AUTODETECT_SOURCES_OPT;
-            logError(nsErr);
-        }
-        if (conf.autodetectSources) {
-            if (sourceDirs == null)
-                sourceDirs = new HashSet<>();
-            autodetectSourceDirs(sourceDirs);
-        }
-        if (sourceDirs != null) {
-            println("Source directories:");
-            sourceDirs.forEach(BundlerMain::println);
-        }
+        Collection<SourceFile> sourceFiles = Sources.getSources(conf.sourceDirs, conf.autodetectSources);
 
         println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
         boolean mk = new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
         logDebug("Directory " + Conventions.CLUE_BUNDLE_DIR + " created: " + mk);
 
         String bundleApk = gatherApk(codeFiles.get(0));
-        Collection<String> sourceJars = gatherSources(sourceDirs);
+
+        File sourcesJar = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.SOURCES_FILE);
+        Collection<File> sourceJars = new HashSet<>();
+        Sources.packSources(sourceFiles, sourcesJar);
+        sourceJars.add(sourcesJar);
+
         BundleMetadataConf bmc = null;
         try {
             bmc = gatherMetadataAndConfigurations(conf.traceFile, conf.jsonDir, conf.proguard);
@@ -108,11 +96,6 @@ class BundlerMain {
 
         if (conf.post)
             postBundle(bundleApk, sourceJars, bmc, conf);
-    }
-
-    private static void logDebug(String s) {
-        if (debug)
-            System.err.println(msg(s));
     }
 
     /**
@@ -131,29 +114,6 @@ class BundlerMain {
             ex.printStackTrace();
         }
         return null;
-    }
-
-    private static Collection<String> gatherSources(Collection<String> sourceDirs) {
-        println("Gathering sources...");
-        File sourcesJar = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.SOURCES_FILE);
-        boolean del = sourcesJar.delete();
-        logDebug("Delete " + sourcesJar + ": " + del);
-        String sourcesJarPath;
-        try {
-            FileUtils.touch(sourcesJar);
-            sourcesJarPath = sourcesJar.getCanonicalPath();
-        } catch (IOException ex) {
-            logError("Error creating sources JAR file: " + sourcesJar);
-            ex.printStackTrace();
-            return null;
-        }
-        for (String sourceDir : sourceDirs) {
-            println("Reading source directory: " + sourceDir);
-            ZipUtil.pack(new File(sourceDir), new File(sourcesJarPath));
-        }
-        Collection<String> ret = new HashSet<>();
-        ret.add(Conventions.CLUE_BUNDLE_DIR + File.separator + Conventions.SOURCES_FILE);
-        return ret;
     }
 
     private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir, String proguard) throws IOException {
@@ -288,7 +248,7 @@ class BundlerMain {
                     println("Adding configuration file: " + line);
                     File rulesFile = new File(line);
                     try {
-                        entries.add(new FileSource(rulesFile.getCanonicalPath(), rulesFile));
+                        entries.add(new SourceFile(rulesFile.getCanonicalPath(), rulesFile));
                     } catch (Exception ex) {
                         logError("Could not process file: " + rulesFile);
                     }
@@ -303,7 +263,7 @@ class BundlerMain {
         }
     }
 
-    private static void postBundle(String bundleApk, Collection<String> sourceJars,
+    private static void postBundle(String bundleApk, Collection<File> sourceJars,
                                    BundleMetadataConf bmc, Config conf) {
         println("Posting bundle to the server...");
 
@@ -311,7 +271,7 @@ class BundlerMain {
         ps.setId(Conventions.BUNDLE_ID);
         ps.addFileInput("INPUTS", bundleApk);
         if (sourceJars != null)
-            sourceJars.forEach (sj -> ps.addFileInput("SOURCES_JAR", sj));
+            sourceJars.forEach (sj -> addSourceJar(ps, sj));
         if (bmc != null) {
             ps.addFileInput("JCPLUGIN_METADATA", bmc.metadata);
             try {
@@ -324,63 +284,14 @@ class BundlerMain {
         Helper.doPost(conf.host, conf.port, conf.username, conf.password, conf.project, conf.profile, ps);
     }
 
-    private static void autodetectSourceDirs(Collection<String> sourceDirs) {
+    private static void addSourceJar(PostState ps, File sourceJar) {
         try {
-            Files.walk(Paths.get("."))
-                .filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".java"))
-                .forEach(p -> registerJavaSourceDir(p, sourceDirs));
-        } catch(IOException ex) {
-            logError("Could not autodect source directories: " + ex.getMessage());
-        }
-    }
-
-    private static void registerJavaSourceDir(Path p, Collection<String> sourceDirs) {
-        File sourceFile = p.toFile();
-        String packageDir;
-        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
-            final String PACKAGE_PREFIX = "package ";
-            String packageName = null;
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith(PACKAGE_PREFIX)) {
-                    int semiIndex = line.indexOf(";");
-                    if (semiIndex != -1)
-                        packageName = line.substring(PACKAGE_PREFIX.length(), semiIndex).trim();
-                }
-            }
-            String parentDir = sourceFile.getParent();
-            if (packageName == null)
-                packageDir = parentDir;
-            else {
-                String packagePath = packageName.replaceAll("\\.", File.separator);
-                if (parentDir.endsWith(packagePath)) {
-                    packageDir = parentDir.substring(0, parentDir.length() - packagePath.length());
-                    // Separate modification here, so that absolute paths that
-                    // coincide with package paths do not cause a crash.
-                    if (packageDir.endsWith(File.separator))
-                        packageDir = packageDir.substring(0, packageDir.length() - File.separator.length());
-                } else {
-                    logError("Warning: Could not determine package directory structure for file " + p + ", using parent directory " + parentDir);
-                    packageDir = parentDir;
-                }
-            }
+            ps.addFileInput("SOURCES_JAR", sourceJar.getCanonicalPath());
         } catch (IOException ex) {
-            logError("Could not register Java source in file: " + p);
-            return;
+            logError("Could not add source archive: " + sourceJar);
         }
-        final String DOT_SLASH = "." + File.separator;
-        if (packageDir.startsWith(DOT_SLASH))
-            packageDir = packageDir.substring(DOT_SLASH.length());
-        sourceDirs.add(packageDir);
     }
 
-    static void println(String s) {
-        System.out.println(msg(s));
-    }
-
-    static void logError(String s) {
-        System.err.println(msg(s));
-    }
 }
 
 class BundleMetadataConf {
