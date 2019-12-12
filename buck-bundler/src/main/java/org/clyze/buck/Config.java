@@ -2,7 +2,6 @@ package org.clyze.buck;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import org.apache.commons.cli.*;
 import org.clyze.build.tools.Conventions;

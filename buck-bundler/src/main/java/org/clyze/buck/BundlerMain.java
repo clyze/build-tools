@@ -160,11 +160,11 @@ class BundlerMain {
         println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
         File configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE);
-        Map<String, Object>[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
+        @SuppressWarnings("unchecked") Map<String, Object>[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
         for (Map<String, Object> map : json) {
             Object argsEntry = map.get("args");
             if (argsEntry instanceof Map) {
-                Object descEntry = ((Map<String, Object>)argsEntry).get("description");
+                @SuppressWarnings("unchecked") Object descEntry = ((Map<String, Object>)argsEntry).get("description");
                 if (descEntry != null) {
                     String desc = descEntry.toString();
                     if (desc.contains("javac "))
