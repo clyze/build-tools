@@ -32,7 +32,7 @@ import org.zeroturnaround.zip.*;
 
 import static org.clyze.buck.BundlerUtil.*;
 
-class BundlerMain {
+public class BundlerMain {
 
     private static List<String> cachedJcpluginClasspath = null;
 

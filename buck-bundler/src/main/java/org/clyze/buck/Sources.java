@@ -13,6 +13,13 @@ import static org.clyze.buck.BundlerUtil.*;
 
 class Sources {
 
+    /**
+     * Main entry point, takes care of finding source files in the project.
+     *
+     * @param sourceDirs          the source directories to scan (can be null)
+     * @param autodetectSources   if 'true', the current directory will be searched for sources
+     * @return                    the source files found
+     */
     public static Collection<SourceFile> getSources(Collection<String> sourceDirs,
                                                     boolean autodetectSources) {
         Collection<SourceFile> sourceFiles = new LinkedList<>();
@@ -50,6 +57,14 @@ class Sources {
         }
     }
 
+    /**
+     * Registers all Java sources found under a directory. A Maven-style layout
+     * is assumed, i.e., class a.b.C should be in path "dirPath/a/b/C.java".
+     *
+     * @param dirPath      the (top) source directory
+     * @param p            the path of the source file to register
+     * @param sourceFiles  the collection of files to use for registering the source file
+     */
     private static void registerJavaSourceInDir(String dirPath, Path p, Collection<SourceFile> sourceFiles) {
         File f = p.toFile();
         try {
@@ -63,6 +78,12 @@ class Sources {
         }
     }
 
+    /**
+     * Recognizes sources files. Currently, only Java files are supported.
+     *
+     * @param p    the path of the source file
+     * @return     'true' if the file should be processed as a source file
+     */
     private static boolean isSourceFile(Path p) {
         return Files.isRegularFile(p) && p.toString().endsWith(".java");
     }
@@ -89,6 +110,14 @@ class Sources {
         }
     }
 
+    /**
+     * Filters duplicate source file entries, i.e., those entries that would go
+     * to the same path in the "sources" archive. Duplicate entries are merged
+     * by keeping the last entry.
+     *
+     * @param sourceFiles  the input source file entries
+     * @return             the filtered source file entries
+     */
     private static Collection<SourceFile> filterDuplicateSources(Collection<SourceFile> sourceFiles) {
         Map<String, File> map = new HashMap<>();
         // Merging happens here: only the last file is remembered.
@@ -110,13 +139,22 @@ class Sources {
         try {
             Files.walk(Paths.get("."))
                 .filter(Sources::isSourceFile)
-                .forEach(p -> registerJavaSourceDir(p, sourceFiles));
+                .forEach(p -> autoregisterSource(p, sourceFiles));
         } catch(IOException ex) {
             logError("Could not autodect source directories in current path: " + ex.getMessage());
         }
     }
 
-    private static void registerJavaSourceDir(Path p, Collection<SourceFile> sourceFiles) {
+    /**
+     * Registers a source file in the sources collection that will drive the
+     * generation of the "sources" archive. This is a heuristic that tries to
+     * find the "package" statement in the sources and reconstruct an
+     * appropriate archive entry for the source file.
+     *
+     * @param p             the source file (supported langauges: Java)
+     * @param sourceFiles  a collection of files to use for registering a source file
+     */
+    private static void autoregisterSource(Path p, Collection<SourceFile> sourceFiles) {
         File sourceFile = p.toFile();
         try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
             final String PACKAGE_PREFIX = "package ";
