@@ -55,7 +55,7 @@ class Sources {
         try {
             String pStr = f.getCanonicalPath();
             if (pStr.startsWith(dirPath)) {
-                String entry = pStr.substring(dirPath.length() + File.separator.length(), pStr.length());
+                String entry = pStr.substring(dirPath.length() + File.separator.length());
                 sourceFiles.add(new SourceFile(entry, f));
             }
         } catch (IOException ex) {
@@ -154,7 +154,6 @@ class Sources {
             sourceFiles.add(new SourceFile(entry, sourceFile));
         } catch (IOException ex) {
             logError("Could not register Java source in file: " + p);
-            return;
         }
     }
 }

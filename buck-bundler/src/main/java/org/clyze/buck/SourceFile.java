@@ -4,7 +4,7 @@ import java.io.File;
 import org.zeroturnaround.zip.FileSource;
 
 class SourceFile extends FileSource {
-    private File file;
+    private final File file;
 
     SourceFile(String path, File file) {
         super(path, file);
