@@ -118,7 +118,6 @@ class Sources {
 
     private static void registerJavaSourceDir(Path p, Collection<SourceFile> sourceFiles) {
         File sourceFile = p.toFile();
-        String packageDir;
         try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
             final String PACKAGE_PREFIX = "package ";
             String packageName = null;
@@ -128,22 +127,6 @@ class Sources {
                     int semiIndex = line.indexOf(";");
                     if (semiIndex != -1)
                         packageName = line.substring(PACKAGE_PREFIX.length(), semiIndex).trim();
-                }
-            }
-            String parentDir = sourceFile.getParent();
-            if (packageName == null)
-                packageDir = parentDir;
-            else {
-                String packagePath = packageName.replaceAll("\\.", File.separator);
-                if (parentDir.endsWith(packagePath)) {
-                    packageDir = parentDir.substring(0, parentDir.length() - packagePath.length());
-                    // Separate modification here, so that absolute paths that
-                    // coincide with package paths do not cause a crash.
-                    if (packageDir.endsWith(File.separator))
-                        packageDir = packageDir.substring(0, packageDir.length() - File.separator.length());
-                } else {
-                    logError("Warning: Could not determine package directory structure for file " + p + ", using parent directory " + parentDir);
-                    packageDir = parentDir;
                 }
             }
             String entry = (packageName == null ? "" : (packageName.replaceAll("\\.", "/") + "/")) + sourceFile.getName();
