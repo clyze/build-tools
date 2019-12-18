@@ -60,7 +60,7 @@ class PostBundleTask extends PostTask {
         Extension ext = Extension.of(project)
         Platform p = ext.platform
         PostState ps = new PostState(id:Conventions.BUNDLE_ID)
-        addBasicPostOptions(project, ps)
+        addBasicPostOptions(project, ps, null)
 
         // The aplication regex.
         addStringInputFromExtensionOption(ps, ext, "APP_REGEX", "app_regex")

@@ -29,7 +29,17 @@ abstract class PostTask extends DefaultTask {
         }
     }
 
-    protected static void addBasicPostOptions(Project project, PostState ps) {
+    /**
+     * Adds the basic options that are common in all bundles posted.
+     *
+     * @param project          the project containing the task
+     * @param ps               the 'post state' object to fill in
+     * @param shrinkResources  a flag to pass to the repackager to allow
+     *                         shrinking of resources (if null, autodetect
+     *                         from current project build file)
+     */
+    protected static void addBasicPostOptions(Project project, PostState ps,
+                                              String shrinkResources) {
         addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
         addFileInput(project, ps, 'PG_ZIP', Conventions.CONFIGURATIONS_FILE)
 
@@ -38,7 +48,10 @@ abstract class PostTask extends DefaultTask {
             ps.addStringInput('ANDROID_COMPILE_SDK_VERSION', AndroidAPI.getCompileSdkVersion(project))
             String buildType = ext.buildType
             ps.addStringInput('BUILD_TYPE', buildType)
-            ps.addStringInput('SHRINK_RESOURCES', AndroidAPI.getShrinkResources(project, buildType))
+            if (shrinkResources == null) {
+                shrinkResources = AndroidAPI.getShrinkResources(project, buildType)
+            }
+            ps.addStringInput('SHRINK_RESOURCES', shrinkResources)
         }
     }
 }

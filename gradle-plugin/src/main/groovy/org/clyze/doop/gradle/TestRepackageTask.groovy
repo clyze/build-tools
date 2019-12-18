@@ -44,7 +44,7 @@ class TestRepackageTask extends DefaultTask {
             Archiver.zipTree(existingTestCodeDirs, preTestCodeJar)
 
             // Call standard 'repackage' task functionality on test code.
-            File out = RepackageTask.repackageCodeArchive(project, ext, preTestCodeJar.getCanonicalPath(), "repackaged-test-code", ".jar")
+            File out = RepackageTask.repackageCodeArchive(project, ext, preTestCodeJar.getCanonicalPath(), 'repackaged-test-code', '.jar', 'false')
             println msg("Repackaged test code: ${out.canonicalPath}")
         }
     }

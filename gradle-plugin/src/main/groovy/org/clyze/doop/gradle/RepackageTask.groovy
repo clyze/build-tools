@@ -15,12 +15,13 @@ class RepackageTask extends PostTask {
     @TaskAction
     void repackage() {
         Extension ext = Extension.of(project)
-        File out = repackageCodeArchive(project, ext, ext.platform.getOutputCodeArchive(), "repackaged-apk", ".apk")
+        File out = repackageCodeArchive(project, ext, ext.platform.getOutputCodeArchive(), "repackaged-apk", ".apk", null)
         println msg("Repackaged output: ${out.canonicalPath}")
     }
 
     static File repackageCodeArchive(Project project, Extension ext, String codeArchive,
-                                     String repackBaseName, repackExtension) {
+                                     String repackBaseName, String repackExtension,
+                                     String shrinkResources) {
         if (ext.ruleFile == null) {
             project.logger.error msg("ERROR: no 'ruleFile' set in build.gradle, cannot repackage.")
             return
@@ -33,7 +34,7 @@ class RepackageTask extends PostTask {
         }
 
         PostState ps = new PostState()
-        addBasicPostOptions(project, ps)
+        addBasicPostOptions(project, ps, shrinkResources)
         ps.addFileInput("INPUTS", codeArchive)
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
 
