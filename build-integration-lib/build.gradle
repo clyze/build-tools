@@ -13,6 +13,7 @@ targetCompatibility = "1.8"
 
 dependencies {
     compile 'com.google.code.gson:gson:2.8.0'
+    compile 'org.zeroturnaround:zt-zip:1.13'
     runtime(jcpluginArtifact) {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
     }

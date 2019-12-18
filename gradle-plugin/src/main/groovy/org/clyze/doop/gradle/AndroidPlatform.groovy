@@ -114,6 +114,8 @@ class AndroidPlatform extends Platform {
     // processor in an existing task, configure it.
     //
     // 7. Read all configuration files from transform tasks.
+    //
+    // 8. Configure the test-repackaged-code task.
     @Override
     void markMetadataToFix() {
         project.afterEvaluate {
@@ -189,6 +191,9 @@ class AndroidPlatform extends Platform {
 
             Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
+
+            Task testRepackageTask = project.tasks.findByName(RepackagePlugin.TASK_REPACKAGE_TEST) as Task
+            testRepackageTask.dependsOn getUnitTestCompileTask()
         }
     }
 
@@ -251,18 +256,36 @@ class AndroidPlatform extends Platform {
         return repackageExt.buildType
     }
 
-    private String getAssembleTaskName() {
+    String getFlavorAndBuildType() {
         String flavor = repackageExt.flavor
-        String flavorPart = flavor == null ? "" : flavor.capitalize()
+        String flavorPart = flavor == null ? "" : flavor
         String buildType = getBuildType()
         if (!buildType) {
             throw new RuntimeException(msg("ERROR: could not determine build type"))
         }
-        String taskName = TASK_ASSEMBLE_PRE + flavorPart + buildType.capitalize()
+        return flavorPart + buildType.capitalize()
+    }
+
+    private String getAssembleTaskName() {
+        String taskName = TASK_ASSEMBLE_PRE + flavorAndBuildType.capitalize()
         if (buildType != 'debug' && buildType != 'release') {
             project.logger.info msg("Unknown build type ${buildType}, assuming \"assemble\" task: ${taskName}")
         }
         return taskName
+    }
+
+    private String getUnitTestCompileTask() {
+        return "compile" + flavorAndBuildType.capitalize() + "UnitTestSources"
+    }
+
+    /**
+     * This is the name of the inner task that compiles test sources via javac,
+     * putting them in a directory with the same task name.
+     *
+     * @return the inner task name
+     */
+    String getUnitTestCompileInnerTask() {
+        return "compile" + flavorAndBuildType.capitalize() + "JavaWithJavac"
     }
 
     private void createSourcesJarDep(Jar sourcesJarTask) {
@@ -303,7 +326,7 @@ class AndroidPlatform extends Platform {
         return genSourceDirs
     }
 
-    private String getAppBuildDir() {
+    String getAppBuildDir() {
         String subprojectName = getSubprojectName()
         return "${project.rootDir}/${subprojectName}/build"
     }

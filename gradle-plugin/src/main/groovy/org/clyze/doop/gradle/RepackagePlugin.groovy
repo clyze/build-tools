@@ -24,6 +24,7 @@ class RepackagePlugin implements Plugin<Project> {
     // The task that gathers all optimization directive configurations.
     static final String TASK_CONFIGURATIONS = 'configurations'
     static final String TASK_REPACKAGE      = 'repackage'
+    static final String TASK_REPACKAGE_TEST = 'repackageTest'
 
     private Platform platform
 
@@ -74,6 +75,8 @@ class RepackagePlugin implements Plugin<Project> {
         platform.markMetadataToFix()
         project.logger.debug msg("Configuring repackaging task")
         configureRepackageTask(project)
+        project.logger.debug msg("Configuring repackage-test task")
+        configureRepackageTestTask(project)
     }
 
     private void configureDefaults(Project project) {
@@ -176,6 +179,12 @@ class RepackagePlugin implements Plugin<Project> {
     private static void configureRepackageTask(Project project) {
         RepackageTask repackage = project.tasks.create(TASK_REPACKAGE, RepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules'
+        repackage.group = Conventions.TOOL_NAME
+    }
+
+    private static void configureRepackageTestTask(Project project) {
+        TestRepackageTask repackage = project.tasks.create(TASK_REPACKAGE_TEST, TestRepackageTask)
+        repackage.description = 'Repackage the build output using a given set of rules and test it'
         repackage.group = Conventions.TOOL_NAME
     }
 }

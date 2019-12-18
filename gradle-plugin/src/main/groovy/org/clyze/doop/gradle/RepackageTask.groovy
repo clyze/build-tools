@@ -5,6 +5,7 @@ import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.clyze.client.web.api.AttachmentHandler
 import org.clyze.client.web.api.Remote
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 import static org.clyze.build.tools.Conventions.msg
@@ -14,6 +15,12 @@ class RepackageTask extends PostTask {
     @TaskAction
     void repackage() {
         Extension ext = Extension.of(project)
+        File out = repackageCodeArchive(project, ext, ext.platform.getOutputCodeArchive(), "repackaged-apk", ".apk")
+        println msg("Repackaged output: ${out.canonicalPath}")
+    }
+
+    static File repackageCodeArchive(Project project, Extension ext, String codeArchive,
+                                     String repackBaseName, repackExtension) {
         if (ext.ruleFile == null) {
             project.logger.error msg("ERROR: no 'ruleFile' set in build.gradle, cannot repackage.")
             return
@@ -27,10 +34,10 @@ class RepackageTask extends PostTask {
 
         PostState ps = new PostState()
         addBasicPostOptions(project, ps)
-        ps.addFileInput("INPUTS", ext.platform.getOutputCodeArchive())
+        ps.addFileInput("INPUTS", codeArchive)
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
 
-        File out = File.createTempFile("repackaged-apk", ".apk")
+        File out = File.createTempFile(repackBaseName, repackExtension)
 
         Remote api = Helper.connect(ext.host, ext.port, ext.username, ext.password)
 
@@ -42,7 +49,5 @@ class RepackageTask extends PostTask {
             }
         }
         api.repackageBundleForCI(ext.username, ext.clueProject, ps, saveAttachment)
-
-        println msg("Repackaged output: ${out.canonicalPath}")
     }
 }
