@@ -1,5 +1,6 @@
 package org.clyze.doop.gradle
 
+import groovy.transform.TypeChecked
 import org.apache.http.HttpEntity
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
@@ -10,6 +11,7 @@ import org.gradle.api.tasks.TaskAction
 
 import static org.clyze.build.tools.Conventions.msg
 
+@TypeChecked
 class RepackageTask extends PostTask {
 
     @TaskAction
@@ -50,5 +52,6 @@ class RepackageTask extends PostTask {
             }
         }
         api.repackageBundleForCI(ext.username, ext.clueProject, ps, saveAttachment)
+        return out
     }
 }
