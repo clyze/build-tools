@@ -22,27 +22,38 @@ class TestRepackageTask extends DefaultTask {
         }
         AndroidPlatform platform = (AndroidPlatform)ext.platform
 
-        String testClassTopDir = platform.getAppBuildDir() + File.separator + 'intermediates' + File.separator + 'javac' + File.separator + platform.getFlavorAndBuildType()
-        String testClassTopDirUnitTest = testClassTopDir + "UnitTest";
-        List<File> testCodeDirs = [
-            new File(testClassTopDir, 'classes'),
-            new File(testClassTopDir + File.separator + platform.getUnitTestCompileInnerTask(), 'classes'),
-            new File(testClassTopDirUnitTest, 'classes')
+        String classTopDir = platform.getAppBuildDir() + File.separator + 'intermediates' + File.separator + 'javac' + File.separator + platform.getFlavorAndBuildType()
+        String classTopDirUnitTest = classTopDir + "UnitTest";
+        // Separate code and test-code directories: only code found in
+        // the former will be optimized.
+        List<File> codeDirs = [
+            new File(classTopDir, 'classes'),
+            new File(classTopDir + File.separator + platform.getUnitTestCompileInnerTask(), 'classes'),
         ]
+        List<File> testCodeDirs = [ new File(classTopDirUnitTest, 'classes') ]
 
-        List<File> existingTestCodeDirs = testCodeDirs.findAll {it.exists()}
+        List<File> existingTestCodeDirs = (codeDirs + testCodeDirs).findAll {it.exists()}
         if (existingTestCodeDirs.size() == 0) {
-            project.logger.error msg("ERROR: could not find test code, directories searched: " + testCodeDirs)
+            project.logger.error msg("ERROR: could not find test code, directories searched: " + codeDirs)
         } else {
             project.logger.info msg("Test code directories: " + existingTestCodeDirs)
-            println msg("Test code directories searched: " + testCodeDirs)
+            println msg("Test code directories searched: " + codeDirs)
             File testCodeBundleDir = new File(ext.scavengeOutputDir, Conventions.TEST_CODE_DIR)
             if (!testCodeBundleDir.exists()) {
                 testCodeBundleDir.mkdirs()
             }
-            File preTestCodeJar = new File(testCodeBundleDir, Conventions.TEST_CODE_PRE_JAR)
-            Archiver.zipTree(existingTestCodeDirs, preTestCodeJar)
+            Map<File, File> testCodeArchives = Archiver.zipTrees(existingTestCodeDirs, testCodeBundleDir)
+            Map<File, File> codeJars = testCodeArchives.findAll {dir, jar -> codeDirs.contains(dir)}
+            if (codeJars.size() == 0) {
+                project.logger.error msg("ERROR: no code JARs found.")
+                return
+            }
 
+            File preTestCodeJar = null
+            codeJars.each {dir, jar -> preTestCodeJar = jar}
+            if (codeJars.size() > 1) {
+                project.logger.warn msg("WARNING: too many code JARs found, using: " + preTestCodeJar)
+            }
             // Call standard 'repackage' task functionality on test code.
             File out = RepackageTask.repackageCodeArchive(project, ext, preTestCodeJar.getCanonicalPath(), 'repackaged-test-code', '.jar', 'false')
             println msg("Repackaged test code: ${out.canonicalPath}")

@@ -7,8 +7,8 @@ public class Conventions {
     public static final String CONFIGURATIONS_FILE = "configurations.zip";
     public static final String SOURCES_FILE        = "sources.jar";
     public static final String TEST_CODE_DIR       = "test-code";
-    public static final String TEST_CODE_PRE_JAR   = "test-code-pre.jar";
-    public static final String TEST_CODE_POST_JAR  = "test-code-post.jar";
+    public static final String TEST_CODE_PRE_JAR   = "-pre.jar";
+    public static final String TEST_CODE_POST_JAR  = "-post.jar";
     public static final String DEFAULT_HOST        = "localhost";
     public static final String DEFAULT_PORT        = "8001";
     public static final String DEFAULT_USERNAME    = "user";
