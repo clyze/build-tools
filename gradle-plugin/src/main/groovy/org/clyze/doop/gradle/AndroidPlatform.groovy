@@ -192,8 +192,11 @@ class AndroidPlatform extends Platform {
             Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
 
+            // Insert test-code repackager between the javac
+            // invocation and the test runner.
             Task testRepackageTask = project.tasks.findByName(RepackagePlugin.TASK_REPACKAGE_TEST) as Task
-            testRepackageTask.dependsOn getUnitTestCompileTask()
+            testRepackageTask.dependsOn getUnitTestCompileInnerTask()
+            (project.tasks.findByName(getUnitTestCompileTask()) as Task).dependsOn testRepackageTask
         }
     }
 
