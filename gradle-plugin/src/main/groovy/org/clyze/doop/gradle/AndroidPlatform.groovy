@@ -481,7 +481,11 @@ class AndroidPlatform extends Platform {
         confTask.description = 'Generates the configurations archive'
         confTask.group = Conventions.TOOL_NAME
         confTask.doFirst {
-            readConfigurationFiles()
+            if (repackageExt.ignoreConfigurations) {
+                project.logger.warn "WARNING: ignoreConfigurations = true, configuration files will not be read."
+            } else {
+                readConfigurationFiles()
+            }
         }
     }
 

@@ -31,6 +31,7 @@ class Extension {
     boolean cachePost = false
     String convertUTF8Dir
     boolean dry
+    boolean ignoreConfigurations = false
     String profile
     String ruleFile
     // Android-only

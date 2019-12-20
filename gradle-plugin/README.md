@@ -210,6 +210,9 @@ clyze {
 * boolean _dry_: if `true`, then the artifact is not uploaded to the
   server.
 
+* boolean _ignoreConfigurations_: if 'true', no configurations will be
+  uploaded.
+
 ### Android-specific options ###
 
 * String _subprojectName_: sub-project name (used when an `app`
