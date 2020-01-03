@@ -482,7 +482,7 @@ class AndroidPlatform extends Platform {
         confTask.group = Conventions.TOOL_NAME
         confTask.doFirst {
             if (repackageExt.ignoreConfigurations) {
-                project.logger.warn "WARNING: ignoreConfigurations = true, configuration files will not be read."
+                project.logger.warn msg("WARNING: ignoreConfigurations = true, configuration files will not be read.")
             } else {
                 readConfigurationFiles()
             }
