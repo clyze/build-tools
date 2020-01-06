@@ -87,14 +87,19 @@ apply plugin: 'clyze'
 ...
 clyze {
     port = ...
-    subprojectName = "Application"
-    clueProject = ...
-    buildType = "debug"
-    options.platform = 'android_25_fulljars'
+    subprojectName = "Application"  // omit if no app submodule
+    buildType = "debug"   // or "release"
 }
 ```
 
-Step 3. In directory "Project/Application", run the bundling task:
+Step 3. In directory "Project", run the bundling task:
+
+```
+clue-bundle.sh postBundle Application
+```
+
+If the project contains no app submodule, then run the bundling task
+as follows:
 
 ```
 clue-bundle.sh postBundle
