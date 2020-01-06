@@ -86,9 +86,10 @@ Step 2. Put these lines in Application/build.gradle:
 apply plugin: 'clyze'
 ...
 clyze {
-    port = ...
+    port = ...            // omit to autodetect port from desktop installation
     subprojectName = "Application"  // omit if no app submodule
-    buildType = "debug"   // or "release"
+    buildType = "debug"   // or "release" (omit for "debug" default)
+    flavor = "prod"       // omit if product flavors are not used
 }
 ```
 
