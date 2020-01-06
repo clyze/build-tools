@@ -192,11 +192,28 @@ class AndroidPlatform extends Platform {
             Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
 
-            // Insert test-code repackager between the javac
-            // invocation and the test runner.
-            Task testRepackageTask = project.tasks.findByName(RepackagePlugin.TASK_REPACKAGE_TEST) as Task
+            configureTestRepackaging()
+        }
+    }
+
+    /**
+     * Configure the tasks that invoke tests to check if repackaging is correct.
+     */
+    private void configureTestRepackaging() {
+        // Insert test-code repackager between the javac
+        // invocation and the test runner.
+        Task testRepackageTask = project.tasks.findByName(RepackagePlugin.TASK_REPACKAGE_TEST) as Task
+        String utciTaskName = getUnitTestCompileInnerTask()
+        Task utciTask = project.tasks.findByName(utciTaskName)
+        String utcTaskName = getUnitTestCompileTask()
+        Task utcTask = project.tasks.findByName(utcTaskName) as Task
+        if (utciTask && utcTask) {
             testRepackageTask.dependsOn getUnitTestCompileInnerTask()
-            (project.tasks.findByName(getUnitTestCompileTask()) as Task).dependsOn testRepackageTask
+            utcTask.dependsOn testRepackageTask
+        } else if (!utciTask) {
+            project.logger.warn msg("WARNING: no '${utciTaskName}' task, skipping configuration of task '${RepackagePlugin.TASK_REPACKAGE_TEST}'.")
+        } else if (!utcTask) {
+            project.logger.warn msg("WARNING: no '${utcTaskName}' task, skipping configuration of task '${RepackagePlugin.TASK_REPACKAGE_TEST}'.")
         }
     }
 
