@@ -279,7 +279,11 @@ public class BundlerMain {
                 logError("Error: could not bundle configurations file: " + bmc.configuration);
             }
         }
+
+        // Set default platform, in case the server cannot determine
+        // the platform from the submitted code.
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
+
         Helper.doPost(conf.host, conf.port, conf.username, conf.password, conf.project, conf.profile, ps);
     }
 
