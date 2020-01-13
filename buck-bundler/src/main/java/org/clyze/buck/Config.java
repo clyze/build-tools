@@ -12,6 +12,7 @@ class Config {
     private static final String DEFAULT_JSON_DIR = "json";
 
     public static final String AUTODETECT_SOURCES_OPT = "autodetect-sources";
+    private static final String PROGUARD_BINARY_OPT = "proguard-binary";
 
     final boolean help;
     final boolean post;
@@ -23,9 +24,10 @@ class Config {
     final String jsonDir;
     final String traceFile;
     final String host;
-    final List<String> codeFiles;
     final String javacPluginPath;
+    final List<String> codeFiles;
     final Collection<String> sourceDirs;
+    final List<String> configurations;
     final String proguard;
     final boolean autodetectSources;
 
@@ -45,10 +47,11 @@ class Config {
         this.jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
         this.traceFile = optValOrDefault(cmd, "trace", DEFAULT_TRACE_FILE);
         this.javacPluginPath = optValOrDefault(cmd, "j", null);
-        this.proguard = optValOrDefault(cmd, "proguard-binary", "/proguard.jar");
+        this.proguard = optValOrDefault(cmd, PROGUARD_BINARY_OPT, "/proguard.jar");
 
         this.sourceDirs = optVals(cmd, "s");
         this.codeFiles = optVals(cmd, "c");
+        this.configurations = optVals(cmd, "configuration");
     }
 
     private static Options opts() {
@@ -69,7 +72,8 @@ class Config {
         opts.addOption(null, "profile", true, "The profile (default: "+Conventions.DEFAULT_PROFILE+").");
         opts.addOption(null, "trace", true, "The Buck trace file (default: "+DEFAULT_TRACE_FILE+").");
         opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
-        opts.addOption(null, "proguard-binary", true, "The location of the proguard binary.");
+        opts.addOption(null, PROGUARD_BINARY_OPT, true, "The location of the proguard binary.");
+        opts.addOption(null, "configuration", true, "The configuration file(s) to use. If not specified, the trace file will be read to autodetect configuration (via option '"+PROGUARD_BINARY_OPT+"').");
         opts.addOption(null, AUTODETECT_SOURCES_OPT, false, "Attempt to automatically detect source directories. Companion to options '" + SOURCE_DIR_S + "'/'" + SOURCE_DIR_L + "'");
         return opts;
     }

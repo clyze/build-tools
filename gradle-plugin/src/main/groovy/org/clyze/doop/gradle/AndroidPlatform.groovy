@@ -6,9 +6,8 @@ import org.clyze.build.tools.Conventions
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 import org.apache.commons.io.FileUtils
+import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.JcPlugin
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
@@ -510,46 +509,34 @@ class AndroidPlatform extends Platform {
     // set up by the Android Gradle plugin. This uses the internal API
     // of the Android Gradle plugin.
     void readConfigurationFiles() {
-        Set<File> allPros = new HashSet<>()
-        AndroidAPI.forEachTransform(
-            project,
-            { FileCollection pros -> allPros.addAll(pros) })
-
-        project.logger.info msg("Found ${allPros.size()} configuration files:")
         if (!repackageExt.configurationFiles) {
+            Set<File> allPros = new HashSet<>()
+            AndroidAPI.forEachTransform(
+                project,
+                { FileCollection pros -> allPros.addAll(pros) })
+
+            project.logger.info msg("Found ${allPros.size()} configuration files:")
             repackageExt.configurationFiles = new ArrayList<>()
-        }
-        allPros.each {
-            project.logger.info msg("Using rules from configuration file: ${it.canonicalPath}")
-            repackageExt.configurationFiles.add(it.canonicalPath)
-        }
-        if (allPros.size() == 0) {
-            project.logger.info msg("No project configuration files were found.")
-            return
+            allPros.each {
+                project.logger.info msg("Using rules from configuration file: ${it.canonicalPath}")
+                repackageExt.configurationFiles.add(it.canonicalPath)
+            }
+            if (allPros.size() == 0) {
+                project.logger.info msg("No project configuration files were found.")
+                return
+            }
+        } else {
+            project.logger.info msg("Using provided configuration files: ${repackageExt.configurationFiles}")
         }
 
         File confZip = getConfFile()
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))
-        allPros.each { File conf ->
-            if (!conf.exists()) {
-                project.logger.warn msg("WARNING: file does not exist: ${conf}")
-                return
-            }
-            String entryName = stripRootPrefix(conf.canonicalPath)
-            out.putNextEntry(new ZipEntry(entryName))
-            byte[] data = Files.readAllBytes(conf.toPath())
-            out.write(data, 0, data.length)
-            out.closeEntry()
-        }
-        out.close()
-
+        List<String> warnings = [] as List<String>
+        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings)
+        if (warnings.size() > 0)
+            warnings.each { project.logger.warn msg(it) }
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
     }
 
-    // Strip root directory prefix to make absolute paths relative.
-    private static String stripRootPrefix(String s) {
-        return s.startsWith(File.separator) ? s.substring(1) : s
-    }
 
     @Override
     String jarTaskName() { return TASK_CODE_ARCHIVE }
@@ -697,7 +684,7 @@ class AndroidPlatform extends Platform {
             String rootPath = project.rootDir.canonicalPath
             String projPath = project.projectDir
             if (projPath.startsWith(rootPath) && projPath.size() > rootPath.size()) {
-                String suffix = stripRootPrefix(projPath.substring(rootPath.size()))
+                String suffix = Archiver.stripRootPrefix(projPath.substring(rootPath.size()))
                 repackageExt.subprojectName = suffix
                 project.logger.warn msg("WARNING: missing property 'subprojectName', using: ${suffix}")
             } else {

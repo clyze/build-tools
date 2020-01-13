@@ -13,9 +13,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.types.Commandline;
+import org.clyze.build.tools.Archiver;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.JcPlugin;
 import org.clyze.client.web.Helper;
@@ -87,7 +88,16 @@ public class BundlerMain {
 
         BundleMetadataConf bmc = null;
         try {
-            bmc = gatherMetadataAndConfigurations(conf.traceFile, conf.jsonDir, conf.proguard);
+            boolean explicitConf = conf.configurations != null && conf.configurations.size() > 0;
+            // If explicit configuration is provided, disable rule autodetection.
+            String proguard = explicitConf ? null : conf.proguard;
+            bmc = gatherMetadataAndConfigurations(conf.traceFile, conf.jsonDir, proguard);
+            if (explicitConf) {
+                logError("Using provided configuration: " + conf.configurations);
+                List<File> entries = new LinkedList<>();
+                conf.configurations.forEach(c -> entries.add(new File(c)));
+                zipConfigurations(entries, getConfigurationsFile());
+            }
         } catch (IOException ex) {
             logError("Error gathering metadata/configurations, will try to continue...");
             ex.printStackTrace();
@@ -115,10 +125,21 @@ public class BundlerMain {
         return null;
     }
 
+    private static File getConfigurationsFile() {
+        return new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE);
+    }
+
+    /**
+     * Read the Buck trace file to gather code metadata and configurations.
+     *
+     * @param traceFile   the Buck trace file to read
+     * @param jsonDir     the JSON metadata output directory (for the metadata generator)
+     * @param proguard    the optimizer binary used (null to skip configuration autodetection)
+     */
     private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir, String proguard) throws IOException {
         println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
-        File configurationsFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE);
+        File configurationsFile = getConfigurationsFile();
         @SuppressWarnings("unchecked") Map<String, Object>[] json = (new Gson()).fromJson(new InputStreamReader(new FileInputStream(traceFile)), Map[].class);
         for (Map<String, Object> map : json) {
             Object argsEntry = map.get("args");
@@ -128,8 +149,8 @@ public class BundlerMain {
                     String desc = descEntry.toString();
                     if (desc.contains("javac "))
                         processJavacInvocation(jsonDir, desc);
-                    else if (desc.contains("java ") && desc.contains("-jar") &&
-                             desc.contains(proguard))
+                    else if (proguard != null && desc.contains("java ") &&
+                             desc.contains("-jar") && desc.contains(proguard))
                         processProguardInvocation(desc, configurationsFile);
                 }
             }
@@ -221,6 +242,12 @@ public class BundlerMain {
         }
     }
 
+    /**
+     * Process a ProGuard invocation from a trace file, to detect rule files.
+     *
+     * @param desc                the contents of the JSON 'desc' value
+     * @param configurationsFile  the output file to hold configurations
+     */
     private static void processProguardInvocation(String desc, File configurationsFile) {
         int atIndex = desc.indexOf('@');
         if (atIndex == -1) {
@@ -233,7 +260,7 @@ public class BundlerMain {
         String argsFile = endIndex == -1 ? desc.substring(atIndex+1) : desc.substring(atIndex+1, endIndex);
         println("Reading proguard args from file: " + argsFile);
 
-        List<FileSource> entries = new ArrayList<>();
+        List<File> entries = new LinkedList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(argsFile))) {
             String line;
             boolean nextLineIsRulesFile = false;
@@ -247,19 +274,31 @@ public class BundlerMain {
                     println("Adding configuration file: " + line);
                     File rulesFile = new File(line);
                     try {
-                        entries.add(new SourceFile(rulesFile.getCanonicalPath(), rulesFile));
+                        entries.add(rulesFile);
                     } catch (Exception ex) {
                         logError("Could not process file: " + rulesFile);
                     }
                 }
                 nextLineIsRulesFile = false;
             }
-            FileUtils.touch(configurationsFile);
-            ZipUtil.pack(entries.toArray(new FileSource[0]), configurationsFile);
+            zipConfigurations(entries, configurationsFile);
         } catch (IOException e) {
             logError("Could not parse proguard args file: " + argsFile);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Packages a list of files.
+     *
+     * @param entries             the file entries to package
+     * @param configurationsFile  the output file
+     * @throws IOException        on packaging error
+     */
+    private static void zipConfigurations(List<File> entries, File configurationsFile) throws IOException {
+        List<String> warnings = new LinkedList<>();
+        Archiver.zipConfigurations(entries, configurationsFile, warnings);
+        warnings.forEach(BundlerUtil::logError);
     }
 
     private static void postBundle(String bundleApk, Collection<File> sourceJars,

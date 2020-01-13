@@ -8,11 +8,15 @@ import java.nio.file.Path;
 import java.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.zeroturnaround.zip.*;
 
 import static org.clyze.build.tools.Conventions.msg;
 
-class Archiver {
+public class Archiver {
+
+    final static String[] UNSUPPORTED_DIRECTIVES = new String[] {"-printusage ", "-printseeds ", "-printconfiguration ", "-dump "};
 
     /**
      * Zips a directory as an archive, removing the directory prefix
@@ -85,5 +89,74 @@ class Archiver {
         return String.format("%032x", new BigInteger(1, md5.digest()));
     }
 
+    /**
+     * If the file given contains unsupported directives, create a copy without them.
+     *
+     * @param conf     the configuration file containing the directives
+     * @param warnings a list of warnings to populate
+     * @return         the original file (if no unsupported directives were found) or a
+     *                 new file without the offending directives
+     * @throws         IOException if the new file could not be written
+     */
+    private static File deleteUnsupportedDirectives(File conf, List<String> warnings) throws IOException {
+        boolean allSupported = true;
+        LinkedList<String> lines = new LinkedList<>();
+        try (BufferedReader txtReader = new BufferedReader(new FileReader(conf))) {
+            String line;
+            while ((line = txtReader.readLine()) != null) {
+                if (line == null)
+                    continue;
+                boolean supportedLine = true;
+                for (String d : UNSUPPORTED_DIRECTIVES) {
+                    if (line.contains(d)) {
+                        warnings.add("WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive " + d);
+                        allSupported = false;
+                        supportedLine = false;
+                    }
+                }
+                if (supportedLine)
+                    lines.add(line + "\n");
+            }
+        }
+        if (!allSupported) {
+            File ret = File.createTempFile("rules", ".pro");
+            try (FileWriter fw = new FileWriter(ret)) {
+                for (String l : lines)
+                    fw.write(l);
+            }
+            return ret;
+        } else
+            return conf;
+    }
 
+    /**
+     * Zips a list of configuration files.
+     *
+     * @param configurationFiles  the input configuration files
+     * @param confZip             the output file
+     * @param warnings            a list of warnings to populate
+     *
+     * @throws                    IOException if unsupported directives could not be filtered out
+     */
+    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings) throws IOException {
+        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))) {
+            for (File conf : configurationFiles) {
+                if (!conf.exists()) {
+                    warnings.add("WARNING: file does not exist: " + conf);
+                    return;
+                }
+                String entryName = stripRootPrefix(conf.getCanonicalPath());
+                out.putNextEntry(new ZipEntry(entryName));
+                conf = deleteUnsupportedDirectives(conf, warnings);
+                byte[] data = Files.readAllBytes(conf.toPath());
+                out.write(data, 0, data.length);
+                out.closeEntry();
+            }
+        }
+    }
+
+    // Strip root directory prefix to make absolute paths relative.
+    public static String stripRootPrefix(String s) {
+        return s.startsWith(File.separator) ? s.substring(1) : s;
+    }
 }
