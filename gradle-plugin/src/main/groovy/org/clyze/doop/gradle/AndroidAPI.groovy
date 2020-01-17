@@ -165,7 +165,11 @@ class AndroidAPI {
         } else {
             project.logger.debug msg("Could not determine compileSdkVersion.")
         }
-        return compileSdkVersion
+        return stripPrefix("android-", compileSdkVersion)
+    }
+
+    static String stripPrefix(String pre, String s) {
+        return s.startsWith(pre) ? s.substring(pre.size()) : s
     }
 
     static String getShrinkResources(Project project, String buildType) {
