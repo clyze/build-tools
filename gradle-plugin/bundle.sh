@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 function usage() {
     echo "Post bundle:"
     echo "  bundle.sh postBundle [MODULE]"
