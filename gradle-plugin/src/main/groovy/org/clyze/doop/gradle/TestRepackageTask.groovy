@@ -5,9 +5,8 @@ import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
-import org.zeroturnaround.zip.ZipUtil;
+import org.zeroturnaround.zip.ZipUtil
 
 import static org.clyze.build.tools.Conventions.msg
 
@@ -25,7 +24,7 @@ class TestRepackageTask extends DefaultTask {
         AndroidPlatform platform = (AndroidPlatform)ext.platform
 
         String classTopDir = platform.getAppBuildDir() + File.separator + 'intermediates' + File.separator + 'javac' + File.separator + platform.getFlavorAndBuildType()
-        String classTopDirUnitTest = classTopDir + "UnitTest";
+        String classTopDirUnitTest = classTopDir + "UnitTest"
         // Separate code and test-code directories: only code found in
         // the former will be optimized.
         List<File> codeDirs = [
