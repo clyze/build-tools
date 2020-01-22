@@ -143,7 +143,7 @@ public class Archiver {
             for (File conf : configurationFiles) {
                 if (!conf.exists()) {
                     warnings.add("WARNING: file does not exist: " + conf);
-                    return;
+                    continue;
                 }
                 String entryName = stripRootPrefix(conf.getCanonicalPath());
                 out.putNextEntry(new ZipEntry(entryName));
