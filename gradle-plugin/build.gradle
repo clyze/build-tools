@@ -61,6 +61,12 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
     from groovydoc.destinationDir
 }
 
+jar {
+    manifest {
+        attributes 'Implementation-Version' : version
+    }
+}
+
 // Take care of race condition when generating the shadow JAR as main
 // artifact (https://github.com/uber/NullAway/blob/master/nullaway/build.gradle).
 shadowJar.dependsOn jar

@@ -2,6 +2,7 @@ package org.clyze.doop.gradle
 
 import groovy.transform.TypeChecked
 import org.clyze.build.tools.Conventions
+import org.clyze.utils.VersionInfo
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -30,6 +31,9 @@ class RepackagePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+
+        String version = VersionInfo.getVersionInfo(RepackagePlugin.class)
+        project.logger.info msg("Gradle plugin [${version}]")
 
         // Require Java 1.8 or higher.
         if (!JavaVersion.current().isJava8Compatible()) {
