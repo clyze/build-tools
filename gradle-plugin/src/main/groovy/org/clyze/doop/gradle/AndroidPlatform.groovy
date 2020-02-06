@@ -146,10 +146,10 @@ class AndroidPlatform extends Platform {
                 project.logger.error msg("ERROR: tasks '${TASK_CODE_ARCHIVE}' and '${RepackagePlugin.TASK_CONFIGURATIONS}' cannot be invoked in the same Gradle invocation.")
                 return
             } else if (taskConf && !AndroidAPI.isMinifyEnabled(project, bType, true)) {
-                project.logger.error msg("ERROR: Option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'.")
+                project.logger.error msg("ERROR: option 'minifyEnabled' should be enabled to get the .pro files for build type '${bType}'.")
                 return
             } else if (taskArch && AndroidAPI.isMinifyEnabled(project, bType, false)) {
-                project.logger.warn msg("WARNING: Option 'minifyEnabled' is enabled, the posted APK will be already optimized for build type '${buildType}'.")
+                project.logger.warn msg("WARNING: option 'minifyEnabled' is enabled, the posted APK will be already optimized for build type '${buildType}'.")
             }
 
             String flavorDir = getFlavorDir()
@@ -262,7 +262,7 @@ class AndroidPlatform extends Platform {
     // Returns the build type.
     String getBuildType() {
         if (repackageExt.buildType == null) {
-            throw new RuntimeException(msg("Please set option 'buildType' to the type of the existing build ('debug' or 'release')."))
+            throwRuntimeException(msg("Please set option 'buildType' to the type of the existing build ('debug' or 'release')."))
         } else if ((repackageExt.buildType != 'debug') && (repackageExt.buildType != 'release')) {
             project.logger.info msg("Property 'buildType' should probably be 'debug' or 'release' (current value: ${repackageExt.buildType}).")
         }
@@ -280,7 +280,7 @@ class AndroidPlatform extends Platform {
         String flavorPart = flavor == null ? "" : flavor
         String buildType = getBuildType()
         if (!buildType) {
-            throw new RuntimeException(msg("ERROR: could not determine build type"))
+            throwRuntimeException(msg("ERROR: could not determine build type"))
         }
         return flavorPart + buildType.capitalize()
     }
@@ -444,7 +444,12 @@ class AndroidPlatform extends Platform {
     private void configureCodeJarTaskAfterEvaluate(String appBuildHome) {
         // Update location of class files for JAR task.
         Jar codeTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
-        codeTask.from("${appBuildHome}/intermediates/classes/${flavorDir}")
+        String classDir = "${appBuildHome}/intermediates/classes/${flavorDir}"
+        if (!(new File(classDir)).exists()) {
+            throwRuntimeException("ERROR: class directory does not exist: ${classDir}, possibly a wrong 'flavor'/'buildType' setting?")
+        }
+
+        codeTask.from(classDir)
 
         // Create dependency (needs configuration section so it must happen late).
         // Copy compiled outputs to local bundle cache.
