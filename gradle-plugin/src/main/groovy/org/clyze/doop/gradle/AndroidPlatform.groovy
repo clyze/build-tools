@@ -446,7 +446,7 @@ class AndroidPlatform extends Platform {
         Jar codeTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
         String classDir = "${appBuildHome}/intermediates/classes/${flavorDir}"
         if (!(new File(classDir)).exists()) {
-            throwRuntimeException("ERROR: class directory does not exist: ${classDir}, possibly a wrong 'flavor'/'buildType' setting?")
+            project.logger.warn msg("WARNING: class directory does not exist: ${classDir}, maybe a wrong 'flavor'/'buildType' setting? (Ignore this warning if this is a clean build.)")
         }
 
         codeTask.from(classDir)
