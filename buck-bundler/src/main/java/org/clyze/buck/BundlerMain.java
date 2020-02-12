@@ -26,6 +26,7 @@ import org.apache.tools.ant.types.Commandline;
 import org.clyze.build.tools.Archiver;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.JcPlugin;
+import org.clyze.build.tools.Poster;
 import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
@@ -103,8 +104,7 @@ public class BundlerMain {
             ex.printStackTrace();
         }
 
-        if (conf.post)
-            postBundle(bundleApk, sourceJars, bmc, conf);
+        postBundle(bundleApk, sourceJars, bmc, conf);
     }
 
     /**
@@ -303,8 +303,6 @@ public class BundlerMain {
 
     private static void postBundle(String bundleApk, Collection<File> sourceJars,
                                    BundleMetadataConf bmc, Config conf) {
-        println("Posting bundle to the server...");
-
         PostState ps = new PostState();
         ps.setId(Conventions.BUNDLE_ID);
         ps.addFileInput("INPUTS", bundleApk);
@@ -323,7 +321,12 @@ public class BundlerMain {
         // the platform from the submitted code.
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
 
-        Helper.doPost(conf.host, conf.port, conf.username, conf.password, conf.project, conf.profile, ps);
+        if (conf.opts.dry)
+            println("Assembling bundle (dry mode)...");
+        else
+            println("Posting bundle to the server...");
+
+        (new Poster(conf.opts, false)).post(ps);
     }
 
     private static void addSourceJar(PostState ps, File sourceJar) {

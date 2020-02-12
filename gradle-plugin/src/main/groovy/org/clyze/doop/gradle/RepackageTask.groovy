@@ -51,7 +51,7 @@ class RepackageTask extends PostTask {
                 return out.canonicalPath
             }
         }
-        api.repackageBundleForCI(ext.username, ext.clueProject, ps, saveAttachment)
+        api.repackageBundleForCI(ext.username, ext.project, ps, saveAttachment)
         return out
     }
 }

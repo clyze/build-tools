@@ -16,6 +16,7 @@ public class Conventions {
     public static final String DEFAULT_PROJECT     = "scrap";
     public static final String DEFAULT_PROFILE     = "apiTargetAndroid";
     public static final String BUNDLE_ID           = "bundle";
+    public static final String POST_METADATA       = "post-metadata.txt";
 
     public static String getR8AndroidPlatform(String apiLevel) {
         return "android_" + apiLevel + "_stubs";

@@ -72,9 +72,9 @@ abstract class Platform {
         if (ext.password == null) {
             ext.password = Conventions.DEFAULT_PASSWORD
         }
-        if (ext.clueProject == null) {
-            project.logger.warn msg("WARNING: missing property 'clueProject', assuming host=${Conventions.DEFAULT_PROJECT}")
-            ext.clueProject = Conventions.DEFAULT_PROJECT
+        if (ext.project == null) {
+            project.logger.warn msg("WARNING: missing property 'project', assuming host=${Conventions.DEFAULT_PROJECT}")
+            ext.project = Conventions.DEFAULT_PROJECT
         }
         if (ext.profile == null) {
             project.logger.debug msg("Missing property 'profile', assuming profile=${Conventions.DEFAULT_PROFILE}")

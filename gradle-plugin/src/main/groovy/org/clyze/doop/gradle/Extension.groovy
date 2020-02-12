@@ -17,7 +17,7 @@ class Extension {
     String orgName
     String projectName
     String projectVersion
-    String clueProject
+    String project
     String useSourcesJar
     File scavengeOutputDir
     // The configration files to use.

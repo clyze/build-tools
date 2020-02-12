@@ -50,7 +50,7 @@ be omitted):
 ```
 clyze {
     port = ...           // server UI port
-    clueProject = ...    // default: 'scrap'
+    project = ...        // default: 'scrap'
     buildType = ...      // default: 'debug'
     flavor = ...         // default: none
 }
@@ -180,7 +180,7 @@ clyze {
 
 * String _password_: the password to use to authenticate to the server.
 
-* String _clueProject_: the project id to post bundles and analyses to, in the form "userName/projectName". E.g., for testing, it is convenient to use the ```"$clue_user/scrap"``` as the value of this option.
+* String _project_: the project id to post bundles and analyses to, in the form "userName/projectName". E.g., for testing, it is convenient to use the ```"$clue_user/scrap"``` as the value of this option.
 
 * String _orgName_: organization name of the artifact to post.
 

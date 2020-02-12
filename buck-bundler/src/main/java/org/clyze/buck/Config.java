@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import org.apache.commons.cli.*;
 import org.clyze.build.tools.Conventions;
+import org.clyze.build.tools.Poster;
 import org.clyze.build.tools.Settings;
 
 class Config {
@@ -15,43 +16,38 @@ class Config {
     private static final String PROGUARD_BINARY_OPT = "proguard-binary";
 
     final boolean help;
-    final boolean post;
-    final int port;
-    final String username;
-    final String password;
-    final String project;
-    final String profile;
     final String jsonDir;
     final String traceFile;
-    final String host;
     final String javacPluginPath;
     final List<String> codeFiles;
     final Collection<String> sourceDirs;
     final List<String> configurations;
     final String proguard;
     final boolean autodetectSources;
+    final Poster.Options opts = new Poster.Options();
 
     Config(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(opts(), args);
 
         this.help = cmd.hasOption("h");
-        this.post = cmd.hasOption("p");
         this.autodetectSources = cmd.hasOption(AUTODETECT_SOURCES_OPT);
-        this.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
-        this.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
-        this.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
-        this.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
-        this.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
-        this.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_PROFILE);
         this.jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
         this.traceFile = optValOrDefault(cmd, "trace", DEFAULT_TRACE_FILE);
         this.javacPluginPath = optValOrDefault(cmd, "j", null);
         this.proguard = optValOrDefault(cmd, PROGUARD_BINARY_OPT, "/proguard.jar");
-
         this.sourceDirs = optVals(cmd, "s");
         this.codeFiles = optVals(cmd, "c");
         this.configurations = optVals(cmd, "configuration");
+
+        // Set post options.
+        this.opts.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
+        this.opts.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
+        this.opts.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
+        this.opts.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
+        this.opts.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
+        this.opts.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_PROFILE);
+        this.opts.dry = !cmd.hasOption("p");
     }
 
     private static Options opts() {

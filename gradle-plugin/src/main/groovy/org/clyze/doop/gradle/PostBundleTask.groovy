@@ -1,8 +1,10 @@
 package org.clyze.doop.gradle
 
 import groovy.io.FileType
+import groovy.transform.TypeChecked
 import java.nio.file.Files
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.gradle.api.Project
@@ -10,6 +12,7 @@ import org.gradle.api.tasks.TaskAction
 
 import static org.clyze.build.tools.Conventions.msg
 
+@TypeChecked
 class PostBundleTask extends PostTask {
 
     @TaskAction
@@ -26,16 +29,17 @@ class PostBundleTask extends PostTask {
         PostState bundlePostState = newBundlePostState(project)
 
         if (bundlePostState) {
-            if (ext.cachePost) {
-                File tmpDir = Files.createTempDirectory("").toFile()
-                bundlePostState.saveTo(tmpDir)
-                println msg("Saved post state in ${tmpDir}")
-            }
-
-            if (!ext.dry) {
-                Helper.doPost(ext.host, ext.port, ext.username, ext.password,
-                              ext.clueProject, ext.profile, bundlePostState)
-            }
+            Poster.Options opts = new Poster.Options();
+            opts.host = ext.host;
+            opts.port = ext.port;
+            opts.username = ext.username;
+            opts.password = ext.password;
+            opts.profile = ext.profile;
+            opts.project = ext.project;
+            opts.dry = ext.dry;
+            (new Poster(opts, ext.cachePost)).post(bundlePostState)
+        } else {
+            project.logger.error msg("ERROR: could not package bundle.")
         }
 
         p.cleanUp()

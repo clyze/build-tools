@@ -34,10 +34,6 @@ dependencies {
 
     compileOnly localGroovy()
     compile 'commons-cli:commons-cli:1.2'
-
-    compile("org.clyze:clue-client:${clientVersion}") {
-        exclude module: "groovy-all"
-    }
     compile project(":build-integration-lib")
 }
 
