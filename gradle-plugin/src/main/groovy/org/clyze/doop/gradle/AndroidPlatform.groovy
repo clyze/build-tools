@@ -444,6 +444,10 @@ class AndroidPlatform extends Platform {
     private void configureCodeJarTaskAfterEvaluate(String appBuildHome) {
         // Update location of class files for JAR task.
         Jar codeTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
+        if (!codeTask) {
+            project.logger.warn(msg("ERROR: code task ${TASK_CODE_ARCHIVE} does not exist!"))
+            return
+        }
         String classDir = "${appBuildHome}/intermediates/classes/${flavorDir}"
         if (!(new File(classDir)).exists()) {
             project.logger.warn msg("WARNING: class directory does not exist: ${classDir}, maybe a wrong 'flavor'/'buildType' setting? (Ignore this warning if this is a clean build.)")
@@ -454,6 +458,10 @@ class AndroidPlatform extends Platform {
         // Create dependency (needs configuration section so it must happen late).
         // Copy compiled outputs to local bundle cache.
         Task assembleTask = project.tasks.findByName(assembleTaskName)
+        if (!assembleTask) {
+            project.logger.warn(msg("ERROR: build task ${assembleTaskName} does not exist!"))
+            return
+        }
         codeTask.dependsOn assembleTask
 
         codeTask.doLast {
