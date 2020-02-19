@@ -73,6 +73,15 @@ public class JcPlugin {
     }
 
     /**
+     * Returns the classpath of the bundled javac plugin.
+     *
+     * @return a list of JAR files
+     */
+    public static List<String> getJcPluginClasspath() {
+        return getResourceClasspath(JcPlugin.class.getClassLoader(), "jcplugin/");
+    }
+
+    /**
      * Extracts a ZIP entry and writes it to a file.
      *
      * @param zip   the ZIP file

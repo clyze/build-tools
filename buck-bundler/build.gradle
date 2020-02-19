@@ -21,7 +21,6 @@ dependencies {
 
     compile 'org.clyze:clue-common:3.19.1'
     compile project(":build-integration-lib")
-    jcplugin jcpluginArtifact
 
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
@@ -36,17 +35,6 @@ compileJava {
     options.compilerArgs << '-Xlint:unchecked'
     options.compilerArgs << '-Xlint:deprecation'
 }
-
-String jcpluginResourceDir = 'src/main/resources/jcplugin'
-task copyJcPlugin(type: Copy) {
-    from configurations.jcplugin
-    into jcpluginResourceDir
-}
-[build, jar, installDist].each { it.dependsOn(copyJcPlugin) }
-task cleanJcPluginDir(type: Delete) {
-    delete jcpluginResourceDir
-}
-clean.dependsOn cleanJcPluginDir
 
 task fatjar(type: Jar) {
     manifest {

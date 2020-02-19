@@ -187,7 +187,7 @@ public class BundlerMain {
     private static void processJavacInvocation(String jsonDir, String desc) {
         // Read classpath from contents of bundled jcplugin dir.
         if (cachedJcpluginClasspath == null)
-            cachedJcpluginClasspath = JcPlugin.getResourceClasspath(BundlerMain.class.getClassLoader(), "jcplugin/");
+            cachedJcpluginClasspath = JcPlugin.getJcPluginClasspath();
         // If no metadata plugin was found, skip javac rerun but allow for the
         // rest of the operations to continue.
         if (cachedJcpluginClasspath == null) {

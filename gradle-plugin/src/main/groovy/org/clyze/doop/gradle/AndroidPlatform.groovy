@@ -672,9 +672,19 @@ class AndroidPlatform extends Platform {
         }
 
         if (javacPluginArtifact) {
-            project.dependencies.add('annotationProcessor', javacPluginArtifact)
+            List<String> jcplugin = JcPlugin.getJcPluginClasspath()
+            int sz = jcplugin.size()
+            if (sz == 0) {
+                project.logger.warn msg('WARNING: could not find metadata processor, sources will not be processed.')
+                return
+            } else {
+                project.dependencies.add('annotationProcessor', project.files(jcplugin.get(0)))
+                if (sz > 1) {
+                    project.logger.warn msg('WARNING: too many metadata processors found: ' + jcplugin)
+                }
+            }
         } else {
-            project.logger.warn msg("WARNING: Could not integrate metadata processor, sources will not be processed")
+            project.logger.warn msg('WARNING: Could not integrate metadata processor, sources will not be processed.')
             return
         }
 

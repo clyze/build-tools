@@ -11,15 +11,17 @@ repositories {
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
+configurations {
+    jcplugin
+}
+
 dependencies {
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'org.zeroturnaround:zt-zip:1.13'
     compile('org.clyze:clue-client:4.1.7') {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
     }
-    runtime(jcpluginArtifact) {
-        exclude group: "org.codehaus.groovy", module: "groovy-all"
-    }
+    jcplugin jcpluginArtifact
 }
 
 compileJava {
@@ -36,3 +38,15 @@ task writeMetadataDependecy() {
     f.withWriterAppend { w -> w.writeLine(jcpluginArtifact) }
 }
 build.dependsOn writeMetadataDependecy
+
+// Copy jcplugin to resource directory.
+String jcpluginResourceDir = 'src/main/resources/jcplugin'
+task copyJcPlugin(type: Copy) {
+    from configurations.jcplugin
+    into jcpluginResourceDir
+}
+[classes, build, jar].each { it.dependsOn(copyJcPlugin) }
+task cleanJcPluginDir(type: Delete) {
+    delete jcpluginResourceDir
+}
+clean.dependsOn cleanJcPluginDir
