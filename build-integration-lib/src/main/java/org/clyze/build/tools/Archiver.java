@@ -14,8 +14,21 @@ import org.zeroturnaround.zip.*;
 
 import static org.clyze.build.tools.Conventions.msg;
 
-public class Archiver {
+/**
+ * Helper class for dealing with archives such as .zip files.
+ */
+public final class Archiver {
 
+    /**
+     * This is a utility class, no public constructor is needed (or
+     * should appear in documentation).
+     */
+    private Archiver() {}
+
+    /**
+     * Configuration directives that are not yet supported and should
+     * raise a warning.
+     */
     final static String[] UNSUPPORTED_DIRECTIVES = new String[] {"-printusage ", "-printseeds ", "-printconfiguration ", "-dump "};
 
     /**
@@ -155,7 +168,12 @@ public class Archiver {
         }
     }
 
-    // Strip root directory prefix to make absolute paths relative.
+    /**
+     * Strip root directory prefix to make absolute paths relative.
+     *
+     * @param s   an absolute path
+     * @return    the path without its leading root prefix (such as '/' on Linux)
+     */
     public static String stripRootPrefix(String s) {
         return s.startsWith(File.separator) ? s.substring(1) : s;
     }

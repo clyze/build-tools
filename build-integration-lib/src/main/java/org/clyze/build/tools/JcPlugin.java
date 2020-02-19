@@ -8,9 +8,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.*;
 
+/**
+ * Functionality related to the javac plugin that generates source
+ * code metadata.
+ */
 public class JcPlugin {
 
-    /*
+    /**
+     * This is a utility class, no public constructor is needed (or
+     * should appear in documentation).
+     */
+    private JcPlugin() {}
+
+    /**
      * Returns the metadata plugin artifact, so that it can be
      * integrated as a dependency.
      *
@@ -29,7 +39,14 @@ public class JcPlugin {
         }
     }
 
-    public static List<String> getJcPluginClasspath(ClassLoader cl, String resourceDir) {
+    /**
+     * Construct a classpath of entries corresponding to the contents
+     * of a resource directory in the program JAR.
+     *
+     * @param cl           the class loader to use for loading the resource
+     * @param resourceDir  the resource directory
+     */
+    public static List<String> getResourceClasspath(ClassLoader cl, String resourceDir) {
         URL dirURL = cl.getResource(resourceDir);
         if (dirURL == null)
             return null;
@@ -38,7 +55,7 @@ public class JcPlugin {
         try {
             JarURLConnection jarConnection = (JarURLConnection) dirURL.openConnection();
             ZipFile jar = jarConnection.getJarFile();
-            File tmpDir = Files.createTempDirectory("jcplugin-jars").toFile();
+            File tmpDir = Files.createTempDirectory("resource-jars").toFile();
             for (ZipEntry entry : Collections.list(jar.entries())) {
                 String name = entry.getName();
                 if (name.equals(resourceDir) || !name.startsWith(resourceDir))
@@ -55,6 +72,13 @@ public class JcPlugin {
         return ret;
     }
 
+    /**
+     * Extracts a ZIP entry and writes it to a file.
+     *
+     * @param zip   the ZIP file
+     * @param entry the ZIP entry
+     * @param f     the output file
+     */
     private static void copyZipEntryToFile(ZipFile zip, ZipEntry entry, File f) throws IOException {
         // System.out.println(zip + ":" + entry + " -> " + f);
         try (InputStream is = zip.getInputStream(entry);
