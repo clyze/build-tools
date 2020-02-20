@@ -562,7 +562,9 @@ class AndroidPlatform extends Platform {
      */
     void readConfigurationFiles() {
         if (!repackageExt.configurationFiles) {
-            Set<File> allPros = new HashSet<>()
+            // Use a linked list to preserve (if possible) the
+            // ordering of the configurations read.
+            LinkedList<File> allPros = new LinkedList<>()
             AndroidAPI.forEachTransform(
                 project,
                 { FileCollection pros -> allPros.addAll(pros) })
