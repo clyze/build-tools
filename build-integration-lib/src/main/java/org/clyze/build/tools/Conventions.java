@@ -40,7 +40,7 @@ public class Conventions {
     public static final String POST_METADATA       = "post-metadata.txt";
 
     /** Warning when conifguration rules could not be disabled. */
-    public static String COULD_NOT_DISABLE_RULES = msg("WARNING: could not disable configuration rules, generated .apk may not be suitable for analysis.");
+    public static final String COULD_NOT_DISABLE_RULES = msg("WARNING: could not disable configuration rules, generated .apk may not be suitable for analysis.");
 
     /**
      * Given an API level, compute the platform name that must be

@@ -117,8 +117,6 @@ public final class Archiver {
         try (BufferedReader txtReader = new BufferedReader(new FileReader(conf))) {
             String line;
             while ((line = txtReader.readLine()) != null) {
-                if (line == null)
-                    continue;
                 boolean supportedLine = true;
                 for (String d : UNSUPPORTED_DIRECTIVES) {
                     if (line.contains(d)) {

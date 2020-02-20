@@ -21,16 +21,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.apache.commons.io.FileUtils;
+
 import org.apache.tools.ant.types.Commandline;
 import org.clyze.build.tools.Archiver;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.JcPlugin;
 import org.clyze.build.tools.Poster;
-import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
-import org.zeroturnaround.zip.*;
 
 import static org.clyze.buck.BundlerUtil.*;
 

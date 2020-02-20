@@ -1,9 +1,6 @@
 package org.clyze.build.tools;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 /**

@@ -29,13 +29,13 @@ class RepackageTask extends PostTask {
                                      String shrinkResources) {
         if (ext.ruleFile == null) {
             project.logger.error msg("ERROR: no 'ruleFile' set in build.gradle, cannot repackage.")
-            return
+            return null
         }
 
         File ruleFile = new File(ext.ruleFile)
         if (!ruleFile.exists()) {
             project.logger.error msg("ERROR: rule file does not exist: ${ext.ruleFile}")
-            return
+            return null
         }
 
         PostState ps = new PostState()

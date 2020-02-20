@@ -35,14 +35,14 @@ class PostBundleTask extends PostTask {
         PostState bundlePostState = newBundlePostState(project)
 
         if (bundlePostState) {
-            Poster.Options opts = new Poster.Options();
-            opts.host = ext.host;
-            opts.port = ext.port;
-            opts.username = ext.username;
-            opts.password = ext.password;
-            opts.profile = ext.profile;
-            opts.project = ext.project;
-            opts.dry = ext.dry;
+            Poster.Options opts = new Poster.Options()
+            opts.host = ext.host
+            opts.port = ext.port
+            opts.username = ext.username
+            opts.password = ext.password
+            opts.profile = ext.profile
+            opts.project = ext.project
+            opts.dry = ext.dry
             (new Poster(opts, ext.cachePost)).post(bundlePostState)
         } else {
             project.logger.error msg("ERROR: could not package bundle.")
