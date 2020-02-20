@@ -22,6 +22,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 import static org.clyze.build.tools.Conventions.msg
 import static org.clyze.utils.JHelper.throwRuntimeException
 
+/**
+ * This class controls how the plugin adapts to Android build projects.
+ */
 @TypeChecked
 class AndroidPlatform extends Platform {
 

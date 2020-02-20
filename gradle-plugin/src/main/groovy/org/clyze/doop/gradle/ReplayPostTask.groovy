@@ -8,6 +8,9 @@ import org.gradle.api.tasks.options.Option
 
 import static org.clyze.build.tools.Conventions.msg
 
+/**
+ * A task that replays the posting of a bundle.
+ */
 class ReplayPostTask extends DefaultTask {
 
     @InputDirectory
@@ -18,6 +21,9 @@ class ReplayPostTask extends DefaultTask {
         this.fromDir = project.file(fromDir)
     }
 
+    /**
+     * The main task action.
+     */
     @TaskAction
     void replayPost() {
         PostState bundlePostState, analysisPostState

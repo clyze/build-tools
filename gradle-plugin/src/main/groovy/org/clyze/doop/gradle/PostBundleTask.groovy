@@ -12,9 +12,15 @@ import org.gradle.api.tasks.TaskAction
 
 import static org.clyze.build.tools.Conventions.msg
 
+/**
+ * The task that posts a bundle to the server.
+ */
 @TypeChecked
 class PostBundleTask extends PostTask {
 
+    /**
+     * The main task action.
+     */
     @TaskAction
     void postBundle() {
 
@@ -45,7 +51,7 @@ class PostBundleTask extends PostTask {
         p.cleanUp()
     }
 
-    //A PostState for preserving all the information required to replay a bundle post
+    // A PostState for preserving all the information required to replay a bundle post
     private static final PostState newBundlePostState(Project project) {
 
         /*         

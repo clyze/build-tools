@@ -10,9 +10,15 @@ import org.zeroturnaround.zip.ZipUtil
 
 import static org.clyze.build.tools.Conventions.msg
 
+/**
+ * A task that runs project tests on the optimized output.
+ */
 @TypeChecked
 class TestRepackageTask extends DefaultTask {
 
+    /**
+     * The main task action.
+     */
     @TaskAction
     void repackageTest() {
 

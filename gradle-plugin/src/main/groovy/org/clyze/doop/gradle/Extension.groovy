@@ -6,6 +6,9 @@ import org.gradle.util.ConfigureUtil
 
 import static org.clyze.build.tools.Conventions.msg
 
+/**
+ * The data structure maintained by the plugin.
+ */
 @TypeChecked
 class Extension {
     static final String SECTION_NAME = "clyze"
@@ -20,12 +23,12 @@ class Extension {
     String project
     String useSourcesJar
     File scavengeOutputDir
-    // The configration files to use.
+    /** The configration files to use. */
     List<String> configurationFiles
     List<String> hprofs
-    // Extra inputs, as a list of paths relative to the project root
-    // directory. Can be used to add dependency JARs whose resolutions
-    // has failed or extra code.
+    /** Extra inputs, as a list of paths relative to the project root
+     *  directory. Can be used to add dependency JARs whose resolutions
+     * has failed or extra code. */
     List<String> extraInputs
     Map<String, Object> options
     boolean cachePost = false
@@ -34,13 +37,16 @@ class Extension {
     boolean ignoreConfigurations = false
     String profile
     String ruleFile
-    // Android-only
+    /** Subproject name (Android-only). */
     String subprojectName
+    /** Flavor name (Android-only). */
     String flavor
+    /** Build type (Android-only). */
     String buildType
+    /** Output .apk filter substring (Android-only). */
     String apkFilter
-    // List of group-name pairs of artifacts that are resolved by
-    // extraInputs (and thus the resolver should ignore them).
+    /** List of group-name pairs of artifacts that are resolved by
+     *  extraInputs (and thus the resolver should ignore them). */
     List<List<String>> replacedByExtraInputs
 
     Platform platform
@@ -65,6 +71,13 @@ class Extension {
         }
     }
 
+    /**
+     * Returns the extension defined in a project's build.gradle script.
+     * If no extension block was defined, throws a runtime exception.
+     *
+     * @param project   the build project
+     * @return          the extension object
+     */
     static Extension of(Project project) {
         Object sec = project.extensions.getByName(SECTION_NAME)
         if (sec == null) {

@@ -12,6 +12,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 
 import static org.clyze.build.tools.Conventions.msg
 
+/**
+ * This class controls how the plugin adapts to projects based on the JDK.
+ */
 @TypeChecked
 @InheritConstructors
 class JavaPlatform extends Platform {
@@ -36,12 +39,12 @@ class JavaPlatform extends Platform {
 
     /** Things to do last are:
      *
-     * - Optional UTF-8 conversion ('convertUTF8Dir' parameter).
+     * (a) Optional UTF-8 conversion ('convertUTF8Dir' parameter).
      *
-     * - Feed extra inputs to the scavenge task ('extraInputs'
-     *   parameter).
+     * (b) Feed extra inputs to the scavenge task ('extraInputs'
+     *     parameter).
      *
-     * - Set up 'sourcesJar' task according to 'useSourcesJar' parameter.
+     * (c) Set up 'sourcesJar' task according to 'useSourcesJar' parameter.
      *
      */
     @Override
@@ -95,8 +98,10 @@ class JavaPlatform extends Platform {
         }
     }
 
-    // No code JAR task is created, the 'java' gradle plugin already
-    // provides 'jar'.
+    /**
+     * No code JAR task is created, the 'java' gradle plugin already
+     * provides 'jar'.
+     */
     @Override
     void configureCodeJarTask() {}
 

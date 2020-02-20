@@ -8,8 +8,9 @@ import org.gradle.internal.classpath.ClassPath
 
 import static org.clyze.build.tools.Conventions.msg
 
-// This class provides access to the Android Gradle API (including
-// internals) without a compile-time dependency.
+/** This class provides access to the Android Gradle API (including
+ * internals) without a compile-time dependency.
+ */
 class AndroidAPI {
     static void forEachSourceFile(Project project, def closure) {
         for (def set1 : project.android.sourceSets) {
@@ -47,7 +48,11 @@ class AndroidAPI {
             .toList() as List<String>
     }
 
-    // Get an internal class from the Android Gradle plugin.
+    /** Get an internal class from the Android Gradle plugin.
+     *
+     * @param s   the name of the class
+     * @return    the Class object (or null if class was not found)
+     */
     private static Class getInternalClass(String s) {
         try {
             return Class.forName(s)

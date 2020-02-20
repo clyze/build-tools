@@ -13,7 +13,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import static org.clyze.build.tools.Conventions.msg
 
 /**
- * The Gradle plugin that integrates builds with the server.
+ * The entry point of the plugin.
  */
 @TypeChecked
 class RepackagePlugin implements Plugin<Project> {

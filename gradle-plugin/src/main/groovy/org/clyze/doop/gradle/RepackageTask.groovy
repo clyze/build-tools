@@ -11,6 +11,9 @@ import org.gradle.api.tasks.TaskAction
 
 import static org.clyze.build.tools.Conventions.msg
 
+/**
+ * This task repackages a program without UI intervention.
+ */
 @TypeChecked
 class RepackageTask extends PostTask {
 
