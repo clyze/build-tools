@@ -28,15 +28,16 @@ import static org.clyze.utils.JHelper.throwRuntimeException
 @TypeChecked
 class AndroidPlatform extends Platform {
 
-    // The name of the Gradle plugin task that will generate the
-    // code input for the server.
+    /** The name of the Gradle plugin task that will generate the
+     *  code input for the server. */
     static final String TASK_CODE_ARCHIVE = 'codeApk'
-    // The name prefix of the Android Gradle plugin task that will
-    // compile and package the program.
+    /** The name prefix of the Android Gradle plugin task that will
+      * compile and package the program. */
     static final String TASK_ASSEMBLE_PRE = 'assemble'
 
-    // Configuration defaults.
+    /** Default subproject is the current directory. */
     final String DEFAULT_SUBPROJECT_NAME = "."
+    /** Default build type. */
     final String DEFAULT_BUILD_TYPE = "debug"
 
     private AndroidDepResolver resolver
@@ -52,6 +53,11 @@ class AndroidPlatform extends Platform {
     private Set<String> scavengeDeps = new HashSet<>()
     private Set<String> tmpDirs
 
+    /**
+     * Initializes an Android platform handler for a project.
+     *
+     * @param project    an Android app/library project (library support is experimental)
+     */
     AndroidPlatform(Project project) {
         super(project)
         isLibrary = project.plugins.hasPlugin('com.android.library')
@@ -65,7 +71,12 @@ class AndroidPlatform extends Platform {
         task.classpath = project.files()
     }
 
-    // This must happen in the "afterEvaluate" stage.
+    /**
+     * Copies the source settings of the Android build process to a custom
+     * build task. This must happen in the "afterEvaluate" stage.
+     *
+     * @param task   the compile task to accept source file configuration
+     */
     void copySourceSettings(JavaCompile task) {
         AndroidAPI.forEachSourceFile(
             project,
@@ -86,8 +97,10 @@ class AndroidPlatform extends Platform {
         }
     }
 
-    // Checks if the current project is a Gradle sub-project (with a
-    // non-"." value for option 'subprojectName' in its build.gradle).
+    /**
+     * Checks if the current project is a Gradle sub-project (with a
+     * non-"." value for option 'subprojectName' in its build.gradle).
+     */
     private boolean isDefinedSubProject() {
         return ((repackageExt.subprojectName != null) &&
                 getSubprojectName() != ".")
@@ -264,7 +277,11 @@ class AndroidPlatform extends Platform {
         scavengeDeps.addAll(extraInputs)
     }
 
-    // Returns the build type.
+    /**
+     * Returns the configured build type.
+     *
+     * @return a build type identifier
+     */
     String getBuildType() {
         if (repackageExt.buildType == null) {
             throwRuntimeException(msg("Please set option 'buildType' to the type of the existing build ('debug' or 'release')."))
@@ -280,6 +297,11 @@ class AndroidPlatform extends Platform {
         return repackageExt.buildType
     }
 
+    /**
+     * Return the configured flavor and build type.
+     *
+     * @return a single string (for example, "prod" + "debug" = "prodDebug")
+     */
     String getFlavorAndBuildType() {
         String flavor = repackageExt.flavor
         String flavorPart = flavor == null ? "" : flavor
@@ -549,9 +571,11 @@ class AndroidPlatform extends Platform {
         )
     }
 
-    // Read the configuration files of all appropriate transform tasks
-    // set up by the Android Gradle plugin. This uses the internal API
-    // of the Android Gradle plugin.
+    /**
+     * Read the configuration files of all appropriate transform tasks
+     * set up by the Android Gradle plugin. This uses the internal API
+     * of the Android Gradle plugin.
+     */
     void readConfigurationFiles() {
         if (!repackageExt.configurationFiles) {
             Set<File> allPros = new HashSet<>()
@@ -656,8 +680,13 @@ class AndroidPlatform extends Platform {
             return repackageExt.subprojectName
     }
 
-    // Android projects may have project.name be the default name of
-    // the 'app' directory, so we use the group name too.
+    /**
+     * Read the project name. Android projects may have
+     * project.name be the default name of the 'app'
+     * directory, so we use the group name too.
+     *
+     * @return a group-qualifed project name
+     */
     @Override
     String getProjectName() {
         String group = project.group
@@ -689,8 +718,6 @@ class AndroidPlatform extends Platform {
 
     /**
      * Configures the metadata processor (when integrated with a build task).
-     *
-     * @parameter project   the current project
      */
     private void configureCompileHook() {
 
@@ -731,7 +758,11 @@ class AndroidPlatform extends Platform {
         }
     }
 
-    // Check configuration sections in Android Gradle scripts.
+    /**
+     * Check configuration sections in Android Gradle scripts.
+     *
+     * @return true if a configuration block is defined, false otherwise
+     */
     @Override
     boolean definesRequiredProperties() {
         if (repackageExt.subprojectName == null) {
