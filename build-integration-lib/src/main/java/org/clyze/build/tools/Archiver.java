@@ -2,14 +2,14 @@ package org.clyze.build.tools;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.*;
 import org.zeroturnaround.zip.*;
 
 import static org.clyze.build.tools.Conventions.msg;
@@ -176,5 +176,58 @@ public final class Archiver {
      */
     public static String stripRootPrefix(String s) {
         return s.startsWith(File.separator) ? s.substring(1) : s;
+    }
+
+    /**
+     * Construct a list of file paths corresponding to the contents of
+     * a resource directory in the program JAR.
+     *
+     * @param cl           the class loader to use for loading the resource
+     * @param resourceDir  the resource directory
+     * @return             a list of paths to the extracted directory contents
+     */
+    public static List<String> getUnpackedResources(ClassLoader cl, String resourceDir) {
+        URL dirURL = cl.getResource(resourceDir);
+        if (dirURL == null)
+            return null;
+
+        List<String> ret = new LinkedList<>();
+        try {
+            JarURLConnection jarConnection = (JarURLConnection) dirURL.openConnection();
+            ZipFile jar = jarConnection.getJarFile();
+            File tmpDir = Files.createTempDirectory("resources").toFile();
+            for (ZipEntry entry : Collections.list(jar.entries())) {
+                String name = entry.getName();
+                if (name.equals(resourceDir) || !name.startsWith(resourceDir))
+                    continue;
+                name = name.substring(resourceDir.length());
+                File outFile = new File(tmpDir, name);
+                copyZipEntryToFile(jar, entry, outFile);
+                ret.add(outFile.getCanonicalPath());
+            }
+            return ret;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Extracts a ZIP entry and writes it to a file.
+     *
+     * @param zip   the ZIP file
+     * @param entry the ZIP entry
+     * @param f     the output file
+     */
+    private static void copyZipEntryToFile(ZipFile zip, ZipEntry entry, File f) throws IOException {
+        // System.out.println(zip + ":" + entry + " -> " + f);
+        try (InputStream is = zip.getInputStream(entry);
+             OutputStream os = new BufferedOutputStream(new FileOutputStream(f))){
+            byte[] buffer = new byte[4096];
+            int readCount;
+            while ((readCount = is.read(buffer)) > 0) {
+                os.write(buffer, 0, readCount);
+            }
+        }
     }
 }
