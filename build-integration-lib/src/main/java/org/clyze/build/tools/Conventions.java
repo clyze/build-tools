@@ -1,5 +1,7 @@
 package org.clyze.build.tools;
 
+import java.io.*;
+
 /**
  * The conventions followed by the server.
  */
@@ -37,6 +39,9 @@ public class Conventions {
     /** Default file to record metadata when posting a bundle. */
     public static final String POST_METADATA       = "post-metadata.txt";
 
+    /** Warning when conifguration rules could not be disabled. */
+    public static String COULD_NOT_DISABLE_RULES = msg("WARNING: could not disable configuration rules, generated .apk may not be suitable for analysis.");
+
     /**
      * Given an API level, compute the platform name that must be
      * given to the platform manager to resolve a platform.
@@ -56,6 +61,28 @@ public class Conventions {
      */
     public static String msg(String s) {
         return "[" + TOOL_NAME + "] " + s;
+    }
+
+    /**
+     * Returns a file containing "dont" rules that effectively turn
+     * off shrinking and obfuscation.
+     *
+     * @return a temporary file path (to be deleted on JVM exit), null if error
+     */
+    public static File getDisablingConfiguration() {
+        try {
+            File ret = File.createTempFile("disabling-rules", ".pro");
+            try (FileWriter fw = new FileWriter(ret)) {
+                fw.write("-dontshrink");
+                fw.write("-dontoptimize");
+                fw.write("-dontobfuscate");
+            }
+            return ret;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            System.out.println(COULD_NOT_DISABLE_RULES);
+            return null;
+        }
     }
 
     /**

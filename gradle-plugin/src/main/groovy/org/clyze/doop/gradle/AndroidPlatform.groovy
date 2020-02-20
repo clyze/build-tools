@@ -13,6 +13,7 @@ import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.bundling.Jar
@@ -190,6 +191,7 @@ class AndroidPlatform extends Platform {
 
             Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
+            disableR8Rules()
 
             configureTestRepackaging()
         }
@@ -516,6 +518,32 @@ class AndroidPlatform extends Platform {
                 readConfigurationFiles()
             }
         }
+    }
+
+    /**
+     * Disable R8 rules by adding a "disabling configuration" with -dont* directives.
+     */
+    void disableR8Rules() {
+        File dConf = Conventions.getDisablingConfiguration()
+        if (!dConf)
+            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
+        AndroidAPI.forEachTransform(
+            project, { FileCollection pros ->
+                if (dConf) {
+                    try {
+                        if (pros instanceof ConfigurableFileCollection) {
+                            ((ConfigurableFileCollection)pros).from(dConf)
+                        } else {
+                            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + " Unhandled class: pros=${pros.class}")
+
+                        }
+                    } catch (Throwable t) {
+                        t.printStackTrace()
+                        project.logger.warn Conventions.COULD_NOT_DISABLE_RULES
+                    }
+                }
+            }
+        )
     }
 
     // Read the configuration files of all appropriate transform tasks
