@@ -6,6 +6,7 @@ import org.clyze.utils.VersionInfo
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
@@ -22,10 +23,12 @@ class RepackagePlugin implements Plugin<Project> {
     static final String TASK_SOURCES_JAR    = 'sourcesJar'
     static final String TASK_POST_BUNDLE    = 'postBundle'
     static final String TASK_REPLAY_POST    = 'replay'
-    // The task that gathers all optimization directive configurations.
+    /** The task that gathers all optimization directive configurations. */
     static final String TASK_CONFIGURATIONS = 'configurations'
     static final String TASK_REPACKAGE      = 'repackage'
     static final String TASK_REPACKAGE_TEST = 'repackageTest'
+    /** The task that creates the bundle for posting. */
+    static final String TASK_CREATE_BUNDLE  = 'createBundle'
 
     private Platform platform
 
@@ -69,7 +72,7 @@ class RepackagePlugin implements Plugin<Project> {
         configureJCPluginZipTask(project)
         project.logger.debug msg("Configuring sources task")
         configureSourceJarTask(project)
-        project.logger.debug msg("Configuring bundling task")
+        project.logger.debug msg("Configuring bundle posting task")
         configurePostBundleTask(project)
         project.logger.debug msg("Configuring replay task")
         configureReplayPostTask(project)
@@ -81,6 +84,8 @@ class RepackagePlugin implements Plugin<Project> {
         configureRepackageTask(project)
         project.logger.debug msg("Configuring repackage-test task")
         configureRepackageTestTask(project)
+        project.logger.debug msg("Configuring bundling task")
+        configureCreateBundleTask(project)
     }
 
     private void configureDefaults(Project project) {
@@ -190,5 +195,21 @@ class RepackagePlugin implements Plugin<Project> {
         TestRepackageTask repackage = project.tasks.create(TASK_REPACKAGE_TEST, TestRepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules and test it'
         repackage.group = Conventions.TOOL_NAME
+    }
+
+    private void configureCreateBundleTask(Project project) {
+        CreateBundleTask task = project.tasks.create(TASK_CREATE_BUNDLE, CreateBundleTask)
+        task.description = 'Creates a bundle from this project.'
+        task.group = Conventions.TOOL_NAME
+	    task.dependsOn project.tasks.findByName(TASK_JCPLUGIN_ZIP)
+	    task.dependsOn project.tasks.findByName(TASK_SOURCES_JAR)
+        Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
+        if (confTask)
+            task.dependsOn confTask
+        Task codeTask = project.tasks.findByName(platform.jarTaskName())
+        if (codeTask)
+            task.dependsOn codeTask
+        else
+            project.logger.error msg("ERROR: could not integrate with core build task.")
     }
 }

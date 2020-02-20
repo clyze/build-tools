@@ -149,7 +149,8 @@ class AndroidPlatform extends Platform {
                     it.endsWith(RepackagePlugin.TASK_SCAVENGE) ||
                     it.endsWith(RepackagePlugin.TASK_JCPLUGIN_ZIP) ||
                     it.endsWith(RepackagePlugin.TASK_POST_BUNDLE) ||
-                    it.endsWith(RepackagePlugin.TASK_SOURCES_JAR)
+                    it.endsWith(RepackagePlugin.TASK_SOURCES_JAR) ||
+                    it.endsWith(RepackagePlugin.TASK_CREATE_BUNDLE)
                 }) {
                 project.logger.warn msg("WARNING: No ${Conventions.TOOL_NAME} task invoked, skipping configuration.")
                 return
