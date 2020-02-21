@@ -4,9 +4,18 @@ import com.google.gson.Gson;
 import java.io.*;
 import java.util.Map;
 
+/**
+ * This class gathers information about the installation.
+ */
 public class Settings {
     private static final String C_DIR = ".clyze";
 
+    /**
+     * Returns the installation directory, containing all application
+     * versions.
+     *
+     * @return the installation directory
+     */
     public static File getAppDirectory() {
         String homeDir = System.getProperty("user.home");
         if (homeDir == null)
@@ -23,6 +32,11 @@ public class Settings {
         return null;
     }
 
+    /**
+     * Returns the installed application version.
+     *
+     * @return the version identifier
+     */
     public static String getAppVersion() {
         File appDir = getAppDirectory();
         if (appDir != null) {
@@ -39,6 +53,11 @@ public class Settings {
         return null;
     }
 
+    /**
+     * Returns the installation directory of the current version.
+     *
+     * @return the installation directory
+     */
     public static File getVersionedAppDirectory() {
         File appDir = getAppDirectory();
         String ver = getAppVersion();
@@ -51,6 +70,11 @@ public class Settings {
         return null;
     }
 
+    /**
+     * Returns the configuration file of the installation.
+     *
+     * @return a map representation of the original JSON data
+     */
     public static Map<String, Object> getConfig() {
         File vDir = getVersionedAppDirectory();
         if (vDir != null) {
@@ -74,6 +98,11 @@ public class Settings {
         return null;
     }
 
+    /**
+     * Returns the port used by the installation for posting bundles.
+     *
+     * @return a string representation of the port
+     */
     public static String getDefaultPort() {
         Map<String, Object> conf = Settings.getConfig();
         if (conf != null) {
@@ -88,4 +117,10 @@ public class Settings {
         }
         return null;
     }
+
+    /**
+     * This is a utility class, no public constructor is needed (or
+     * should appear in documentation).
+     */
+    private Settings() {}
 }
