@@ -50,21 +50,22 @@ class AndroidAPI {
 
     /** Get an internal class from the Android Gradle plugin.
      *
-     * @param s   the name of the class
-     * @return    the Class object (or null if class was not found)
+     * @param project the current project
+     * @param s       the name of the class
+     * @return        the Class object (or null if class was not found)
      */
-    private static Class getInternalClass(String s) {
+    private static Class getInternalClass(Project project, String s) {
         try {
             return Class.forName(s)
         } catch (ClassNotFoundException ex) {
-            println msg("WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}")
+            project.logger.warn msg("WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}")
             return null
         }
     }
 
     static void forEachTransform(Project project, def closure) {
-        Class transformTask = getInternalClass("com.android.build.gradle.internal.pipeline.TransformTask")
-        Class pgTransform = getInternalClass("com.android.build.gradle.internal.transforms.ProguardConfigurable")
+        Class transformTask = getInternalClass(project, "com.android.build.gradle.internal.pipeline.TransformTask")
+        Class pgTransform = getInternalClass(project, "com.android.build.gradle.internal.transforms.ProguardConfigurable")
 
         if (!transformTask || !pgTransform) {
             return

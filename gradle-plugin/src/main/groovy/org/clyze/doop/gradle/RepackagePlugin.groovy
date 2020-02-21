@@ -43,10 +43,10 @@ class RepackagePlugin implements Plugin<Project> {
 
         //verify that the appropriate plugins have been applied
         if (project.plugins.hasPlugin('java')) {
-            println msg("Project platform: Java")
+            project.logger.info msg("Project platform: Java")
             platform = new JavaPlatform(project)
         } else if (project.plugins.hasPlugin('android') || project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
-            println msg("Project platform: Android")
+            project.logger.info msg("Project platform: Android")
             platform = new AndroidPlatform(project)
         } else {
             throw new RuntimeException(msg("One of these plugins should be applied before the ${Conventions.TOOL_NAME} plugin: java, android, com.android.application, com.android.library"))
@@ -105,7 +105,7 @@ class RepackagePlugin implements Plugin<Project> {
 
         // Our custom settings.
         String processorPath = platform.getClasspath()
-        println msg("Using processor path: ${processorPath}")
+        project.logger.info msg("Using processor path: ${processorPath}")
 
         File dest = Extension.of(project).scavengeOutputDir
         addPluginCommandArgs(task, dest)
@@ -152,7 +152,7 @@ class RepackagePlugin implements Plugin<Project> {
             task = project.tasks.create(TASK_SOURCES_JAR, Jar)
         } else if (existing instanceof Jar) {
             // Heuristic to handle repeated configuration by Gradle.
-            println msg("Reusing existing task ${TASK_SOURCES_JAR}")
+            project.logger.info msg("Reusing existing task ${TASK_SOURCES_JAR}")
             task = existing as Jar
         } else {
             throw new RuntimeException(msg("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure ${Conventions.TOOL_NAME} plugin."))

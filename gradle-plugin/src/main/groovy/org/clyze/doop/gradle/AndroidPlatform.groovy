@@ -135,12 +135,6 @@ class AndroidPlatform extends Platform {
     @Override
     void markMetadataToFix() {
         project.afterEvaluate {
-            // Read properties from build.gradle.
-            if (!definesRequiredProperties()) {
-                project.logger.warn MISSING_PROPERTIES
-                return
-            }
-
             def tasks = project.gradle.startParameter.taskNames
             // Skip configuration if no plugin tasks will run.
             if (!tasks.any {
@@ -152,7 +146,13 @@ class AndroidPlatform extends Platform {
                     it.endsWith(RepackagePlugin.TASK_SOURCES_JAR) ||
                     it.endsWith(RepackagePlugin.TASK_CREATE_BUNDLE)
                 }) {
-                project.logger.warn msg("WARNING: No ${Conventions.TOOL_NAME} task invoked, skipping configuration.")
+                project.logger.info msg("No ${Conventions.TOOL_NAME} task invoked, skipping configuration.")
+                return
+            }
+
+            // Read properties from build.gradle.
+            if (!definesRequiredProperties()) {
+                project.logger.warn MISSING_PROPERTIES
                 return
             }
 
@@ -240,7 +240,7 @@ class AndroidPlatform extends Platform {
                     // in the same tree must be separately built and their
                     // code provided using 'extraInputs' in build.gradle's
                     // plugin configuration section.
-                    println msg("Ignoring own dependency ${group}:${dep.name}")
+                    project.logger.warn msg("WARNING: ignoring own dependency ${group}:${dep.name}")
                     return
                 }
 

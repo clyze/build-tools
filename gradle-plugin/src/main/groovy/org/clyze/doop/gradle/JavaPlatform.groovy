@@ -30,7 +30,7 @@ class JavaPlatform extends Platform {
         if (projectTestTask != null) {
             // We cannot combine the classpaths from the two tasks to create a
             // new classpath (Gradle complains), so we must use 'extraInputs'.
-            println msg("WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in build.gradle to fix missing classpath entries.")
+            project.logger.warn msg("WARNING: adding sources from task ${COMPILE_TEST_JAVA}, please use 'extraInputs' in build.gradle to fix missing classpath entries.")
             source.addAll(projectTestTask.source.getFiles())
         }
 
@@ -60,7 +60,7 @@ class JavaPlatform extends Platform {
 
             String convPath = ext.convertUTF8Dir
             if (convPath != null) {
-                println msg("Converting to UTF-8 in ${convPath}...")
+                project.logger.info msg("Converting to UTF-8 in ${convPath}...")
                 SourceProcessor sp = new SourceProcessor()
                 sp.process(new File(convPath), true)
             }
@@ -75,7 +75,7 @@ class JavaPlatform extends Platform {
 
             String sourcesJar = ext.useSourcesJar
             if (sourcesJar != null) {
-                println msg("No setup for '${RepackagePlugin.TASK_SOURCES_JAR}' task, using: ${sourcesJar}")
+                project.logger.info msg("No setup for '${RepackagePlugin.TASK_SOURCES_JAR}' task, using: ${sourcesJar}")
             } else {
                 Jar sourcesJarTask = project.tasks.findByName(RepackagePlugin.TASK_SOURCES_JAR) as Jar
                 sourcesJarTask.dependsOn project.tasks.findByName('classes')
@@ -93,7 +93,7 @@ class JavaPlatform extends Platform {
 
         final String TEST_SOURCE_SET = "test"
         if (sourceSets.hasProperty(TEST_SOURCE_SET)) {
-            println msg("Also adding sources from ${TEST_SOURCE_SET}")
+            project.logger.info msg("Also adding sources from ${TEST_SOURCE_SET}")
             sourcesJarTask.from JavaAPI.getTestSources(project)
         }
     }
@@ -158,7 +158,7 @@ class JavaPlatform extends Platform {
 
     @Override
     void configureConfigurationsTask() {
-        println msg("WARNING: the configurations task is not yet implemented.")
+        project.logger.warn msg("WARNING: the configurations task is not yet implemented.")
     }
 
     @Override
