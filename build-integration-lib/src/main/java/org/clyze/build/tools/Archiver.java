@@ -120,7 +120,7 @@ public final class Archiver {
                 boolean supportedLine = true;
                 for (String d : UNSUPPORTED_DIRECTIVES) {
                     if (line.contains(d)) {
-                        warnings.add("WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive " + d);
+                        warnings.add("WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive: " + line);
                         allSupported = false;
                         supportedLine = false;
                     }

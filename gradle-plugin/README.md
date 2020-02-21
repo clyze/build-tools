@@ -212,6 +212,9 @@ clyze {
   by the dependency resolver (e.g. `[ [ "com.android.support",
   "appcompat-v7" ], [ "com.android.support", "recyclerview-v7" ] ]`).
 
+* boolean _printConfig_: if `true`, then a "print configuration" directive
+  is used to gather the configuration rules and directives.
+
 ## Replay the post ##
 
 When invoking the plugin with the ```cachePost``` option set to true,

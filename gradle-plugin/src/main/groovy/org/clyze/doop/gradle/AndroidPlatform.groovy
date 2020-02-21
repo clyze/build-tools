@@ -191,9 +191,20 @@ class AndroidPlatform extends Platform {
 
             Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
-            disableRules()
+            activateSpecialConfiguration()
 
             configureTestRepackaging()
+        }
+    }
+
+    private void activateSpecialConfiguration() {
+        Conventions.SpecialConfiguration sc = Conventions.getSpecialConfiguration(true, repackageExt.printConfig)
+        if (!sc)
+            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
+        else
+            injectConfiguration(sc.file, Conventions.COULD_NOT_DISABLE_RULES)
+        if (repackageExt.printConfig) {
+            repackageExt.configurationFiles = [ sc.outputConfigurationPath ] as List<String>
         }
     }
 
@@ -533,11 +544,6 @@ class AndroidPlatform extends Platform {
      * Disable rules by adding a "disabling configuration" with -dont* directives.
      */
     private void disableRules() {
-        File dConf = Conventions.getDisablingConfiguration()
-        if (!dConf)
-            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
-        else
-            injectConfiguration(dConf, Conventions.COULD_NOT_DISABLE_RULES)
     }
 
     /**

@@ -66,25 +66,44 @@ public class Conventions {
     }
 
     /**
-     * Returns a file containing "dont" rules that effectively turn
-     * off shrinking and obfuscation.
+     * Returns a file containing special rules that help the plugin.
      *
-     * @return a temporary file path (to be deleted on JVM exit), null if error
+     * @param disableOpt   generate "dont" rules that effectively turn
+     *                     off shrinking and obfuscation
+     * @param printConfig  print all rules via "printconfiguration" rule
+     *
+     * @return null if error, otherwise a special configuration object
+     * that contains a temporary "file" path (to be deleted on JVM
+     * exit) and an output "print" configuration path
      */
-    public static File getDisablingConfiguration() {
+    public static SpecialConfiguration getSpecialConfiguration(boolean disableOpt, boolean printConfig) {
         try {
-            File ret = File.createTempFile("disabling-rules", ".pro");
-            try (FileWriter fw = new FileWriter(ret)) {
-                fw.write("-dontshrink");
-                fw.write("-dontoptimize");
-                fw.write("-dontobfuscate");
+            SpecialConfiguration sc = new SpecialConfiguration();
+            sc.file = File.createTempFile("disabling-rules", ".pro");
+            sc.outputConfigurationPath = File.createTempFile("output-configuration", ".pro").getCanonicalPath();
+            try (FileWriter fw = new FileWriter(sc.file)) {
+                if (disableOpt) {
+                    fw.write("-dontshrink\n");
+                    fw.write("-dontoptimize\n");
+                    fw.write("-dontobfuscate\n");
+                }
+                if (printConfig)
+                    fw.write("-printconfiguration " + sc.outputConfigurationPath + "\n");
             }
-            return ret;
+            return sc;
         } catch (IOException ex) {
             ex.printStackTrace();
-            System.out.println(COULD_NOT_DISABLE_RULES);
+            if (disableOpt)
+                System.err.println(COULD_NOT_DISABLE_RULES);
+            else if (printConfig)
+                System.err.println(msg("ERROR: could not print configuration."));
             return null;
         }
+    }
+
+    public static class SpecialConfiguration {
+        public File file;
+        public String outputConfigurationPath;
     }
 
     /**
