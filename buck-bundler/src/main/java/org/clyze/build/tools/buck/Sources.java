@@ -24,7 +24,7 @@ class Sources {
 
         // Option 1: resolve sources in directories given in the command line.
         if (sourceDirs == null) {
-            String nsErr = "Warning: No sources were explicitly given.";
+            String nsErr = "WARNING: No sources were explicitly given.";
             if (!autodetectSources)
                 nsErr += " Consider using option: --" + Config.AUTODETECT_SOURCES_OPT;
             BundlerUtil.logError(nsErr);
