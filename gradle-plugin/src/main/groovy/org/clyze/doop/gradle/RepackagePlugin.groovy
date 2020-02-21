@@ -34,9 +34,7 @@ class RepackagePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-
-        String version = VersionInfo.getVersionInfo(RepackagePlugin.class)
-        project.logger.info msg("Gradle plugin [${version}]")
+        project.logger.info msg("Gradle plugin [${pluginVersion}]")
 
         // Require Java 1.8 or higher.
         if (!JavaVersion.current().isJava8Compatible()) {
@@ -211,5 +209,14 @@ class RepackagePlugin implements Plugin<Project> {
             task.dependsOn codeTask
         else
             project.logger.error msg("ERROR: could not integrate with core build task.")
+    }
+
+    /**
+     * Returns the plugin version.
+     *
+     * @return a version identifier
+     */
+    public static String getPluginVersion() {
+        return VersionInfo.getVersionInfo(RepackagePlugin.class)
     }
 }

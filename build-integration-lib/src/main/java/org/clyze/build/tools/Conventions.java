@@ -38,6 +38,8 @@ public class Conventions {
     public static final String BUNDLE_ID           = "bundle";
     /** Default file to record metadata when posting a bundle. */
     public static final String POST_METADATA       = "post-metadata.txt";
+    /** Server API version. */
+    public static final String API_VERSION         = "1.0";
 
     /** Warning when conifguration rules could not be disabled. */
     public static final String COULD_NOT_DISABLE_RULES = msg("WARNING: could not disable configuration rules, generated .apk may not be suitable for analysis.");

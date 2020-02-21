@@ -14,6 +14,14 @@ import static org.clyze.build.tools.Conventions.msg
 @TypeChecked
 abstract class PostTask extends DefaultTask {
 
+    /**
+     * Helper method to add a file input from the local "bundle" directory.
+     *
+     * @param project the current project
+     * @param ps      the PostState to update
+     * @param tag     the "tag" to use for the added item
+     * @param fName   the file name
+     */
     protected static void addFileInput(Project project, PostState ps, String tag, String fName) {
         Extension ext = Extension.of(project)
         try {
@@ -21,9 +29,8 @@ abstract class PostTask extends DefaultTask {
             if (f.exists()) {
                 ps.addFileInput(tag, f.canonicalPath)
                 project.logger.info msg("Added local cached ${tag} item: ${f}")
-            } else {
+            } else
                 project.logger.warn msg("WARNING: could not find ${tag} item: ${f}")
-            }
         } catch (Throwable t) {
             project.logger.warn msg("WARNING: could not upload ${tag} item: ${fName} (reason: ${t.message})")
         }
@@ -42,6 +49,8 @@ abstract class PostTask extends DefaultTask {
                                               String shrinkResources) {
         addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
         addFileInput(project, ps, 'PG_ZIP', Conventions.CONFIGURATIONS_FILE)
+        ps.addStringInput('PLUGIN_VERSION', RepackagePlugin.pluginVersion ?: '')
+        ps.addStringInput('API_VERSION', Conventions.API_VERSION)
 
         Extension ext = Extension.of(project)
         if (ext.platform instanceof AndroidPlatform) {

@@ -303,6 +303,7 @@ public class BundlerMain {
                                    BundleMetadataConf bmc, Config conf) {
         PostState ps = new PostState();
         ps.setId(Conventions.BUNDLE_ID);
+        ps.addStringInput("API_VERSION", Conventions.API_VERSION);
         ps.addFileInput("INPUTS", bundleApk);
         if (sourceJars != null)
             sourceJars.forEach (sj -> addSourceJar(ps, sj));
