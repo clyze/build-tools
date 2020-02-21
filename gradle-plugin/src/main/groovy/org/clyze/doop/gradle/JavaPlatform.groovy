@@ -103,10 +103,10 @@ class JavaPlatform extends Platform {
      * provides 'jar'.
      */
     @Override
-    void configureCodeJarTask() {}
+    void configureCodeTask() {}
 
     @Override
-    String jarTaskName() { return 'jar' }
+    String codeTaskName() { return 'jar' }
 
     @Override
     List<String> getInputFiles() {
@@ -115,9 +115,9 @@ class JavaPlatform extends Platform {
 
     @Override
     String getOutputCodeArchive() {
-        AbstractArchiveTask jarTask = project.tasks.findByName(jarTaskName()) as AbstractArchiveTask
+        AbstractArchiveTask jarTask = project.tasks.findByName(codeTaskName()) as AbstractArchiveTask
         if (!jarTask) {
-            project.logger.error msg("Could not find jar task ${jarTaskName()}")
+            project.logger.error msg("Could not find jar task ${codeTaskName()}")
             return [] as List<String>
         }
         return project.file(jarTask.archiveFile).canonicalPath

@@ -62,8 +62,8 @@ class RepackagePlugin implements Plugin<Project> {
         configureDefaults(project)
 
         // Configure the tasks.
-        project.logger.debug msg("Configuring code archive task")
-        platform.configureCodeJarTask()
+        project.logger.debug msg("Configuring code task")
+        platform.configureCodeTask()
         if (platform.explicitScavengeTask()) {
             project.logger.debug msg("Configuring scavenge task")
             configureScavengeTask(project)
@@ -134,7 +134,7 @@ class RepackagePlugin implements Plugin<Project> {
         if (platform.explicitScavengeTask()) {
 	        task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
         } else {
-	        task.dependsOn project.tasks.findByName(platform.jarTaskName())
+	        task.dependsOn project.tasks.findByName(platform.codeTaskName())
         }
 
         task.archiveFileName.set(Conventions.METADATA_FILE)
@@ -206,7 +206,7 @@ class RepackagePlugin implements Plugin<Project> {
         Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
         if (confTask)
             task.dependsOn confTask
-        Task codeTask = project.tasks.findByName(platform.jarTaskName())
+        Task codeTask = project.tasks.findByName(platform.codeTaskName())
         if (codeTask)
             task.dependsOn codeTask
         else

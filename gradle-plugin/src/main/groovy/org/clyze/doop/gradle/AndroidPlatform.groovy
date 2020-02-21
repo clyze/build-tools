@@ -77,7 +77,7 @@ class AndroidPlatform extends Platform {
      *
      * @param task   the compile task to accept source file configuration
      */
-    void copySourceSettings(JavaCompile task) {
+    private void copySourceSettings(JavaCompile task) {
         AndroidAPI.forEachSourceFile(
             project,
             { FileTree srcFiles ->
@@ -157,7 +157,7 @@ class AndroidPlatform extends Platform {
             }
 
             String appBuildHome = getAppBuildDir()
-            configureCodeJarTaskAfterEvaluate(appBuildHome)
+            configureCodeTaskAfterEvaluate(appBuildHome)
 
             Jar sourcesJarTask = project.tasks.findByName(RepackagePlugin.TASK_SOURCES_JAR) as Jar
             gatherSourcesAfterEvaluate(sourcesJarTask)
@@ -267,7 +267,7 @@ class AndroidPlatform extends Platform {
      *
      * @return a build type identifier
      */
-    String getBuildType() {
+    private String getBuildType() {
         if (repackageExt.buildType == null) {
             throwRuntimeException(msg("Please set option 'buildType' to the type of the existing build ('debug' or 'release')."))
         } else if ((repackageExt.buildType != 'debug') && (repackageExt.buildType != 'release')) {
@@ -444,7 +444,7 @@ class AndroidPlatform extends Platform {
      * in the "afterEvaluate" stage (see method markMetadataToFix()).
      */
     @Override
-    void configureCodeJarTask() {
+    void configureCodeTask() {
         Jar codeJarTask = project.tasks.create(TASK_CODE_ARCHIVE, Jar)
         codeJarTask.description = 'Generates the code archive'
         codeJarTask.group = Conventions.TOOL_NAME
@@ -453,7 +453,7 @@ class AndroidPlatform extends Platform {
     /**
      * Late configuration for the code archive task.
      */
-    private void configureCodeJarTaskAfterEvaluate(String appBuildHome) {
+    private void configureCodeTaskAfterEvaluate(String appBuildHome) {
         // Update location of class files for JAR task.
         Jar codeTask = project.tasks.findByName(TASK_CODE_ARCHIVE) as Jar
         if (!codeTask) {
@@ -533,23 +533,33 @@ class AndroidPlatform extends Platform {
     /**
      * Disable R8 rules by adding a "disabling configuration" with -dont* directives.
      */
-    void disableR8Rules() {
+    private void disableR8Rules() {
         File dConf = Conventions.getDisablingConfiguration()
         if (!dConf)
             project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
+        else
+            injectConfiguration(dConf, Conventions.COULD_NOT_DISABLE_RULES)
+    }
+
+    /**
+     * Injects a configuration file (containing extra rules or directives) to
+     * the transform phase.
+     *
+     * @param conf           the configuration file
+     * @param errorMessage   a message to show when a problem occurs (warning/error)
+     */
+    private void injectConfiguration(File conf, String errorMessage) {
         AndroidAPI.forEachTransform(
             project, { FileCollection pros ->
-                if (dConf) {
-                    try {
-                        if (pros instanceof ConfigurableFileCollection)
-                            ((ConfigurableFileCollection)pros).from(dConf)
-                        else
-                            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + " Unhandled file collection type: ${pros.class}")
+                try {
+                    if (pros instanceof ConfigurableFileCollection)
+                        ((ConfigurableFileCollection)pros).from(conf)
+                    else
+                        project.logger.warn(errorMessage + " Unhandled file collection type: ${pros.class}")
 
-                    } catch (Throwable t) {
-                        t.printStackTrace()
-                        project.logger.warn Conventions.COULD_NOT_DISABLE_RULES
-                    }
+                } catch (Throwable t) {
+                    t.printStackTrace()
+                    project.logger.error errorMessage
                 }
             }
         )
@@ -560,7 +570,7 @@ class AndroidPlatform extends Platform {
      * set up by the Android Gradle plugin. This uses the internal API
      * of the Android Gradle plugin.
      */
-    void readConfigurationFiles() {
+    private void readConfigurationFiles() {
         if (!repackageExt.configurationFiles) {
             // Use a linked list to preserve (if possible) the
             // ordering of the configurations read.
@@ -593,8 +603,14 @@ class AndroidPlatform extends Platform {
 
 
     @Override
-    String jarTaskName() { return TASK_CODE_ARCHIVE }
+    String codeTaskName() { return TASK_CODE_ARCHIVE }
 
+    /**
+     * Returns the code files that will be given as "input" to the server.
+     * These should be .apk or .aar files.
+     *
+     * @return a list of file paths
+     */
     @Override
     List<String> getInputFiles() {
         String outputsTask = getAssembleTaskName()
@@ -604,6 +620,13 @@ class AndroidPlatform extends Platform {
         return ars
     }
 
+    /**
+     * Returns the library files of the code. For .apk inputs, this
+     * returns nothing, since everything is bundled in the .apk.
+     * For .aar inputs, this returns a list of dependencies (libraries).
+     *
+     * @return a list of file paths
+     */
     @Override
     List<String> getLibraryFiles() {
         // Only upload dependencies when in AAR mode.
