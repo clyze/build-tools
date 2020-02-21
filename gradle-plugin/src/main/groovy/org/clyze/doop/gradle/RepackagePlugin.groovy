@@ -199,16 +199,21 @@ class RepackagePlugin implements Plugin<Project> {
         CreateBundleTask task = project.tasks.create(TASK_CREATE_BUNDLE, CreateBundleTask)
         task.description = 'Creates a bundle from this project.'
         task.group = Conventions.TOOL_NAME
-	    task.dependsOn project.tasks.findByName(TASK_JCPLUGIN_ZIP)
-	    task.dependsOn project.tasks.findByName(TASK_SOURCES_JAR)
-        Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
-        if (confTask)
-            task.dependsOn confTask
-        Task codeTask = project.tasks.findByName(platform.codeTaskName())
-        if (codeTask)
-            task.dependsOn codeTask
-        else
-            project.logger.error msg("ERROR: could not integrate with core build task.")
+        Closure dependOn = { Task t, String tag, String desc, boolean fail ->
+            Task task0 = project.tasks.findByName(tag)
+            if (task0)
+	            t.dependsOn task0
+            else if (fail)
+                project.logger.error msg("ERROR: could not integrate with ${desc}.")
+            else
+                project.logger.warn msg("WARNING: could not integrate with ${desc}.")
+        }
+        String codeTaskName = platform.codeTaskName()
+        dependOn(task, codeTaskName, 'core build task', true)
+        dependOn(task, TASK_JCPLUGIN_ZIP, 'metadata task', false)
+        dependOn(project.tasks.findByName(TASK_JCPLUGIN_ZIP), codeTaskName, 'core build task (metadata dependency)', false)
+        dependOn(task, TASK_SOURCES_JAR, 'sources task', false)
+        dependOn(task, TASK_CONFIGURATIONS, 'configurations task', false)
     }
 
     /**

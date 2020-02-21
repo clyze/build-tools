@@ -185,14 +185,13 @@ class AndroidPlatform extends Platform {
             // If not using an explicit metadata scavenge task, hook into the
             // compiler instead. If this is a run that throws away code (because
             // no archive task is called), skip this integration.
-            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) }
-            if (!explicitScavengeTask() && taskArch) {
+            def taskArch = tasks.find { it.endsWith(TASK_CODE_ARCHIVE) || it.endsWith(RepackagePlugin.TASK_CREATE_BUNDLE) }
+            if (!explicitScavengeTask() && taskArch)
                 configureCompileHook()
-            }
 
             Task confTask = project.tasks.findByName(RepackagePlugin.TASK_CONFIGURATIONS) as Task
             confTask.dependsOn getAssembleTaskName()
-            disableR8Rules()
+            disableRules()
 
             configureTestRepackaging()
         }
@@ -531,9 +530,9 @@ class AndroidPlatform extends Platform {
     }
 
     /**
-     * Disable R8 rules by adding a "disabling configuration" with -dont* directives.
+     * Disable rules by adding a "disabling configuration" with -dont* directives.
      */
-    private void disableR8Rules() {
+    private void disableRules() {
         File dConf = Conventions.getDisablingConfiguration()
         if (!dConf)
             project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
@@ -745,7 +744,9 @@ class AndroidPlatform extends Platform {
                 project.logger.warn msg('WARNING: could not find metadata processor, sources will not be processed.')
                 return
             } else {
-                project.dependencies.add('annotationProcessor', project.files(jcplugin.get(0)))
+                String jcpluginProc = jcplugin.get(0)
+                project.dependencies.add('annotationProcessor', project.files(jcpluginProc))
+                project.logger.info msg("Metadata processor added: ${jcpluginProc}")
                 if (sz > 1) {
                     project.logger.warn msg('WARNING: too many metadata processors found: ' + jcplugin)
                 }
