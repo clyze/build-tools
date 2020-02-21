@@ -11,7 +11,6 @@ Use the "clyze" plugin in your Gradle build:
 ```
 buildscript {
     repositories {
-        maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-deps" }
         maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
     }
     dependencies {
@@ -60,13 +59,7 @@ Project
     +-- build.gradle
 ```
 
-Step 1. Update local.properties to point to the Android SDK:
-
-```
-sdk.dir=/home/user/Android/Sdk
-```
-
-Step 2. Put these lines in Application/build.gradle:
+Step 1. Put these lines in Application/build.gradle:
 
 ```
 apply plugin: 'clyze'
@@ -79,7 +72,7 @@ clyze {
 }
 ```
 
-Step 3. In directory "Project", run the bundling task:
+Step 2. In directory "Project", run the bundling task:
 
 ```
 gradle createBundle postBundle
