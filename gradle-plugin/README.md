@@ -22,20 +22,6 @@ buildscript {
 apply plugin: 'clyze'
 ```
 
-On Android, you must also use the metadata processor in your Gradle build:
-
-```
-repositories {
-    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-deps" }
-    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
-}
-
-dependencies {
-    ...
-    annotationProcessor 'org.clyze:doop-jcplugin:2.0.+'
-}
-```
-
 Android integration has been tested with version 3.3.2 of the Android
 Gradle plugin (dependency "com.android.tools.build:gradle:3.3.2").
 
@@ -59,7 +45,7 @@ clyze {
 Step 2. Run the bundling task:
 
 ```
-clue-bundle.sh postBundle
+gradle createBundle postBundle
 ```
 
 ## Running the bundling task on an Android app ##
@@ -96,15 +82,11 @@ clyze {
 Step 3. In directory "Project", run the bundling task:
 
 ```
-clue-bundle.sh postBundle Application
+gradle createBundle postBundle
 ```
 
 If the project contains no app submodule, then run the bundling task
-as follows:
-
-```
-clue-bundle.sh postBundle
-```
+in the top level directory.
 
 ## Using HPROF information ##
 
