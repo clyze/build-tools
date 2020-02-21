@@ -1,4 +1,4 @@
-package org.clyze.doop.gradle
+package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
 import org.apache.commons.io.FileUtils

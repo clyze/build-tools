@@ -1,4 +1,4 @@
-package org.clyze.buck;
+package org.clyze.build.tools.buck;
 
 import org.clyze.build.tools.Conventions;
 

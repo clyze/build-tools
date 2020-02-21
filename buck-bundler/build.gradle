@@ -25,7 +25,7 @@ dependencies {
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
 
-String mainClass = 'org.clyze.buck.BundlerMain'
+String mainClass = 'org.clyze.build.tools.buck.BundlerMain'
 
 application {
     mainClassName = mainClass

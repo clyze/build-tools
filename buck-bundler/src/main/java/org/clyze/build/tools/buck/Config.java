@@ -1,4 +1,4 @@
-package org.clyze.buck;
+package org.clyze.build.tools.buck;
 
 import java.util.Arrays;
 import java.util.Collection;

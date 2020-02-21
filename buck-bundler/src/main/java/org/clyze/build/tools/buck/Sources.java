@@ -1,4 +1,4 @@
-package org.clyze.buck;
+package org.clyze.build.tools.buck;
 
 import java.nio.file.*;
 import java.io.*;
@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.zeroturnaround.zip.*;
-
-import static org.clyze.buck.BundlerUtil.*;
 
 class Sources {
 
@@ -29,9 +27,9 @@ class Sources {
             String nsErr = "Warning: No sources were explicitly given.";
             if (!autodetectSources)
                 nsErr += " Consider using option: --" + Config.AUTODETECT_SOURCES_OPT;
-            logError(nsErr);
+            BundlerUtil.logError(nsErr);
         } else {
-            println("Source directories:");
+            BundlerUtil.println("Source directories:");
             sourceDirs.forEach(sd -> registerSourcesInDir(sd, sourceFiles));
         }
 
@@ -39,13 +37,13 @@ class Sources {
         if (autodetectSources)
             Sources.autodetectSourceDirs(sourceFiles);
 
-        logDebug("Source files:");
-        sourceFiles.forEach(fs -> logDebug(fs.toString()));
+        BundlerUtil.logDebug("Source files:");
+        sourceFiles.forEach(fs -> BundlerUtil.logDebug(fs.toString()));
         return filterDuplicateSources(sourceFiles);
     }
 
     private static void registerSourcesInDir(String dirPath, Collection<SourceFile> sourceFiles) {
-        println("Gathering sources in directory: " + dirPath);
+        BundlerUtil.println("Gathering sources in directory: " + dirPath);
         try {
             File dir = new File(dirPath);
             String dirPathCanonical = dir.getCanonicalPath();
@@ -53,7 +51,7 @@ class Sources {
                 .filter(Sources::isSourceFile)
                 .forEach(p -> registerJavaSourceInDir(dirPathCanonical, p, sourceFiles));
         } catch (IOException ex) {
-            logDebug("Could not process source directory: " + dirPath);
+            BundlerUtil.logDebug("Could not process source directory: " + dirPath);
         }
     }
 
@@ -74,7 +72,7 @@ class Sources {
                 sourceFiles.add(new SourceFile(entry, f));
             }
         } catch (IOException ex) {
-            logDebug("Could not process source " + p + ": " + ex.getMessage());
+            BundlerUtil.logDebug("Could not process source " + p + ": " + ex.getMessage());
         }
     }
 
@@ -97,15 +95,15 @@ class Sources {
     public static void packSources(Collection<SourceFile> sourceFiles,
                                    File targetArchive) {
         boolean del = targetArchive.delete();
-        logDebug("Delete " + targetArchive + ": " + del);
+        BundlerUtil.logDebug("Delete " + targetArchive + ": " + del);
         String targetArchivePath;
         try {
             FileUtils.touch(targetArchive);
             targetArchivePath = targetArchive.getCanonicalPath();
-            println("Packing sources to file: " + targetArchivePath);
+            BundlerUtil.println("Packing sources to file: " + targetArchivePath);
             ZipUtil.pack(sourceFiles.toArray(new FileSource[0]), targetArchive);
         } catch (IOException ex) {
-            logError("Error creating sources archive: " + targetArchive);
+            BundlerUtil.logError("Error creating sources archive: " + targetArchive);
             ex.printStackTrace();
         }
     }
@@ -141,7 +139,7 @@ class Sources {
                 .filter(Sources::isSourceFile)
                 .forEach(p -> autoregisterSource(p, sourceFiles));
         } catch(IOException ex) {
-            logError("Could not autodect source directories in current path: " + ex.getMessage());
+            BundlerUtil.logError("Could not autodect source directories in current path: " + ex.getMessage());
         }
     }
 
@@ -171,10 +169,10 @@ class Sources {
             final String DOT_SLASH = "." + File.separator;
             if (entry.startsWith(DOT_SLASH))
                 entry = entry.substring(DOT_SLASH.length());
-            println("Entry: " + entry + " -> " + sourceFile);
+            BundlerUtil.println("Entry: " + entry + " -> " + sourceFile);
             sourceFiles.add(new SourceFile(entry, sourceFile));
         } catch (IOException ex) {
-            logError("Could not register Java source in file: " + p);
+            BundlerUtil.logError("Could not register Java source in file: " + p);
         }
     }
 }

@@ -1,4 +1,4 @@
-package org.clyze.doop.gradle
+package org.clyze.build.tools.gradle
 
 import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask

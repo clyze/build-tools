@@ -1,4 +1,4 @@
-package org.clyze.buck;
+package org.clyze.build.tools.buck;
 
 import com.google.gson.Gson;
 import java.io.BufferedReader;
@@ -30,7 +30,7 @@ import org.clyze.build.tools.Poster;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
-import static org.clyze.buck.BundlerUtil.*;
+import static org.clyze.build.tools.buck.BundlerUtil.*;
 
 public class BundlerMain {
 
