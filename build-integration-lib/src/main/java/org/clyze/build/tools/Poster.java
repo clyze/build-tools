@@ -13,10 +13,12 @@ import org.clyze.client.web.PostState;
 public class Poster {
     private final boolean cachePost;
     private final Options options;
+    private final File metadataDir;
 
-    public Poster(Options options, boolean cachePost) {
+    public Poster(Options options, boolean cachePost, File metadataDir) {
         this.options = options;
         this.cachePost = cachePost;
+        this.metadataDir = metadataDir;
     }
 
     public void post(PostState ps) {
@@ -30,12 +32,14 @@ public class Poster {
             }
         }
 
-        File metadataFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.POST_METADATA);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
-            System.out.println(Conventions.msg("Saving options in: " + metadataFile.getCanonicalPath()));
-            writer.write(ps.toJSON());
-        } catch (IOException ex) {
-            System.err.println(Conventions.msg("WARNING: cannot save metadata: " + ex.getMessage()));
+        if (metadataDir != null) {
+            File metadataFile = new File(metadataDir, Conventions.POST_METADATA);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
+                System.out.println(Conventions.msg("Saving options in: " + metadataFile.getCanonicalPath()));
+                writer.write(ps.toJSON());
+            } catch (IOException ex) {
+                System.err.println(Conventions.msg("WARNING: cannot save metadata: " + ex.getMessage()));
+            }
         }
 
         if (!options.dry) {

@@ -325,7 +325,7 @@ public class BundlerMain {
         else
             println("Posting bundle to the server...");
 
-        (new Poster(conf.opts, false)).post(ps);
+        (new Poster(conf.opts, false, new File(Conventions.CLUE_BUNDLE_DIR))).post(ps);
     }
 
     private static void addSourceJar(PostState ps, File sourceJar) {

@@ -43,7 +43,7 @@ class PostBundleTask extends PostTask {
             opts.profile = ext.profile
             opts.project = ext.project
             opts.dry = ext.dry
-            (new Poster(opts, ext.cachePost)).post(bundlePostState)
+            (new Poster(opts, ext.cachePost, ext.scavengeOutputDir)).post(bundlePostState)
         } else {
             project.logger.error msg("ERROR: could not package bundle.")
         }
