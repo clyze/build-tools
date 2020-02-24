@@ -193,6 +193,15 @@ class AndroidPlatform extends Platform {
             confTask.dependsOn getAssembleTaskName()
             activateSpecialConfiguration()
 
+            // If "create bundle" and "post bundle" are called
+            // together, make the second depend on the first, so they
+            // are executed in the correct order.
+            if (tasks.find { it.endsWith(RepackagePlugin.TASK_CREATE_BUNDLE) } &&
+                tasks.find { it.endsWith(RepackagePlugin.TASK_POST_BUNDLE) }) {
+                project.tasks.findByName(RepackagePlugin.TASK_POST_BUNDLE)
+                    .dependsOn(project.tasks.findByName(RepackagePlugin.TASK_CREATE_BUNDLE))
+            }
+
             configureTestRepackaging()
         }
     }
