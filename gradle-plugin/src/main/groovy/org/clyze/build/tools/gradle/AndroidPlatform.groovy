@@ -586,15 +586,14 @@ class AndroidPlatform extends Platform {
      */
     private void readConfigurationFiles() {
         if (!repackageExt.configurationFiles) {
-            // Use a linked list to preserve (if possible) the
-            // ordering of the configurations read.
-            LinkedList<File> allPros = new LinkedList<>()
+            // Preserve the ordering of the configurations, while avoiding duplicates
+            Set<File> allPros = new LinkedHashSet<>()
             AndroidAPI.forEachTransform(
                 project,
                 { FileCollection pros -> allPros.addAll(pros) })
 
             project.logger.info msg("Found ${allPros.size()} configuration files:")
-            repackageExt.configurationFiles = new ArrayList<>()
+            repackageExt.configurationFiles = new ArrayList<String>()
             allPros.each {
                 project.logger.info msg("Using rules from configuration file: ${it.canonicalPath}")
                 repackageExt.configurationFiles.add(it.canonicalPath)
