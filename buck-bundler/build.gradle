@@ -16,11 +16,10 @@ configurations {
 }
 
 dependencies {
-    compile 'commons-cli:commons-cli:1.4'
-    compile 'org.apache.ant:ant:1.10.7'
+    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'org.apache.ant:ant:1.10.7'
 
-    compile 'org.clyze:clue-common:3.19.1'
-    compile project(":build-integration-lib")
+    implementation project(":build-integration-lib")
 
     runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }

@@ -33,8 +33,7 @@ dependencies {
     compileOnly gradleApi()
 
     compileOnly localGroovy()
-    compile 'commons-cli:commons-cli:1.2'
-    compile project(":build-integration-lib")
+    implementation project(":build-integration-lib")
 }
 
 gradlePlugin {

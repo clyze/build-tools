@@ -16,9 +16,9 @@ configurations {
 }
 
 dependencies {
-    compile 'com.google.code.gson:gson:2.8.0'
-    compile 'org.zeroturnaround:zt-zip:1.13'
-    compile('org.clyze:clue-client:4.1.7') {
+    api 'com.google.code.gson:gson:2.8.0'
+    api 'org.zeroturnaround:zt-zip:1.13'
+    compile('org.clyze:clue-client:4.1.8') {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
     }
     jcplugin jcpluginArtifact
