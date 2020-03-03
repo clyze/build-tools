@@ -1,6 +1,7 @@
 package org.clyze.build.tools.gradle
 
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.internal.classloader.ClasspathUtil
@@ -30,19 +31,40 @@ class AndroidAPI {
 
     static List<String> getOutputs(Project project, String buildType, String flavor) {
         List<String> ret = [] as List<String>
-        iterateOverVariants project, { variant ->
-            if ((variant.buildType.name == buildType) &&
-                (!flavor || variant.flavorName == flavor)) {
-                variant.outputs.each { output ->
-                    ret.add output.outputFile.canonicalPath
+        iterateOverSpecificVariants project, buildType, flavor, { variant ->
+            variant.outputs.each { output ->
+                ret.add output.outputFile.canonicalPath
+            }
+        }
+        return ret
+    }
+
+    /**
+     * Get the test configurations, so that they can be excluded from the
+     * bundle. Since testing only uses a build type, no flavor parameter is needed.
+     *
+     * @param project    the current project
+     * @param buildType  the build type used for testing
+     * @return the set of test configurations
+     */
+    static Set<File> getTestConfigurations(Project project, String buildType) {
+        Set<File> ret = [] as Set<File>
+        project.android.buildTypes.each { bt ->
+            if (bt.name == buildType) {
+                bt.testProguardFiles.each { t ->
+                    if (t instanceof File) {
+                        ret.add(t)
+                    } else if (t) {
+                        project.logger.warn msg("WARNING: testProguardFile ${t} could not be excluded from bundle.")
+                    }
                 }
             }
         }
         return ret
     }
 
-    static List<String> getOutputs(Project project, String packageTask) {
-        return project.tasks.findByName(packageTask).outputs.files
+    static List<String> getOutputs(Project project, Task packageTask) {
+        return packageTask.outputs.files
             .findAll { it.name.endsWith('.apk') || it.name.endsWith('.aar') }
             .collect { it.canonicalPath }
             .toList() as List<String>
@@ -107,6 +129,16 @@ class AndroidAPI {
                 }
             } catch (all) {
                 project.logger.debug msg("Could not process variants for ${p}: ${all.message}")
+            }
+        }
+    }
+
+    static void iterateOverSpecificVariants(Project project, String buildType,
+                                            String flavor, Closure cl) {
+        iterateOverVariants project, { variant ->
+            if ((variant.buildType.name == buildType) &&
+                (!flavor || variant.flavorName == flavor)) {
+                cl(variant)
             }
         }
     }

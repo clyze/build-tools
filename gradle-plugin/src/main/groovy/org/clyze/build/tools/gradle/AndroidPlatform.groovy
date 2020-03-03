@@ -586,11 +586,18 @@ class AndroidPlatform extends Platform {
      */
     private void readConfigurationFiles() {
         if (!repackageExt.configurationFiles) {
-            // Preserve the ordering of the configurations, while avoiding duplicates
+            // Preserve the ordering of the configurations, while avoiding duplicates.
             Set<File> allPros = new LinkedHashSet<>()
+            // Gather test configurations so that they can be excluded.
+            Set<String> testConfPaths = AndroidAPI.getTestConfigurations(project, getBuildType())
+                .collect { it.canonicalPath } as Set<String>
+            testConfPaths.each { project.logger.debug msg("Found test configuration: ${it}") }
             AndroidAPI.forEachTransform(
-                project,
-                { FileCollection pros -> allPros.addAll(pros) })
+                project, { FileCollection pros -> pros.each { File pro ->
+                    if (!testConfPaths.contains(pro.canonicalPath)) {
+                        allPros.add(pro)
+                    }
+                }})
 
             project.logger.info msg("Found ${allPros.size()} configuration files:")
             repackageExt.configurationFiles = new ArrayList<String>()
@@ -628,7 +635,7 @@ class AndroidPlatform extends Platform {
     List<String> getInputFiles() {
         String outputsTask = getAssembleTaskName()
         project.logger.info msg("Using non-library outputs from task ${outputsTask}")
-        List<String> ars = AndroidAPI.getOutputs(project, outputsTask)
+        List<String> ars = AndroidAPI.getOutputs(project, project.tasks.findByName(outputsTask))
         project.logger.info msg("Calculated non-library outputs: ${ars}")
         return ars
     }
