@@ -560,7 +560,7 @@ class AndroidPlatform extends Platform {
      */
     private void injectConfiguration(File conf, String errorMessage) {
         AndroidAPI.forEachTransform(
-            project, { FileCollection pros ->
+            project, flavorAndBuildType, { FileCollection pros ->
                 try {
                     if (pros instanceof ConfigurableFileCollection)
                         ((ConfigurableFileCollection)pros).from(conf)
@@ -585,11 +585,11 @@ class AndroidPlatform extends Platform {
             // Preserve the ordering of the configurations, while avoiding duplicates.
             Set<File> allPros = new LinkedHashSet<>()
             // Gather test configurations so that they can be excluded.
-            Set<String> testConfPaths = AndroidAPI.getTestConfigurations(project, getBuildType())
+            Set<String> testConfPaths = AndroidAPI.getTestConfigurations(project, buildType)
                 .collect { it.canonicalPath } as Set<String>
             testConfPaths.each { project.logger.debug msg("Found test configuration: ${it}") }
             AndroidAPI.forEachTransform(
-                project, { FileCollection pros -> pros.each { File pro ->
+                project, flavorAndBuildType, { FileCollection pros -> pros.each { File pro ->
                     if (!testConfPaths.contains(pro.canonicalPath)) {
                         allPros.add(pro)
                     }

@@ -85,7 +85,14 @@ class AndroidAPI {
         }
     }
 
-    static void forEachTransform(Project project, def closure) {
+    /*
+     * Iterate over repackaging transforms of a build type.
+     *
+     * @param project      the current project
+     * @param variantName  the variant name (for example, flavor name + build type)
+     * @param closure      an action to perform on each matching transform
+     */
+    static void forEachTransform(Project project, String variantName, def closure) {
         Class transformTask = getInternalClass(project, "com.android.build.gradle.internal.pipeline.TransformTask")
         Class pgTransform = getInternalClass(project, "com.android.build.gradle.internal.transforms.ProguardConfigurable")
 
@@ -96,7 +103,8 @@ class AndroidAPI {
         project.tasks.each {
             if (transformTask.isInstance(it)) {
                 try {
-                    if (it.transform && pgTransform.isInstance(it.transform)) {
+                    if (it.transform && pgTransform.isInstance(it.transform) &&
+                        it.variantName == variantName) {
                         project.logger.info msg("Processing configuration files in transform: ${it} (${it.class} extends ${it.class.superclass})")
                         FileCollection pros = it.transform.getAllConfigurationFiles()
                         closure(pros)
