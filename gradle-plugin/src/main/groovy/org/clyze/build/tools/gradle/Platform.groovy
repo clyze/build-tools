@@ -104,6 +104,26 @@ abstract class Platform {
     }
 
     /**
+     * Returns the file containing configuration rules.
+     *
+     * @return the configuration file
+     */
+    protected File getConfFile() {
+        return new File(repackageExt.scavengeOutputDir, Conventions.CONFIGURATIONS_FILE)
+    }
+
+    /**
+     * Returns the interesting visible (sub-)projects.
+     *
+     * @return a set of projects
+     */
+    public static Set<Project> getInterestingProjects(Project project) {
+        Set<Project> projects = project.subprojects
+        projects.add(project)
+        return projects
+    }
+
+    /**
      * Takes the compilation settings from an already configured
      * build task.
      *

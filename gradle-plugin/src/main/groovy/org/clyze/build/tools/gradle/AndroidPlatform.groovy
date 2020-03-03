@@ -531,10 +531,6 @@ class AndroidPlatform extends Platform {
         return null
     }
 
-    File getConfFile() {
-        return new File(repackageExt.scavengeOutputDir, Conventions.CONFIGURATIONS_FILE)
-    }
-
     @Override
     void configureConfigurationsTask() {
         Task confTask = project.tasks.create(RepackagePlugin.TASK_CONFIGURATIONS, Task)
@@ -679,13 +675,8 @@ class AndroidPlatform extends Platform {
         // a real task in the Android Gradle plugin and we have to use
         // a lower-level way to read the classpath.
         def cLoader = project.buildscript.getClassLoader()
-        def cpList
-        if (cLoader instanceof URLClassLoader) {
-            URLClassLoader cl = (URLClassLoader)cLoader
-            cpList = cl.getURLs()
-        } else {
-            cpList = AndroidAPI.getAsURIs(cLoader)
-        }
+        def cpList = (cLoader instanceof URLClassLoader) ?
+            ((URLClassLoader)cLoader).getURLs() : AndroidAPI.getAsURIs(cLoader)
 
         if (cpList == null) {
             throwRuntimeException(msg('AndroidPlatform: cannot get classpath for jcplugin, cLoader is ' + cLoader))

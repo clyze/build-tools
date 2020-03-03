@@ -115,14 +115,8 @@ class AndroidAPI {
         return cp.getAsURIs()
     }
 
-    static Set<Project> getInterestingProjects(Project project) {
-        Set<Project> projects = project.subprojects
-        projects.add(project)
-        return projects
-    }
-
     static void iterateOverVariants(Project project, Closure cl) {
-        getInterestingProjects(project).forEach { p ->
+        Platform.getInterestingProjects(project).forEach { p ->
             try {
                 p.android.applicationVariants.all { variant ->
                     cl(variant)
