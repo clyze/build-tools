@@ -624,7 +624,7 @@ class AndroidPlatform extends Platform {
 
         File confZip = getConfFile()
         List<String> warnings = [] as List<String>
-        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings, sc?.file.canonicalPath)
+        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings, project.rootDir.canonicalPath, sc?.file.canonicalPath)
         if (warnings.size() > 0)
             warnings.each { project.logger.warn msg(it) }
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")

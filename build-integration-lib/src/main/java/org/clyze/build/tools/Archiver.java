@@ -149,11 +149,15 @@ public final class Archiver {
      * @param configurationFiles  the input configuration files
      * @param confZip             the output file
      * @param warnings            a list of warnings to populate
+     * @param rootDir             the path of the project
      * @param disablingConfPath   the path of the disabling configuration
      *
      * @throws                    IOException if unsupported directives could not be filtered out
      */
-    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings, String disablingConfPath) throws IOException {
+    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings, String projectDir, String disablingConfPath) throws IOException {
+        final String SEP = File.separator;
+        final String GRADLE_CACHE = ".gradle" + SEP + "caches" + SEP + "transforms";
+        Set<String> entryNamesProcessed = new HashSet<>();
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))) {
             for (File conf : configurationFiles) {
                 if (!conf.exists()) {
@@ -161,8 +165,25 @@ public final class Archiver {
                     continue;
                 }
                 String path = conf.getCanonicalPath();
-                String entryName = path.equals(disablingConfPath) ?
-                    "DISABLING_RULES" : stripRootPrefix(conf.getCanonicalPath());
+                // Massage entry names.
+                String entryName;
+                if (path.equals(disablingConfPath))
+                    entryName = "DISABLING_RULES";
+                else if (projectDir != null && path.startsWith(projectDir))
+                    entryName = stripRootPrefix(path.substring(projectDir.length()));
+                else if (path.indexOf(GRADLE_CACHE) != -1) {
+                    String[] parts = path.split(SEP.equals("\\") ? "\\\\" : "/");
+                    entryName = path.contains("META-INF") ?
+                        parts[parts.length-3] + SEP + parts[parts.length-2] + SEP + parts[parts.length-1] :
+                        parts[parts.length-2] + SEP + parts[parts.length-1];
+                } else
+                    entryName = stripRootPrefix(path);
+                // Avoid duplicate entry names by keeping the first one.
+                if (entryNamesProcessed.contains(entryName)) {
+                    warnings.add("WARNING: duplicate configuration entry: " + entryName);
+                    continue;
+                } else
+                    entryNamesProcessed.add(entryName);
                 out.putNextEntry(new ZipEntry(entryName));
                 if (FILTER_UNSUPPORTED_DIRECTIVES)
                     conf = deleteUnsupportedDirectives(conf, warnings);
