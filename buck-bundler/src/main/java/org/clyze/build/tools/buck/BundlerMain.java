@@ -295,7 +295,7 @@ public class BundlerMain {
      */
     private static void zipConfigurations(List<File> entries, File configurationsFile) throws IOException {
         List<String> warnings = new LinkedList<>();
-        Archiver.zipConfigurations(entries, configurationsFile, warnings);
+        Archiver.zipConfigurations(entries, configurationsFile, warnings, null);
         warnings.forEach(BundlerUtil::logError);
     }
 

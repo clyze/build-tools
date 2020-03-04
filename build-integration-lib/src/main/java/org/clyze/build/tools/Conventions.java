@@ -40,6 +40,10 @@ public class Conventions {
     public static final String POST_METADATA       = "post-metadata.txt";
     /** Server API version. */
     public static final String API_VERSION         = "1.0";
+    /** Disabling rules file name. */
+    public static final String DISABLING_RULES     = "disabling-rules.txt";
+    /** Output configuration file name. */
+    public static final String OUTPUT_RULES        = "output-configuration.txt";
 
     /** Warning when conifguration rules could not be disabled. */
     public static final String COULD_NOT_DISABLE_RULES = msg("WARNING: could not disable configuration rules, generated .apk may not be suitable for analysis.");
@@ -68,6 +72,8 @@ public class Conventions {
     /**
      * Returns a file containing special rules that help the plugin.
      *
+     * @param dir          the directory that will contain the configuration
+     *                     and (optionally) the "printconfiguration" output
      * @param disableOpt   generate "dont" rules that effectively turn
      *                     off shrinking and obfuscation
      * @param printConfig  print all rules via "printconfiguration" rule
@@ -76,19 +82,20 @@ public class Conventions {
      * that contains a temporary "file" path (to be deleted on JVM
      * exit) and an output "print" configuration path
      */
-    public static SpecialConfiguration getSpecialConfiguration(boolean disableOpt, boolean printConfig) {
+    public static SpecialConfiguration getSpecialConfiguration(File dir, boolean disableOpt, boolean printConfig) {
         try {
             SpecialConfiguration sc = new SpecialConfiguration();
-            sc.file = File.createTempFile("disabling-rules", ".pro");
-            sc.outputConfigurationPath = File.createTempFile("output-configuration", ".pro").getCanonicalPath();
+            sc.file = new File(dir, DISABLING_RULES);
             try (FileWriter fw = new FileWriter(sc.file)) {
                 if (disableOpt) {
                     fw.write("-dontshrink\n");
                     fw.write("-dontoptimize\n");
                     fw.write("-dontobfuscate\n");
                 }
-                if (printConfig)
-                    fw.write("-printconfiguration " + sc.outputConfigurationPath + "\n");
+                if (printConfig) {
+                    sc.outputRulesPath = new File(dir, OUTPUT_RULES).getCanonicalPath();
+                    fw.write("-printconfiguration " + sc.outputRulesPath + "\n");
+                }
             }
             return sc;
         } catch (IOException ex) {
@@ -103,7 +110,7 @@ public class Conventions {
 
     public static class SpecialConfiguration {
         public File file;
-        public String outputConfigurationPath;
+        public String outputRulesPath;
     }
 
     /**

@@ -49,6 +49,8 @@ class AndroidPlatform extends Platform {
     // the server when in AAR mode, but not when in APK mode.
     private Set<String> scavengeDeps = new HashSet<>()
     private Set<String> tmpDirs
+    /** The special configuration used to turn off R8 passes. */
+    private Conventions.SpecialConfiguration sc = null;
 
     /**
      * Initializes an Android platform handler for a project.
@@ -194,14 +196,17 @@ class AndroidPlatform extends Platform {
         }
     }
 
+    /**
+     * Disable rules by adding a "disabling configuration" with -dont* directives.
+     */
     private void activateSpecialConfiguration() {
-        Conventions.SpecialConfiguration sc = Conventions.getSpecialConfiguration(true, repackageExt.printConfig)
+        sc = Conventions.getSpecialConfiguration(repackageExt.getBundleDir(project), true, repackageExt.printConfig)
         if (!sc)
             project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
         else
             injectConfiguration(sc.file, Conventions.COULD_NOT_DISABLE_RULES)
         if (repackageExt.printConfig) {
-            repackageExt.configurationFiles = [ sc.outputConfigurationPath ] as List<String>
+            repackageExt.configurationFiles = [ sc.outputRulesPath ] as List<String>
         }
     }
 
@@ -560,12 +565,6 @@ class AndroidPlatform extends Platform {
     }
 
     /**
-     * Disable rules by adding a "disabling configuration" with -dont* directives.
-     */
-    private void disableRules() {
-    }
-
-    /**
      * Injects a configuration file (containing extra rules or directives) to
      * the transform phase.
      *
@@ -625,7 +624,7 @@ class AndroidPlatform extends Platform {
 
         File confZip = getConfFile()
         List<String> warnings = [] as List<String>
-        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings)
+        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings, sc?.file.canonicalPath)
         if (warnings.size() > 0)
             warnings.each { project.logger.warn msg(it) }
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")

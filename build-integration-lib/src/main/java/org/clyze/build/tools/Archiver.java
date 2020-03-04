@@ -149,17 +149,20 @@ public final class Archiver {
      * @param configurationFiles  the input configuration files
      * @param confZip             the output file
      * @param warnings            a list of warnings to populate
+     * @param disablingConfPath   the path of the disabling configuration
      *
      * @throws                    IOException if unsupported directives could not be filtered out
      */
-    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings) throws IOException {
+    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings, String disablingConfPath) throws IOException {
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))) {
             for (File conf : configurationFiles) {
                 if (!conf.exists()) {
                     warnings.add("WARNING: file does not exist: " + conf);
                     continue;
                 }
-                String entryName = stripRootPrefix(conf.getCanonicalPath());
+                String path = conf.getCanonicalPath();
+                String entryName = path.equals(disablingConfPath) ?
+                    "DISABLING_RULES" : stripRootPrefix(conf.getCanonicalPath());
                 out.putNextEntry(new ZipEntry(entryName));
                 if (FILTER_UNSUPPORTED_DIRECTIVES)
                     conf = deleteUnsupportedDirectives(conf, warnings);
