@@ -9,3 +9,7 @@ wrapper {
 subprojects {
     group = 'org.clyze'
 }
+
+task doc() {}
+doc.dependsOn ":gradle-plugin:groovydoc"
+doc.dependsOn ":build-integration-lib:javadoc"
