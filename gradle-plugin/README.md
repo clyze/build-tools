@@ -34,9 +34,6 @@ be omitted):
 
 ```
 clyze {
-    port = ...           // server UI port
-    project = ...        // default: 'scrap'
-    buildType = ...      // default: 'debug'
     flavor = ...         // default: none
 }
 ```
@@ -65,9 +62,6 @@ Step 1. Put these lines in Application/build.gradle:
 apply plugin: 'clyze'
 ...
 clyze {
-    port = ...            // omit to autodetect port from desktop installation
-    subprojectName = "Application"  // omit if no app submodule
-    buildType = "debug"   // or "release" (omit for "debug" default)
     flavor = "prod"       // omit if product flavors are not used
 }
 ```
@@ -199,7 +193,7 @@ clyze {
 * String _subprojectName_: sub-project name (used when an `app`
   sub-directory contains the actual app code).
 
-* String _buildType_: `"debug"` (default) or `"release"`.
+* String _buildType_: `"debug"` or `"release"` (default).
 
 * String _flavor_: the name of the flavor to use. If not given,
   default tasks are used (such as 'assembleDebug'/'assembleRelease').

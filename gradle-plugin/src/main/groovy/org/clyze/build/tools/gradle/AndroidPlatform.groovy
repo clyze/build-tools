@@ -38,7 +38,7 @@ class AndroidPlatform extends Platform {
     /** Default subproject is the current directory. */
     final String DEFAULT_SUBPROJECT_NAME = "."
     /** Default build type. */
-    final String DEFAULT_BUILD_TYPE = "debug"
+    final String DEFAULT_BUILD_TYPE = "release"
 
     private AndroidDepResolver resolver
     // Flag used to prompt the user to run again the plugin when
@@ -288,7 +288,7 @@ class AndroidPlatform extends Platform {
      */
     private String getBuildType() {
         if (repackageExt.buildType == null) {
-            throwRuntimeException(msg("Please set option 'buildType' to the type of the existing build ('debug' or 'release')."))
+            throwRuntimeException(msg("Please set option 'buildType' to the type of the existing build (default: '${DEFAULT_BUILD_TYPE}')."))
         } else if ((repackageExt.buildType != 'debug') && (repackageExt.buildType != 'release')) {
             project.logger.info msg("Property 'buildType' should probably be 'debug' or 'release' (current value: ${repackageExt.buildType}).")
         }
@@ -304,7 +304,7 @@ class AndroidPlatform extends Platform {
     /**
      * Return the configured flavor and build type.
      *
-     * @return a single string (for example, "prod" + "debug" = "prodDebug")
+     * @return a single string (for example, "prod" + "release" = "prodRelease")
      */
     String getFlavorAndBuildType() {
         String flavor = repackageExt.flavor
