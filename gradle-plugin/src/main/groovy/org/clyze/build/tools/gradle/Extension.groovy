@@ -56,6 +56,8 @@ class Extension {
     boolean sources = true
     /** Override sources archive with user-provided sources. */
     String useSourcesJar
+    /** Show output when the javac plugin runs. */
+    boolean jcPluginOutput = false
 
     Platform platform
 

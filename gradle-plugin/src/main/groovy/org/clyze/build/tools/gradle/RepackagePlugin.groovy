@@ -93,7 +93,7 @@ class RepackagePlugin implements Plugin<Project> {
         project.logger.info msg("Using processor path: ${processorPath}")
 
         File dest = Extension.of(project).getBundleDir(project)
-        addPluginCommandArgs(task, dest)
+        addPluginCommandArgs(task, dest, true)
         task.destinationDir = new File(dest as File, "classes")
         task.options.annotationProcessorPath = project.files(processorPath)
         // The compiler may fail when dependencies are missing, try to continue.
@@ -102,9 +102,16 @@ class RepackagePlugin implements Plugin<Project> {
         platform.createScavengeDependency(task)
     }
 
-    static void addPluginCommandArgs(JavaCompile task, File dest) {
+    /**
+     * Enable the javac metadata plugin.
+     *
+     * @param task    the compilation task to receive the plugin
+     * @param dest    the directory that will receive the metadata
+     * @param output  if true, the plugin will show output
+     */
+    static void addPluginCommandArgs(JavaCompile task, File dest, boolean output) {
         File jsonOutput = new File(dest as File, "json")
-        task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
+        task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput + " " + output]
     }
 
     private static void configurePostBundleTask(Project project) {

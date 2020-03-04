@@ -785,7 +785,7 @@ class AndroidPlatform extends Platform {
 
         tasks.each { task ->
             project.logger.info msg("Plugging metadata processor into task ${task.name}")
-            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBundleDir(project))
+            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBundleDir(project), repackageExt.jcPluginOutput)
         }
     }
 
