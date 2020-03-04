@@ -502,7 +502,7 @@ class AndroidPlatform extends Platform {
                 return
             }
             File codeArchive = new File(output)
-            File target = new File(repackageExt.scavengeOutputDir, codeArchive.name)
+            File target = new File(repackageExt.getBundleDir(project), codeArchive.name)
             Files.copy(codeArchive.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
     }
@@ -776,7 +776,7 @@ class AndroidPlatform extends Platform {
 
         tasks.each { task ->
             project.logger.info msg("Plugging metadata processor into task ${task.name}")
-            RepackagePlugin.addPluginCommandArgs(task, repackageExt.scavengeOutputDir)
+            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBundleDir(project))
         }
     }
 

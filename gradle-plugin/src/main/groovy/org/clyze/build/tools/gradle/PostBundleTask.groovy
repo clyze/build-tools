@@ -43,7 +43,7 @@ class PostBundleTask extends PostTask {
             opts.profile = ext.profile
             opts.project = ext.project
             opts.dry = ext.dry
-            (new Poster(opts, ext.cachePost, ext.scavengeOutputDir)).post(bundlePostState)
+            (new Poster(opts, ext.cachePost, ext.getBundleDir(project))).post(bundlePostState)
         } else {
             project.logger.error msg("ERROR: could not package bundle.")
         }
@@ -81,7 +81,7 @@ class PostBundleTask extends PostTask {
         }
 
         boolean submitInputs = false
-        ext.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
+        ext.getBundleDir(project).eachFile(FileType.FILES) { File f ->
             String n = f.name
             if (p.isCodeArtifact(n) && !n.endsWith(Conventions.SOURCES_FILE)) {
                 addFileInput(project, ps, 'INPUTS', n)

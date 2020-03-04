@@ -90,4 +90,21 @@ class Extension {
         }
         return (sec instanceof Extension) ? sec : null
     }
+
+    /**
+     * Returns the bundle directory (creating it if it does not already
+     * exist). Use this method before writing to this directory.
+     *
+     * @param project   the current project
+     * @return          a File object representing the directory
+     */
+    static File getBundleDir(Project project) {
+        // Create output directory.
+        File scavengeDir = Extension.of(project).scavengeOutputDir
+        if (!scavengeDir.exists()) {
+            scavengeDir.mkdirs()
+            project.logger.debug msg("Creating directory: ${scavengeDir}")
+        }
+        return scavengeDir
+    }
 }

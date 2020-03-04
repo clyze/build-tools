@@ -107,7 +107,7 @@ class RepackagePlugin implements Plugin<Project> {
         String processorPath = platform.getClasspath()
         project.logger.info msg("Using processor path: ${processorPath}")
 
-        File dest = Extension.of(project).scavengeOutputDir
+        File dest = Extension.of(project).getBundleDir(project)
         addPluginCommandArgs(task, dest)
         task.destinationDir = new File(dest as File, "classes")
         task.options.annotationProcessorPath = project.files(processorPath)
@@ -136,10 +136,7 @@ class RepackagePlugin implements Plugin<Project> {
         }
 
         task.archiveFileName.set(Conventions.METADATA_FILE)
-        File scavengeDir = Extension.of(project).scavengeOutputDir
-        if (!scavengeDir.exists()) {
-            scavengeDir.mkdirs()
-        }
+        File scavengeDir = Extension.of(project).getBundleDir(project)
         task.destinationDirectory.set(scavengeDir)
         File jsonOutput = new File(scavengeDir, "json")
         task.from jsonOutput
@@ -163,7 +160,7 @@ class RepackagePlugin implements Plugin<Project> {
         project.logger.info msg("Sources archive: ${sourcesName}")
         task.archiveFileName.set(sourcesName)
 
-        task.destinationDirectory.set(Extension.of(project).scavengeOutputDir)
+        task.destinationDirectory.set(Extension.of(project).getBundleDir(project))
         task.description = 'Generates the sources JAR'
         task.group = Conventions.TOOL_NAME
         task.archiveClassifier.set('sources')

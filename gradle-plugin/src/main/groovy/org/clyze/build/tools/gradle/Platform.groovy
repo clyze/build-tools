@@ -109,7 +109,7 @@ abstract class Platform {
      * @return the configuration file
      */
     protected File getConfFile() {
-        return new File(repackageExt.scavengeOutputDir, Conventions.CONFIGURATIONS_FILE)
+        return new File(repackageExt.getBundleDir(project), Conventions.CONFIGURATIONS_FILE)
     }
 
     /**
@@ -130,49 +130,63 @@ abstract class Platform {
      * @param task the build task to read
      */
     abstract void copyCompilationSettings(JavaCompile task)
+
     /**
      * Registers logic that should run after basic initialization. Used
      * for example on Android builds, where basic build tasks creation
      * is delayed and thus our plugin cannot discover these tasks early.
      */
     abstract void markMetadataToFix()
+
     /** Creates a dependency for the "scavenge" task. */
     abstract void createScavengeDependency(JavaCompile scavengeTask)
+
     /**
      * Gathers the sources from an already configured task.
      *
      * @param task the task to read
      */
     abstract void gatherSources(Jar sourcesJarTask)
+
     /** Configures the task that will build the code to post to the server. */
     abstract void configureCodeTask()
+
     /** Returns the name of the task that constructs the code output. */
     abstract String codeTaskName()
+
     /**
      * Returns the code files that will be given as "input" to the server.
      * @return a list of file paths
      */
     abstract List<String> getInputFiles()
+
     /**
      * Returns the code files that will be given as "libraries" to the server.
      * @return a list of file paths
      */
     abstract List<String> getLibraryFiles()
+
     /** Return a build classpath. */
     abstract String getClasspath()
+
     /** Return the project name. */
     abstract String getProjectName()
+
     /** If true, the Gradle plugin must run again. */
     abstract boolean mustRunAgain()
+
     /** Clean up resources on plugin exit. */
     abstract void cleanUp()
+
     /**
      * Configure the task that gathers configuration files (containing
      * keep rules and directives).
      */
     abstract void configureConfigurationsTask()
+
     /** Return the output code archive (JAR, APK, AAR). */
     abstract String getOutputCodeArchive()
+
     /** Checks if a filename is a code artifact. */
     abstract boolean isCodeArtifact(String filename)
 
@@ -183,5 +197,4 @@ abstract class Platform {
      *         false if the processor is integrated in an existing task.
      */
     abstract boolean explicitScavengeTask()
-
 }

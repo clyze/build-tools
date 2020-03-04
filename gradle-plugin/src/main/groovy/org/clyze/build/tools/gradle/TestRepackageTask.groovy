@@ -45,7 +45,7 @@ class TestRepackageTask extends DefaultTask {
         } else {
             project.logger.info msg("Test code directories: " + existingTestCodeDirs)
             println msg("Test code directories searched: " + codeDirs)
-            File testCodeBundleDir = new File(ext.scavengeOutputDir, Conventions.TEST_CODE_DIR)
+            File testCodeBundleDir = new File(ext.getBundleDir(project), Conventions.TEST_CODE_DIR)
             if (!testCodeBundleDir.exists()) {
                 testCodeBundleDir.mkdirs()
             }

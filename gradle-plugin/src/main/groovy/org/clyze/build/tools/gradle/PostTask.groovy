@@ -25,7 +25,7 @@ abstract class PostTask extends DefaultTask {
     protected static void addFileInput(Project project, PostState ps, String tag, String fName) {
         Extension ext = Extension.of(project)
         try {
-            File f = new File(ext.scavengeOutputDir, fName)
+            File f = new File(ext.getBundleDir(project), fName)
             if (f.exists()) {
                 ps.addFileInput(tag, f.canonicalPath)
                 project.logger.info msg("Added local cached ${tag} item: ${f}")
