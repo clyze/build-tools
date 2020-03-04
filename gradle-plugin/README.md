@@ -85,7 +85,7 @@ use with Doop, consult the [HeapDL
 documentation](https://github.com/plast-lab/HeapDL).
 
 Step 2. Zip java.hprof to produce java.hprof.zip. (This step is
-optional, you can upload the java.hprof file but it might be big.)
+optional, you can post the java.hprof file but it might be big.)
 
 Step 3. In the plugin configuration section in build.gradle, add this line:
 
@@ -182,11 +182,10 @@ clyze {
 * String _convertUTF8Dir_: a directory of sources that must be
   converted to UTF-8. This parameter is supported for plain Java code.
 
-* boolean _dry_: if `true`, then the artifact is not uploaded to the
-  server.
+* boolean _dry_: if `true`, then the artifact is not posted.
 
 * boolean _ignoreConfigurations_: if 'true', no configurations will be
-  uploaded.
+  posted.
 
 ### Android-specific options ###
 
