@@ -146,11 +146,6 @@ class JavaPlatform extends Platform {
     }
 
     @Override
-    boolean mustRunAgain() {
-        return false
-    }
-
-    @Override
     void cleanUp() { }
 
     // In Java mode, always use an explicit "scavenge" Gradle task.

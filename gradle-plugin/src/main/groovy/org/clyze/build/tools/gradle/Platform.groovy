@@ -251,9 +251,6 @@ abstract class Platform {
     /** Return the project name. */
     abstract String getProjectName()
 
-    /** If true, the Gradle plugin must run again. */
-    abstract boolean mustRunAgain()
-
     /** Clean up resources on plugin exit. */
     abstract void cleanUp()
 

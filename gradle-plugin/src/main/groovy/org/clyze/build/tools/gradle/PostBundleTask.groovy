@@ -25,11 +25,6 @@ class PostBundleTask extends PostTask {
     void postBundle() {
 
         Extension ext = Extension.of(project)
-        Platform p = ext.platform
-        if (p.mustRunAgain()) {
-            project.logger.error msg("ERROR: this looks like a first-time build, please run the '${Tasks.POST_BUNDLE}' task again.")
-            return
-        }
         
         // Package all information needed to post the bundle and the analysis.
         PostState bundlePostState = newBundlePostState(project)
@@ -48,7 +43,7 @@ class PostBundleTask extends PostTask {
             project.logger.error msg("ERROR: could not package bundle.")
         }
 
-        p.cleanUp()
+        ext.platform.cleanUp()
     }
 
     // A PostState for preserving all the information required to replay a bundle post

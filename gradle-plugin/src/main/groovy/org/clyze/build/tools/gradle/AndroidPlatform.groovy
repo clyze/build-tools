@@ -41,9 +41,6 @@ class AndroidPlatform extends Platform {
     final String DEFAULT_BUILD_TYPE = "release"
 
     private AndroidDepResolver resolver
-    // Flag used to prompt the user to run again the plugin when
-    // needed files have not been generated yet.
-    private boolean runAgain = false
     // Flag: true = AAR project, false = APK project.
     private boolean isLibrary
     // The resolved dependencies, cached to be shared between methods.
@@ -343,7 +340,6 @@ class AndroidPlatform extends Platform {
         File genDir = new File(generatedSources)
         if (!genDir.exists()) {
             project.logger.warn msg("WARNING: Generated sources dir does not exist: ${generatedSources}")
-            runAgain = true
             return []
         }
         genDir.eachFile (FileType.DIRECTORIES) { dir ->
@@ -736,11 +732,6 @@ class AndroidPlatform extends Platform {
         } else {
             return noName? group : "${group}_${name}"
         }
-    }
-
-    @Override
-    boolean mustRunAgain() {
-        return runAgain
     }
 
     @Override
