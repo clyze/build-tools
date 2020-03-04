@@ -31,6 +31,9 @@ public final class Archiver {
      */
     final static String[] UNSUPPORTED_DIRECTIVES = new String[] {"-printusage ", "-printseeds ", "-printconfiguration ", "-dump "};
 
+    /** Filter out unsupported directives. */
+    final static boolean FILTER_UNSUPPORTED_DIRECTIVES = false;
+
     /**
      * Zips a directory as an archive, removing the directory prefix
      * from the entries.
@@ -158,7 +161,8 @@ public final class Archiver {
                 }
                 String entryName = stripRootPrefix(conf.getCanonicalPath());
                 out.putNextEntry(new ZipEntry(entryName));
-                conf = deleteUnsupportedDirectives(conf, warnings);
+                if (FILTER_UNSUPPORTED_DIRECTIVES)
+                    conf = deleteUnsupportedDirectives(conf, warnings);
                 byte[] data = Files.readAllBytes(conf.toPath());
                 out.write(data, 0, data.length);
                 out.closeEntry();
