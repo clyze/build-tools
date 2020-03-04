@@ -27,7 +27,7 @@ class PostBundleTask extends PostTask {
         Extension ext = Extension.of(project)
         Platform p = ext.platform
         if (p.mustRunAgain()) {
-            project.logger.error msg("ERROR: this looks like a first-time build, please run the '${RepackagePlugin.TASK_POST_BUNDLE}' task again.")
+            project.logger.error msg("ERROR: this looks like a first-time build, please run the '${Tasks.POST_BUNDLE}' task again.")
             return
         }
         
@@ -97,7 +97,7 @@ class PostBundleTask extends PostTask {
         }
 
         if (!submitInputs) {
-            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${RepackagePlugin.TASK_POST_BUNDLE}'.")
+            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${Tasks.POST_BUNDLE}'.")
             return null
         }
 
@@ -113,22 +113,26 @@ class PostBundleTask extends PostTask {
         // The platform to use when analyzing the code.
         ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? Conventions.getR8AndroidPlatform("25") : "java_8")
 
-        // Upload sources (user can override with alternative sources archive).
-        String altSourcesJar = ext.useSourcesJar
-        if (altSourcesJar) {
-            File sources = new File(altSourcesJar)
-            if (!sources.exists()) {
-                project.logger.warn msg("WARNING: explicit sources JAR ${altSourcesJar} does not exist, no sources will be uploaded.")
+        if (ext.sources) {
+            // Upload sources (user can override with alternative sources archive).
+            String altSourcesJar = ext.useSourcesJar
+            if (altSourcesJar) {
+                File sources = new File(altSourcesJar)
+                if (!sources.exists()) {
+                    project.logger.warn msg("WARNING: explicit sources JAR ${altSourcesJar} does not exist, no sources will be uploaded.")
+                } else {
+                    ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
+                }
             } else {
-                ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
-            }
-        } else {
-            ext.scavengeOutputDir.eachFile(FileType.FILES) { File f ->
-                String n = f.name
-                if (n.endsWith(Conventions.SOURCES_FILE)) {
-                    addFileInput(project, ps, 'SOURCES_JAR', n)
+                ext.getBundleDir(project).eachFile(FileType.FILES) { File f ->
+                    String n = f.name
+                    if (n.endsWith(Conventions.SOURCES_FILE)) {
+                        addFileInput(project, ps, 'SOURCES_JAR', n)
+                    }
                 }
             }
+            // Upload source metadata.
+            addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
         }
 
         //tamiflex

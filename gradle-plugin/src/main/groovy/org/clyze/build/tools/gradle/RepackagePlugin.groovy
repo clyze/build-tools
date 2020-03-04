@@ -8,7 +8,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 
 import static org.clyze.build.tools.Conventions.msg
@@ -18,17 +17,6 @@ import static org.clyze.build.tools.Conventions.msg
  */
 @TypeChecked
 class RepackagePlugin implements Plugin<Project> {
-    static final String TASK_SCAVENGE       = 'scavenge'
-    static final String TASK_JCPLUGIN_ZIP   = 'jcpluginZip'
-    static final String TASK_SOURCES_JAR    = 'sourcesJar'
-    static final String TASK_POST_BUNDLE    = 'postBundle'
-    static final String TASK_REPLAY_POST    = 'replay'
-    /** The task that gathers all optimization directive configurations. */
-    static final String TASK_CONFIGURATIONS = 'configurations'
-    static final String TASK_REPACKAGE      = 'repackage'
-    static final String TASK_REPACKAGE_TEST = 'repackageTest'
-    /** The task that creates the bundle for posting. */
-    static final String TASK_CREATE_BUNDLE  = 'createBundle'
 
     private Platform platform
 
@@ -66,24 +54,21 @@ class RepackagePlugin implements Plugin<Project> {
             project.logger.debug msg("Configuring scavenge task")
             configureScavengeTask(project)
         }
-        project.logger.debug msg("Configuring jcplugin task")
-        configureJCPluginZipTask(project)
-        project.logger.debug msg("Configuring sources task")
-        configureSourceJarTask(project)
+
         project.logger.debug msg("Configuring bundle posting task")
         configurePostBundleTask(project)
         project.logger.debug msg("Configuring replay task")
         configureReplayPostTask(project)
         project.logger.debug msg("Configuring configuration-gathering task")
         platform.configureConfigurationsTask()
-        project.logger.debug msg("Performing late configuration")
+        project.logger.debug msg("Performing generic late configuration")
         platform.markMetadataToFix()
         project.logger.debug msg("Configuring repackaging task")
         configureRepackageTask(project)
         project.logger.debug msg("Configuring repackage-test task")
         configureRepackageTestTask(project)
-        project.logger.debug msg("Configuring bundling task")
-        configureCreateBundleTask(project)
+        project.logger.debug msg("Configuring bundling task (step 1)")
+        configureCreateBundleTask_step1(project)
     }
 
     private void configureDefaults(Project project) {
@@ -96,7 +81,7 @@ class RepackagePlugin implements Plugin<Project> {
     }
 
     private void configureScavengeTask(Project project) {
-        JavaCompile task = project.tasks.create(TASK_SCAVENGE, JavaCompile)
+        JavaCompile task = project.tasks.create(Tasks.SCAVENGE, JavaCompile)
         task.description = 'Scavenges the source files of the project for analysis'
         task.group = Conventions.TOOL_NAME
 
@@ -122,95 +107,56 @@ class RepackagePlugin implements Plugin<Project> {
         task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput]
     }
 
-    private void configureJCPluginZipTask(Project project) {
-        Zip task = project.tasks.create(TASK_JCPLUGIN_ZIP, Zip)
-        task.description = 'Zips the output files of the metadata processor'
-        task.group = Conventions.TOOL_NAME
-
-        // If a separate metadata generation task exists, depend on it;
-        // otherwise depend on build task (which integrates metadata generation).
-        if (platform.explicitScavengeTask()) {
-	        task.dependsOn project.tasks.findByName(TASK_SCAVENGE)
-        } else {
-	        task.dependsOn project.tasks.findByName(platform.codeTaskName())
-        }
-
-        task.archiveFileName.set(Conventions.METADATA_FILE)
-        File scavengeDir = Extension.of(project).getBundleDir(project)
-        task.destinationDirectory.set(scavengeDir)
-        File jsonOutput = new File(scavengeDir, "json")
-        task.from jsonOutput
-    }
-
-    private synchronized void configureSourceJarTask(Project project) {
-        def existing = project.tasks.findByName(TASK_SOURCES_JAR)
-        Jar task
-        if (existing == null) {
-            task = project.tasks.create(TASK_SOURCES_JAR, Jar)
-        } else if (existing instanceof Jar) {
-            // Heuristic to handle repeated configuration by Gradle.
-            project.logger.info msg("Reusing existing task ${TASK_SOURCES_JAR}")
-            task = existing as Jar
-        } else {
-            throw new RuntimeException(msg("Non-JAR task ${TASK_SOURCES_JAR} exists (of group ${existing.group}), cannot configure ${Conventions.TOOL_NAME} plugin."))
-        }
-
-        String prefix = project.name ? "${project.name}-": ""
-        String sourcesName = prefix + Conventions.SOURCES_FILE
-        project.logger.info msg("Sources archive: ${sourcesName}")
-        task.archiveFileName.set(sourcesName)
-
-        task.destinationDirectory.set(Extension.of(project).getBundleDir(project))
-        task.description = 'Generates the sources JAR'
-        task.group = Conventions.TOOL_NAME
-        task.archiveClassifier.set('sources')
-
-        platform.gatherSources(task)
-    }
-
     private static void configurePostBundleTask(Project project) {
-        PostBundleTask task = project.tasks.create(TASK_POST_BUNDLE, PostBundleTask)
+        PostBundleTask task = project.tasks.create(Tasks.POST_BUNDLE, PostBundleTask)
         task.description = 'Posts the current project as a bundle'
         task.group = Conventions.TOOL_NAME
     }
 
     private static void configureReplayPostTask(Project project) {
-        ReplayPostTask task = project.tasks.create(TASK_REPLAY_POST, ReplayPostTask)
+        ReplayPostTask task = project.tasks.create(Tasks.REPLAY_POST, ReplayPostTask)
         task.description = 'Post analysis data generated by a previous run'
         task.group = Conventions.TOOL_NAME
     }
 
     private static void configureRepackageTask(Project project) {
-        RepackageTask repackage = project.tasks.create(TASK_REPACKAGE, RepackageTask)
+        RepackageTask repackage = project.tasks.create(Tasks.REPACKAGE, RepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules'
         repackage.group = Conventions.TOOL_NAME
     }
 
     private static void configureRepackageTestTask(Project project) {
-        TestRepackageTask repackage = project.tasks.create(TASK_REPACKAGE_TEST, TestRepackageTask)
+        TestRepackageTask repackage = project.tasks.create(Tasks.REPACKAGE_TEST, TestRepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules and test it'
         repackage.group = Conventions.TOOL_NAME
     }
 
-    private void configureCreateBundleTask(Project project) {
-        CreateBundleTask task = project.tasks.create(TASK_CREATE_BUNDLE, CreateBundleTask)
+    private void configureCreateBundleTask_step1(Project project) {
+        CreateBundleTask task = project.tasks.create(Tasks.CREATE_BUNDLE, CreateBundleTask)
         task.description = 'Creates a bundle from this project.'
         task.group = Conventions.TOOL_NAME
-        Closure dependOn = { Task t, String tag, String desc, boolean fail ->
-            Task task0 = project.tasks.findByName(tag)
-            if (task0)
-	            t.dependsOn task0
-            else if (fail)
-                project.logger.error msg("ERROR: could not integrate with ${desc}.")
-            else
-                project.logger.warn msg("WARNING: could not integrate with ${desc}.")
-        }
-        String codeTaskName = platform.codeTaskName()
-        dependOn(task, codeTaskName, 'core build task', true)
-        dependOn(task, TASK_JCPLUGIN_ZIP, 'metadata task', false)
-        dependOn(project.tasks.findByName(TASK_JCPLUGIN_ZIP), codeTaskName, 'core build task (metadata dependency)', false)
-        dependOn(task, TASK_SOURCES_JAR, 'sources task', false)
-        dependOn(task, TASK_CONFIGURATIONS, 'configurations task', false)
+        dependOn(project, task, platform.codeTaskName(), 'core build task', true)
+        dependOn(project, task, Tasks.CONFIGURATIONS, 'configurations task', false)
+    }
+
+    /**
+     * Helper method to declare dependencies between tasks.
+     *
+     * @param project   the current project
+     * @param t         the task that will depend on some other
+     * @param tag       the name of the target task on which t depends
+     * @param desc      a text description of the target task
+     * @param fail      if true, desc is an error message, if false, a warning
+     */
+    public static void dependOn(Project project, Task t, String tag,
+                                String desc, boolean fail) {
+        Task task0 = project.tasks.findByName(tag)
+        if (task0)
+	        t.dependsOn task0
+        else if (fail)
+            project.logger.error msg("ERROR: could not integrate with ${desc}.")
+        else
+            project.logger.warn msg("WARNING: could not integrate with ${desc}.")
     }
 
     /**

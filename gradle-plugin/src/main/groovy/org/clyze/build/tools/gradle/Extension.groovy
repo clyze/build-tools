@@ -21,7 +21,6 @@ class Extension {
     String projectName
     String projectVersion
     String project
-    String useSourcesJar
     File scavengeOutputDir
     /** The configration files to use. */
     List<String> configurationFiles
@@ -53,6 +52,10 @@ class Extension {
      * '-printconfiguration' directive.
      */
     boolean printConfig = false
+    /** Flag to enable gathering sources and their metadata. */
+    boolean sources = true
+    /** Override sources archive with user-provided sources. */
+    String useSourcesJar
 
     Platform platform
 

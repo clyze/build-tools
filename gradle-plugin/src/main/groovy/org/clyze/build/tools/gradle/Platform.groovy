@@ -4,10 +4,13 @@ import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
 import org.clyze.build.tools.Settings
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.JavaCompile
 
 import static org.clyze.build.tools.Conventions.msg
+import static org.clyze.build.tools.gradle.RepackagePlugin.dependOn
 
 /**
  * The Java platform used: plain Java or Android. Each platform is
@@ -124,6 +127,79 @@ abstract class Platform {
     }
 
     /**
+     * Configuration of the sources/metadata tasks. Separated here
+     * so that it can be invoked as a last step.
+     */
+    public void configureSourceTasks() {
+        if (repackageExt.sources) {
+            project.logger.debug msg("Configuring sources task")
+            configureSourceJarTask()
+            project.logger.debug msg("Configuring metadata task")
+            configureMetadataTask()
+            project.logger.debug msg("Configuring bundling task (step 2)")
+            configureCreateBundleTask_step2()
+        } else {
+            project.logger.info msg("Note: sources will not be processed.")
+        }
+    }
+
+    private synchronized void configureSourceJarTask() {
+        def existing = project.tasks.findByName(Tasks.SOURCES_JAR)
+        Jar task
+        if (existing == null) {
+            task = project.tasks.create(Tasks.SOURCES_JAR, Jar)
+        } else if (existing instanceof Jar) {
+            // Heuristic to handle repeated configuration by Gradle.
+            project.logger.info msg("Reusing existing task ${Tasks.SOURCES_JAR}")
+            task = existing as Jar
+        } else {
+            project.logger.warn msg("WARNING: Non-JAR task ${Tasks.SOURCES_JAR} exists, cannot configure ${Conventions.TOOL_NAME} plugin.")
+        }
+
+        String prefix = project.name ? "${project.name}-": ""
+        String sourcesName = prefix + Conventions.SOURCES_FILE
+        project.logger.info msg("Sources archive: ${sourcesName}")
+        task.archiveFileName.set(sourcesName)
+
+        task.destinationDirectory.set(repackageExt.getBundleDir(project))
+        task.description = 'Generates the sources JAR'
+        task.group = Conventions.TOOL_NAME
+        task.archiveClassifier.set('sources')
+
+        gatherSources(task)
+    }
+
+    /**
+     * Configures the metadata scavenging task.
+     */
+    private void configureMetadataTask() {
+        Zip task = project.tasks.create(Tasks.JCPLUGIN_ZIP, Zip)
+        task.description = 'Zips the output files of the metadata processor'
+        task.group = Conventions.TOOL_NAME
+
+        // If a separate metadata generation task exists, depend on it;
+        // otherwise depend on build task (which integrates metadata generation).
+        if (explicitScavengeTask()) {
+	        task.dependsOn project.tasks.findByName(Tasks.SCAVENGE)
+        } else {
+	        task.dependsOn project.tasks.findByName(codeTaskName())
+        }
+
+        task.archiveFileName.set(Conventions.METADATA_FILE)
+        File scavengeDir = repackageExt.getBundleDir(project)
+        task.destinationDirectory.set(scavengeDir)
+        File jsonOutput = new File(scavengeDir, "json")
+        task.from jsonOutput
+    }
+
+    private void configureCreateBundleTask_step2() {
+        Task createBundleTask = project.tasks.findByName(Tasks.CREATE_BUNDLE)
+        dependOn(project, createBundleTask, Tasks.JCPLUGIN_ZIP, 'metadata task', false)
+        dependOn(project, project.tasks.findByName(Tasks.JCPLUGIN_ZIP), codeTaskName(), 'core build task (metadata dependency)', false)
+        dependOn(project, createBundleTask, Tasks.SOURCES_JAR, 'sources task', false)
+    }
+
+    /**
      * Takes the compilation settings from an already configured
      * build task.
      *
@@ -135,6 +211,8 @@ abstract class Platform {
      * Registers logic that should run after basic initialization. Used
      * for example on Android builds, where basic build tasks creation
      * is delayed and thus our plugin cannot discover these tasks early.
+     * All such logic should be gathered here instead of separate
+     * project.afterEvaluate() blocks, to avoid order-of-execution bugs.
      */
     abstract void markMetadataToFix()
 

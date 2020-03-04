@@ -24,7 +24,7 @@ class TestRepackageTask extends DefaultTask {
 
         Extension ext = Extension.of(project)
         if (!(ext.platform instanceof AndroidPlatform)) {
-            project.logger.error msg("Task '" + RepackagePlugin.TASK_REPACKAGE_TEST + "' is only available for Android projects.")
+            project.logger.error msg("Task '" + Tasks.REPACKAGE_TEST + "' is only available for Android projects.")
             return
         }
         AndroidPlatform platform = (AndroidPlatform)ext.platform

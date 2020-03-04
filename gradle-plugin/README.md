@@ -187,6 +187,8 @@ clyze {
 * boolean _ignoreConfigurations_: if 'true', no configurations will be
   posted.
 
+* boolean _sources_: if 'false', no sources will be posted.
+
 ### Android-specific options ###
 
 * String _subprojectName_: sub-project name (used when an `app`

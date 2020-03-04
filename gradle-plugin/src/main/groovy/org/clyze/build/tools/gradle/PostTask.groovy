@@ -47,7 +47,6 @@ abstract class PostTask extends DefaultTask {
      */
     protected static void addBasicPostOptions(Project project, PostState ps,
                                               String shrinkResources) {
-        addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
         addFileInput(project, ps, 'PG_ZIP', Conventions.CONFIGURATIONS_FILE)
         ps.addStringInput('PLUGIN_VERSION', RepackagePlugin.pluginVersion ?: '')
         ps.addStringInput('API_VERSION', Conventions.API_VERSION)

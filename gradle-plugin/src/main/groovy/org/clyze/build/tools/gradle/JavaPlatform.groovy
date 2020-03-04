@@ -68,17 +68,20 @@ class JavaPlatform extends Platform {
             List<String> extras = ext.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
                 String extraCp = extras.join(File.pathSeparator)
-                JavaCompile scavengeTask = project.tasks.findByName(RepackagePlugin.TASK_SCAVENGE) as JavaCompile
+                JavaCompile scavengeTask = project.tasks.findByName(Tasks.SCAVENGE) as JavaCompile
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
             }
 
-            String sourcesJar = ext.useSourcesJar
-            if (sourcesJar != null) {
-                project.logger.info msg("No setup for '${RepackagePlugin.TASK_SOURCES_JAR}' task, using: ${sourcesJar}")
-            } else {
-                Jar sourcesJarTask = project.tasks.findByName(RepackagePlugin.TASK_SOURCES_JAR) as Jar
-                sourcesJarTask.dependsOn project.tasks.findByName('classes')
+            if (ext.sources) {
+                configureSourceTasks()
+                String sourcesJar = ext.useSourcesJar
+                if (sourcesJar != null) {
+                    project.logger.info msg("No setup for '${Tasks.SOURCES_JAR}' task, using: ${sourcesJar}")
+                } else {
+                    Jar sourcesJarTask = project.tasks.findByName(Tasks.SOURCES_JAR) as Jar
+                    sourcesJarTask.dependsOn project.tasks.findByName('classes')
+                }
             }
         }
     }
