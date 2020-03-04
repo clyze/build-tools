@@ -120,7 +120,7 @@ abstract class Platform {
      *
      * @return a set of projects
      */
-    public static Set<Project> getInterestingProjects(Project project) {
+    static Set<Project> getInterestingProjects(Project project) {
         Set<Project> projects = project.subprojects
         projects.add(project)
         return projects
@@ -130,7 +130,7 @@ abstract class Platform {
      * Configuration of the sources/metadata tasks. Separated here
      * so that it can be invoked as a last step.
      */
-    public void configureSourceTasks() {
+    void configureSourceTasks() {
         if (repackageExt.sources) {
             project.logger.debug msg("Configuring sources task")
             configureSourceJarTask()
@@ -154,6 +154,7 @@ abstract class Platform {
             task = existing as Jar
         } else {
             project.logger.warn msg("WARNING: Non-JAR task ${Tasks.SOURCES_JAR} exists, cannot configure ${Conventions.TOOL_NAME} plugin.")
+            return
         }
 
         String prefix = project.name ? "${project.name}-": ""

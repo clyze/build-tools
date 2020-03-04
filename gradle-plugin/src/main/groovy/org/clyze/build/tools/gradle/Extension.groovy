@@ -103,7 +103,7 @@ class Extension {
      */
     static File getBundleDir(Project project) {
         // Create output directory.
-        File scavengeDir = Extension.of(project).scavengeOutputDir
+        File scavengeDir = of(project).scavengeOutputDir
         if (!scavengeDir.exists()) {
             scavengeDir.mkdirs()
             project.logger.debug msg("Creating directory: ${scavengeDir}")

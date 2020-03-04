@@ -148,7 +148,7 @@ class RepackagePlugin implements Plugin<Project> {
      * @param desc      a text description of the target task
      * @param fail      if true, desc is an error message, if false, a warning
      */
-    public static void dependOn(Project project, Task t, String tag,
+    static void dependOn(Project project, Task t, String tag,
                                 String desc, boolean fail) {
         Task task0 = project.tasks.findByName(tag)
         if (task0)
@@ -164,7 +164,7 @@ class RepackagePlugin implements Plugin<Project> {
      *
      * @return a version identifier
      */
-    public static String getPluginVersion() {
+    static String getPluginVersion() {
         return VersionInfo.getVersionInfo(RepackagePlugin.class)
     }
 }
