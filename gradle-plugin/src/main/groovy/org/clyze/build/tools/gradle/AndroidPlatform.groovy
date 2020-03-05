@@ -300,13 +300,12 @@ class AndroidPlatform extends Platform {
      * @return a single string (for example, "prod" + "release" = "prodRelease")
      */
     String getFlavorAndBuildType() {
-        String flavor = repackageExt.flavor
-        String flavorPart = flavor == null ? "" : flavor
         String buildType = getBuildType()
         if (!buildType) {
             throwRuntimeException(msg("ERROR: could not determine build type"))
         }
-        return flavorPart + buildType.capitalize()
+        String flavor = repackageExt.flavor
+        return flavor ? flavor + buildType.capitalize() : buildType
     }
 
     private String getAssembleTaskName() {

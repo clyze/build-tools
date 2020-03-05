@@ -100,6 +100,7 @@ class AndroidAPI {
             return
         }
 
+        project.logger.debug msg("Variant filter: ${variantName}")
         project.tasks.each {
             if (transformTask.isInstance(it)) {
                 try {
@@ -109,7 +110,7 @@ class AndroidAPI {
                         FileCollection pros = it.transform.getAllConfigurationFiles()
                         closure(pros)
                     } else {
-                        project.logger.debug msg("Ignoring transform task: ${it}")
+                        project.logger.debug msg("Ignoring transform task: ${it} (variant: ${it.variantName})")
                     }
                 } catch (Throwable t) {
                     println msg("Error reading task ${it.transform}: ${t.message}")
