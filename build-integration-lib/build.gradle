@@ -16,8 +16,8 @@ configurations {
 }
 
 dependencies {
-    api 'com.google.code.gson:gson:2.8.0'
-    api 'org.zeroturnaround:zt-zip:1.13'
+    api 'com.google.code.gson:gson:2.8.0'                          // Apache 2.0
+    api 'org.zeroturnaround:zt-zip:1.13'                           // Apache 2.0
     compileOnly "org.codehaus.groovy:groovy:${groovyVersion}"
     compile('org.clyze:clue-client:4.1.8') {
         exclude group: "org.codehaus.groovy", module: "groovy-all"

@@ -16,8 +16,8 @@ configurations {
 }
 
 dependencies {
-    implementation 'commons-cli:commons-cli:1.4'
-    implementation 'org.apache.ant:ant:1.10.7'
+    implementation 'commons-cli:commons-cli:1.4'      // Apache 2.0
+    implementation 'org.apache.ant:ant:1.10.7'        // Apache 2.0
 
     implementation project(":build-integration-lib")
 
