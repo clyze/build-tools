@@ -21,7 +21,7 @@ dependencies {
 
     implementation project(":build-integration-lib")
 
-    runtime "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
 
 String mainClass = 'org.clyze.build.tools.buck.BundlerMain'
