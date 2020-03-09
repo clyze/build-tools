@@ -66,7 +66,7 @@ abstract class Platform {
         // initialized to defaults).
         def err = { project.logger.error msg("ERROR: missing property: '${it}'") }
         if (ext.host == null) {
-            project.logger.warn msg("WARNING: missing property 'host', assuming host=${Conventions.DEFAULT_HOST}")
+            project.logger.debug msg("WARNING: missing property 'host', assuming host=${Conventions.DEFAULT_HOST}")
             ext.host = Conventions.DEFAULT_HOST
         }
         if (ext.port == 0) {
@@ -78,7 +78,7 @@ abstract class Platform {
                 port = GradleProps.get(project, 'clue_port')
                 if (port) {
                     ext.port = port as Integer
-                    project.logger.warn msg("WARNING: missing property 'port', using Gradle property 'clue_port'= ${ext.port}")
+                    project.logger.debug msg("WARNING: missing property 'port', using Gradle property 'clue_port'= ${ext.port}")
                 } else {
                     err 'port'
                     return false
@@ -92,7 +92,7 @@ abstract class Platform {
             ext.password = Conventions.DEFAULT_PASSWORD
         }
         if (ext.project == null) {
-            project.logger.warn msg("WARNING: missing property 'project', assuming host=${Conventions.DEFAULT_PROJECT}")
+            project.logger.debug msg("WARNING: missing property 'project', assuming host=${Conventions.DEFAULT_PROJECT}")
             ext.project = Conventions.DEFAULT_PROJECT
         }
         if (ext.profile == null) {

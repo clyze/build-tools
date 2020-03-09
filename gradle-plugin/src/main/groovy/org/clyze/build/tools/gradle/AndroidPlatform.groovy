@@ -813,7 +813,7 @@ class AndroidPlatform extends Platform {
             }
 	    }
         if (repackageExt.buildType == null) {
-            project.logger.warn msg("WARNING: missing property 'buildType', assuming buildType=${DEFAULT_BUILD_TYPE}")
+            project.logger.debug msg("WARNING: missing property 'buildType', assuming buildType=${DEFAULT_BUILD_TYPE}")
             repackageExt.buildType = DEFAULT_BUILD_TYPE
 	    }
         if (repackageExt.flavor == null) {
