@@ -571,7 +571,7 @@ class AndroidPlatform extends Platform {
      * @param errorMessage   a message to show when a problem occurs (warning/error)
      */
     private void injectConfiguration(File conf, String errorMessage) {
-        AndroidAPI.forEachTransform(
+        AndroidAPI.forEachRepackageTransform(
             project, flavorAndBuildType, { FileCollection pros ->
                 try {
                     if (pros instanceof ConfigurableFileCollection)
@@ -600,12 +600,18 @@ class AndroidPlatform extends Platform {
             Set<String> testConfPaths = AndroidAPI.getTestConfigurations(project, buildType)
                 .collect { it.canonicalPath } as Set<String>
             testConfPaths.each { project.logger.debug msg("Found test configuration: ${it}") }
-            AndroidAPI.forEachTransform(
-                project, flavorAndBuildType, { FileCollection pros -> pros.each { File pro ->
-                    if (!testConfPaths.contains(pro.canonicalPath)) {
-                        allPros.add(pro)
+            AndroidAPI.forEachRepackageTransform(
+                project, flavorAndBuildType, { FileCollection pros ->
+                    if (!pros)
+                        return
+                    project.logger.debug msg("pros=${pros}, size=${pros.files.size()}")
+                    pros.each { File pro ->
+                        project.logger.debug msg("Processing rules file: ${pro}")
+                        if (!testConfPaths.contains(pro.canonicalPath)) {
+                            allPros.add(pro)
+                        }
                     }
-                }})
+                })
 
             project.logger.info msg("Found ${allPros.size()} configuration files:")
             repackageExt.configurationFiles = new ArrayList<String>()

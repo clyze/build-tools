@@ -78,9 +78,11 @@ class AndroidAPI {
      */
     private static Class getInternalClass(Project project, String s) {
         try {
-            return Class.forName(s)
+            Class c = Class.forName(s)
+            project.logger.debug msg("Using AGP internal class: ${s}")
+            return c
         } catch (ClassNotFoundException ex) {
-            project.logger.warn msg("WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}")
+            project.logger.debug msg("WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}")
             return null
         }
     }
@@ -92,29 +94,34 @@ class AndroidAPI {
      * @param variantName  the variant name (for example, flavor name + build type)
      * @param closure      an action to perform on each matching transform
      */
-    static void forEachTransform(Project project, String variantName, def closure) {
+    static void forEachRepackageTransform(Project project, String variantName, def closure) {
         Class transformTask = getInternalClass(project, "com.android.build.gradle.internal.pipeline.TransformTask")
-        Class pgTransform = getInternalClass(project, "com.android.build.gradle.internal.transforms.ProguardConfigurable")
-
-        if (!transformTask || !pgTransform) {
-            return
-        }
+        Class pgTransform1 = getInternalClass(project, "com.android.build.gradle.internal.transforms.ProguardConfigurable")
+        Class pgTransform2 = getInternalClass(project, "com.android.build.gradle.internal.tasks.ProguardTask")
+        Class pgTransform3 = getInternalClass(project, "com.android.build.gradle.internal.tasks.R8Task")
 
         project.logger.debug msg("Variant filter: ${variantName}")
         project.tasks.each {
-            if (transformTask.isInstance(it)) {
-                try {
-                    if (it.transform && pgTransform.isInstance(it.transform) &&
+            project.logger.debug "Checking task: ${it} (${it.class} extends ${it.class.superclass})"
+            try {
+                if (transformTask?.isInstance(it)) {
+                    if (it.transform && pgTransform1?.isInstance(it.transform) &&
                         it.variantName == variantName) {
-                        project.logger.info msg("Processing configuration files in transform: ${it} (${it.class} extends ${it.class.superclass})")
+                        project.logger.info msg("Processing configuration files in transform: ${it}")
                         FileCollection pros = it.transform.getAllConfigurationFiles()
                         closure(pros)
-                    } else {
+                    } else
                         project.logger.debug msg("Ignoring transform task: ${it} (variant: ${it.variantName})")
-                    }
-                } catch (Throwable t) {
-                    println msg("Error reading task ${it.transform}: ${t.message}")
+                } else if (pgTransform2?.isInstance(it) || pgTransform3?.isInstance(it)) {
+                    if (it.variantName == variantName) {
+                        project.logger.info msg("Processing configuration files in transform: ${it}")
+                        FileCollection pros = it.getConfigurationFiles()
+                        closure(pros)
+                    } else
+                        project.logger.debug msg("Ignoring transform task: ${it} (variant: ${it.variantName})")
                 }
+            } catch (Throwable t) {
+                println msg("Error reading task ${it.transform}: ${t.message}")
             }
         }
     }

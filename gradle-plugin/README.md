@@ -23,7 +23,8 @@ apply plugin: 'clyze'
 
 Android integration has been tested with the following versions of the
 Android Gradle plugin (dependency
-"com.android.tools.build:gradle:X.Y.Z"): 3.4.2, 3.5.1, 3.5.2, 3.5.3.
+"com.android.tools.build:gradle:X.Y.Z"): 3.4.2, 3.5.1, 3.5.2, 3.5.3,
+3.6.0.
 
 ## Running the bundling task on a Java application ##
 
