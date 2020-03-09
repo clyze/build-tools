@@ -11,7 +11,7 @@ import static org.clyze.build.tools.Conventions.msg
  */
 @TypeChecked
 class Extension {
-    static final String SECTION_NAME = "clyze"
+    static final String SECTION_NAME = 'clyze'
 
     String host
     int port

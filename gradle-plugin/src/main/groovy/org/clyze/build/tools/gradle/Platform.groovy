@@ -28,7 +28,7 @@ abstract class Platform {
      * Message to display when configuration block is missing
      * and initialization cannot happen.
      */
-    protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${Conventions.TOOL_NAME} plugin with defaults.")
+    protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${Conventions.TOOL_NAME} plugin with defaults, check '${Extension.SECTION_NAME}' configuration block in build.gradle.")
     /** The current project. */
     protected Project project
     /** Field to hold the configuration data structure. */
