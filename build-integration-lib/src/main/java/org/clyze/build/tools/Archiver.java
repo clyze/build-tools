@@ -167,9 +167,11 @@ public final class Archiver {
                 String path = conf.getCanonicalPath();
                 // Massage entry names.
                 String entryName;
-                if (path.equals(disablingConfPath))
-                    entryName = "DISABLING_RULES";
-                else if (projectDir != null && path.startsWith(projectDir))
+                if (path.equals(disablingConfPath)) {
+                    // Don't add our "disabling rules" file to the archive.
+                    continue;
+                    // entryName = "DISABLING_RULES";
+                } else if (projectDir != null && path.startsWith(projectDir))
                     entryName = stripRootPrefix(path.substring(projectDir.length()));
                 else if (path.indexOf(GRADLE_CACHE) != -1) {
                     String[] parts = path.split(SEP.equals("\\") ? "\\\\" : "/");
