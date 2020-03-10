@@ -37,7 +37,7 @@ public class Conventions {
     /** Default bundle identifier. */
     public static final String BUNDLE_ID           = "bundle";
     /** Default file to record metadata when posting a bundle. */
-    public static final String POST_METADATA       = "post-metadata.txt";
+    public static final String POST_METADATA       = "post-metadata.json";
     /** Server API version. */
     public static final String API_VERSION         = "1.0";
     /** Disabling rules file name. */
