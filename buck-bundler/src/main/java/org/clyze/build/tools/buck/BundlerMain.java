@@ -23,10 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.tools.ant.types.Commandline;
-import org.clyze.build.tools.Archiver;
-import org.clyze.build.tools.Conventions;
-import org.clyze.build.tools.JcPlugin;
-import org.clyze.build.tools.Poster;
+import org.clyze.build.tools.*;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
@@ -294,10 +291,10 @@ public class BundlerMain {
      * @throws IOException        on packaging error
      */
     private static void zipConfigurations(List<File> entries, File configurationsFile) throws IOException {
-        List<String> warnings = new LinkedList<>();
+        List<Message> messages = new LinkedList<>();
         String projectDir = (new File(".")).getCanonicalPath();
-        Archiver.zipConfigurations(entries, configurationsFile, warnings, projectDir, null, null);
-        warnings.forEach(BundlerUtil::logError);
+        Archiver.zipConfigurations(entries, configurationsFile, messages, projectDir, null, null);
+        messages.forEach(m -> BundlerUtil.logError(m.text));
     }
 
     private static void postBundle(String bundleApk, Collection<File> sourceJars,

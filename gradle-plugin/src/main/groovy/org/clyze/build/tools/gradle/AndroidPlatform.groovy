@@ -9,6 +9,7 @@ import java.nio.file.StandardCopyOption
 import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.JcPlugin
+import org.clyze.build.tools.Message
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
@@ -628,10 +629,17 @@ class AndroidPlatform extends Platform {
         }
 
         File confZip = getConfFile()
-        List<String> warnings = [] as List<String>
-        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings, project.rootDir.canonicalPath, sc?.file.canonicalPath, sc.outputRulesPath)
-        if (warnings.size() > 0)
-            warnings.each { project.logger.warn msg(it) }
+        List<Message> messages = [] as List<Message>
+        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, messages, project.rootDir.canonicalPath, sc?.file.canonicalPath, sc.outputRulesPath)
+        if (messages.size() > 0)
+            messages.each { Message m ->
+            if (m.isWarning())
+                project.logger.warn msg(m.text)
+            else if (m.isDebug())
+                project.logger.debug msg(m.text)
+            else
+                project.logger.info msg(m.text)
+        }
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
     }
 

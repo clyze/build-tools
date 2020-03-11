@@ -1,0 +1,30 @@
+package org.clyze.build.tools;
+
+import java.util.List;
+
+/**
+ * A message returned from the core library, so that it can be fed to
+ * a logger or output in the console.
+ */
+public final class Message {
+    public final Type type;
+    public final String text;
+
+    public enum Type { WARNING, DEBUG };
+
+    private Message(Type type, String text) {
+        this.type = type;
+        this.text = text;
+    }
+
+    public boolean isWarning() { return type == Type.WARNING; }
+    public boolean isDebug()   { return type == Type.DEBUG;   }
+
+    public static void warn(List<Message> messages, String text) {
+        messages.add(new Message(Type.WARNING, text));
+    }
+
+    public static void debug(List<Message> messages, String text) {
+        messages.add(new Message(Type.DEBUG, text));
+    }
+}

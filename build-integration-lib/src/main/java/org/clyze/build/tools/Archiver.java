@@ -110,12 +110,12 @@ public final class Archiver {
      * If the file given contains unsupported directives, create a copy without them.
      *
      * @param conf     the configuration file containing the directives
-     * @param warnings a list of warnings to populate
+     * @param messages a list of messages to populate
      * @return         the original file (if no unsupported directives were found) or a
      *                 new file without the offending directives
      * @throws         IOException if the new file could not be written
      */
-    private static File deleteUnsupportedDirectives(File conf, List<String> warnings) throws IOException {
+    private static File deleteUnsupportedDirectives(File conf, List<Message> messages) throws IOException {
         boolean allSupported = true;
         LinkedList<String> lines = new LinkedList<>();
         try (BufferedReader txtReader = new BufferedReader(new FileReader(conf))) {
@@ -124,7 +124,7 @@ public final class Archiver {
                 boolean supportedLine = true;
                 for (String d : UNSUPPORTED_DIRECTIVES) {
                     if (line.contains(d)) {
-                        warnings.add("WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive: " + line);
+                        Message.warn(messages, "WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive: " + line);
                         allSupported = false;
                         supportedLine = false;
                     }
@@ -149,21 +149,21 @@ public final class Archiver {
      *
      * @param configurationFiles  the input configuration files
      * @param confZip             the output file
-     * @param warnings            a list of warnings to populate
+     * @param messages            a list of messages to populate
      * @param projectDir          the path of the project
      * @param disablingConfPath   the path of the disabling configuration
      * @param printConfigPath     a file (path) containing all configuration for sanity check
      *
      * @throws                    IOException if unsupported directives could not be filtered out
      */
-    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings, String projectDir, String disablingConfPath, String printConfigPath) throws IOException {
+    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<Message> messages, String projectDir, String disablingConfPath, String printConfigPath) throws IOException {
         final String SEP = File.separator;
         final String GRADLE_CACHE = ".gradle" + SEP + "caches" + SEP + "transforms";
         Set<String> entryNamesProcessed = new HashSet<>();
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))) {
             for (File conf : configurationFiles) {
                 if (!conf.exists()) {
-                    warnings.add("WARNING: file does not exist: " + conf);
+                    Message.debug(messages, "WARNING: file does not exist: " + conf);
                     continue;
                 }
                 String path = conf.getCanonicalPath();
@@ -184,13 +184,13 @@ public final class Archiver {
                     entryName = stripRootPrefix(path);
                 // Avoid duplicate entry names by keeping the first one.
                 if (entryNamesProcessed.contains(entryName)) {
-                    warnings.add("WARNING: duplicate configuration entry: " + entryName);
+                    Message.warn(messages, "WARNING: duplicate configuration entry: " + entryName);
                     continue;
                 } else
                     entryNamesProcessed.add(entryName);
                 out.putNextEntry(new ZipEntry(entryName));
                 if (FILTER_UNSUPPORTED_DIRECTIVES)
-                    conf = deleteUnsupportedDirectives(conf, warnings);
+                    conf = deleteUnsupportedDirectives(conf, messages);
                 byte[] data = Files.readAllBytes(conf.toPath());
                 out.write(data, 0, data.length);
                 out.closeEntry();
@@ -198,7 +198,7 @@ public final class Archiver {
         }
 
         if (printConfigPath != null) {
-            checkConfigurationsArchive(confZip, new File(printConfigPath), disablingConfPath, warnings);
+            checkConfigurationsArchive(confZip, new File(printConfigPath), disablingConfPath, messages);
         }
     }
 
@@ -271,18 +271,18 @@ public final class Archiver {
      * @param confZip            the configurations archive
      * @param printConfigFile    the file containing the reference configuration
      * @param disablingConfPath  the path to the "disabling configuration" (or null)
-     * @param warnings           a list to be populated with warnings (instead
+     * @param messages           a list to be populated with messages (instead
      *                           of writing to the console)
      */
     public static void checkConfigurationsArchive(File confZip, File printConfigFile,
                                                   String disablingConfPath,
-                                                  List<String> warnings) {
+                                                  List<Message> messages) {
         if (!printConfigFile.exists()) {
-            warnings.add("Cannot check configuration completeness, file missing: " + printConfigFile);
+            Message.warn(messages, "Cannot check configuration completeness, file missing: " + printConfigFile);
             return;
         }
         try {
-            warnings.add("Checking configuration completeness...");
+            Message.debug(messages, "Checking configuration completeness...");
             ZipFile zipFile = new ZipFile(confZip);
             List<String> rules = new LinkedList<>();
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -299,11 +299,13 @@ public final class Archiver {
             for (String r : rules) {
                 int idx = totalRules.indexOf(r);
                 if (idx < 0)
-                    warnings.add("Bundled rules not found in total configuration: " + r);
+                    Message.warn(messages, "Bundled rules not found in total configuration: " + r);
                 else
                     totalRules = totalRules.substring(0, idx) + totalRules.substring(idx + r.length());
             }
-            warnings.add("Configurations check, rules not uploaded: '" + totalRules.trim() + "'");
+            String diff = totalRules.trim();
+            if (diff.length() != 0)
+                Message.warn(messages, "Configurations check, rules not uploaded: '" + diff + "'");
         } catch (Throwable t) {
             t.printStackTrace();
         }
