@@ -200,7 +200,7 @@ class AndroidPlatform extends Platform {
      * Disable rules by adding a "disabling configuration" with -dont* directives.
      */
     private void activateSpecialConfiguration() {
-        sc = Conventions.getSpecialConfiguration(repackageExt.getBundleDir(project), true, repackageExt.printConfig)
+        sc = Conventions.getSpecialConfiguration(repackageExt.getBundleDir(project), true, true)
         if (!sc)
             project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
         else
@@ -629,7 +629,7 @@ class AndroidPlatform extends Platform {
 
         File confZip = getConfFile()
         List<String> warnings = [] as List<String>
-        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings, project.rootDir.canonicalPath, sc?.file.canonicalPath)
+        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, warnings, project.rootDir.canonicalPath, sc?.file.canonicalPath, sc.outputRulesPath)
         if (warnings.size() > 0)
             warnings.each { project.logger.warn msg(it) }
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")

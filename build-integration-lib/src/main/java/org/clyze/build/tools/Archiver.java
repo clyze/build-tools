@@ -6,6 +6,7 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -149,12 +150,13 @@ public final class Archiver {
      * @param configurationFiles  the input configuration files
      * @param confZip             the output file
      * @param warnings            a list of warnings to populate
-     * @param rootDir             the path of the project
+     * @param projectDir          the path of the project
      * @param disablingConfPath   the path of the disabling configuration
+     * @param printConfigPath     a file (path) containing all configuration for sanity check
      *
      * @throws                    IOException if unsupported directives could not be filtered out
      */
-    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings, String projectDir, String disablingConfPath) throws IOException {
+    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<String> warnings, String projectDir, String disablingConfPath, String printConfigPath) throws IOException {
         final String SEP = File.separator;
         final String GRADLE_CACHE = ".gradle" + SEP + "caches" + SEP + "transforms";
         Set<String> entryNamesProcessed = new HashSet<>();
@@ -193,6 +195,10 @@ public final class Archiver {
                 out.write(data, 0, data.length);
                 out.closeEntry();
             }
+        }
+
+        if (printConfigPath != null) {
+            checkConfigurationsArchive(confZip, new File(printConfigPath), disablingConfPath, warnings);
         }
     }
 
@@ -257,5 +263,55 @@ public final class Archiver {
                 os.write(buffer, 0, readCount);
             }
         }
+    }
+
+    /**
+     * Check the completeness of the configurations archive to be uploaded.
+     *
+     * @param confZip            the configurations archive
+     * @param printConfigFile    the file containing the reference configuration
+     * @param disablingConfPath  the path to the "disabling configuration" (or null)
+     * @param warnings           a list to be populated with warnings (instead
+     *                           of writing to the console)
+     */
+    public static void checkConfigurationsArchive(File confZip, File printConfigFile,
+                                                  String disablingConfPath,
+                                                  List<String> warnings) {
+        if (!printConfigFile.exists()) {
+            warnings.add("Cannot check configuration completeness, file missing: " + printConfigFile);
+            return;
+        }
+        try {
+            warnings.add("Checking configuration completeness...");
+            ZipFile zipFile = new ZipFile(confZip);
+            List<String> rules = new LinkedList<>();
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                rules.add(fromInputStreamToString(zipFile.getInputStream(entry)));
+            }
+            if (disablingConfPath != null) {
+                File dc = new File(disablingConfPath);
+                if (dc.exists())
+                    rules.add(fromInputStreamToString(new FileInputStream(dc)));
+            }
+            String totalRules = fromInputStreamToString(new FileInputStream(printConfigFile));
+            for (String r : rules) {
+                int idx = totalRules.indexOf(r);
+                if (idx < 0)
+                    warnings.add("Bundled rules not found in total configuration: " + r);
+                else
+                    totalRules = totalRules.substring(0, idx) + totalRules.substring(idx + r.length());
+            }
+            warnings.add("Configurations check, rules not uploaded: '" + totalRules.trim() + "'");
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private static String fromInputStreamToString(InputStream is) throws IOException {
+        Path tmpFile = File.createTempFile("rules", ".tmp").toPath();
+        Files.copy(is, tmpFile, StandardCopyOption.REPLACE_EXISTING);
+        return new String(Files.readAllBytes(tmpFile));
     }
 }

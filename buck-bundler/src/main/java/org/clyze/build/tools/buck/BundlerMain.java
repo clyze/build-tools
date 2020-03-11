@@ -296,7 +296,7 @@ public class BundlerMain {
     private static void zipConfigurations(List<File> entries, File configurationsFile) throws IOException {
         List<String> warnings = new LinkedList<>();
         String projectDir = (new File(".")).getCanonicalPath();
-        Archiver.zipConfigurations(entries, configurationsFile, warnings, projectDir, null);
+        Archiver.zipConfigurations(entries, configurationsFile, warnings, projectDir, null, null);
         warnings.forEach(BundlerUtil::logError);
     }
 
