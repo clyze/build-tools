@@ -294,7 +294,16 @@ public class BundlerMain {
         List<Message> messages = new LinkedList<>();
         String projectDir = (new File(".")).getCanonicalPath();
         Archiver.zipConfigurations(entries, configurationsFile, messages, projectDir, null, null);
-        messages.forEach(m -> BundlerUtil.logError(m.text));
+        showMessages(messages);
+    }
+
+    private static void showMessages(List<Message> messages) {
+        messages.forEach((Message m) -> {
+                if (m.isPrint())
+                    System.out.println(m.text);
+                else
+                    BundlerUtil.logError(m.text);
+        });
     }
 
     private static void postBundle(String bundleApk, Collection<File> sourceJars,
@@ -323,7 +332,10 @@ public class BundlerMain {
         else
             println("Posting bundle to the server...");
 
-        (new Poster(conf.opts, false, new File(Conventions.CLUE_BUNDLE_DIR))).post(ps);
+        List<Message> messages = new LinkedList<>();
+        (new Poster(conf.opts, false, new File(Conventions.CLUE_BUNDLE_DIR)))
+                .post(ps, messages);
+        showMessages(messages);
     }
 
     private static void addSourceJar(PostState ps, File sourceJar) {

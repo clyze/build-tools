@@ -2,6 +2,8 @@ package org.clyze.build.tools.gradle
 
 import groovy.io.FileType
 import groovy.transform.TypeChecked
+import org.clyze.build.tools.Message
+
 import java.nio.file.Files
 import org.clyze.build.tools.Conventions
 import org.clyze.build.tools.Poster
@@ -38,7 +40,10 @@ class PostBundleTask extends PostTask {
             opts.profile = ext.profile
             opts.project = ext.project
             opts.dry = ext.dry
-            (new Poster(opts, ext.cachePost, ext.getBundleDir(project))).post(bundlePostState)
+            List<Message> messages = new LinkedList<>()
+            (new Poster(opts, ext.cachePost, ext.getBundleDir(project)))
+                    .post(bundlePostState, messages)
+            messages.each { Platform.showMessage(project, it) }
         } else {
             project.logger.error msg("ERROR: could not package bundle.")
         }

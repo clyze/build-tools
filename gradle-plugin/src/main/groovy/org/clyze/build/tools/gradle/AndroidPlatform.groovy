@@ -500,7 +500,7 @@ class AndroidPlatform extends Platform {
         }
         String classDir = "${appBuildDir}/intermediates/classes/${flavorDir}"
         if (!(new File(classDir)).exists()) {
-            project.logger.warn msg("WARNING: class directory does not exist: ${classDir}, maybe a wrong 'flavor'/'buildType' setting? (Ignore this warning if this is a clean build.)")
+            project.logger.info msg("WARNING: class directory does not exist: ${classDir}, maybe a wrong 'flavor'/'buildType' setting? (Ignore this warning if this is a clean build.)")
         }
 
         codeTask.from(classDir)
@@ -632,17 +632,9 @@ class AndroidPlatform extends Platform {
         List<Message> messages = [] as List<Message>
         Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, messages, project.rootDir.canonicalPath, sc?.file.canonicalPath, sc.outputRulesPath)
         if (messages.size() > 0)
-            messages.each { Message m ->
-            if (m.isWarning())
-                project.logger.warn msg(m.text)
-            else if (m.isDebug())
-                project.logger.debug msg(m.text)
-            else
-                project.logger.info msg(m.text)
-        }
+            messages.each { showMessage(project, it) }
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
     }
-
 
     @Override
     String codeTaskName() { return CODE_ARCHIVE }
@@ -814,9 +806,9 @@ class AndroidPlatform extends Platform {
             if (projPath.startsWith(rootPath) && projPath.size() > rootPath.size()) {
                 String suffix = Archiver.stripRootPrefix(projPath.substring(rootPath.size()))
                 repackageExt.subprojectName = suffix
-                project.logger.warn msg("WARNING: missing property 'subprojectName', using: ${suffix}")
+                project.logger.debug msg("WARNING: missing property 'subprojectName', using: ${suffix}")
             } else {
-                project.logger.warn msg("WARNING: missing property 'subprojectName', using top-level directory")
+                project.logger.debug msg("WARNING: missing property 'subprojectName', using top-level directory")
 	            repackageExt.subprojectName = DEFAULT_SUBPROJECT_NAME
             }
 	    }

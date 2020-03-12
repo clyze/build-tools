@@ -2,6 +2,7 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.Message
 import org.clyze.build.tools.Settings
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -73,7 +74,7 @@ abstract class Platform {
             String port = Settings.getDefaultPort()
             if (port) {
                 ext.port = port as Integer
-                project.logger.warn msg("Using configured port ${ext.port}")
+                project.logger.info msg("Using configured port ${ext.port}")
             } else {
                 port = GradleProps.get(project, 'clue_port')
                 if (port) {
@@ -198,6 +199,15 @@ abstract class Platform {
         dependOn(project, createBundleTask, Tasks.JCPLUGIN_ZIP, 'metadata task', false)
         dependOn(project, project.tasks.findByName(Tasks.JCPLUGIN_ZIP), codeTaskName(), 'core build task (metadata dependency)', false)
         dependOn(project, createBundleTask, Tasks.SOURCES_JAR, 'sources task', false)
+    }
+
+    static void showMessage(Project project, Message m) {
+        if (m.isWarning())
+            project.logger.warn msg(m.text)
+        else if (m.isDebug())
+            project.logger.debug msg(m.text)
+        else
+            project.logger.info msg(m.text)
     }
 
     /**

@@ -2,7 +2,8 @@ package org.clyze.build.tools;
 
 import java.io.*;
 import java.nio.file.Files;
-import org.clyze.build.tools.Conventions;
+import java.util.List;
+
 import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
 
@@ -21,24 +22,24 @@ public class Poster {
         this.metadataDir = metadataDir;
     }
 
-    public void post(PostState ps) {
+    public void post(PostState ps, List<Message> messages) {
         if (cachePost) {
             try {
                 File tmpDir = Files.createTempDirectory("").toFile();
                 ps.saveTo(tmpDir);
-                System.out.println(Conventions.msg("Saved post state in " + tmpDir));
+                Message.print(messages, "Saved post state in " + tmpDir);
             } catch (IOException ex) {
-                System.err.println(Conventions.msg("WARNING: cannot save post state: " + ex.getMessage()));
+                Message.warn(messages, "WARNING: cannot save post state: " + ex.getMessage());
             }
         }
 
         if (metadataDir != null) {
             File metadataFile = new File(metadataDir, Conventions.POST_METADATA);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
-                System.out.println(Conventions.msg("Saving options in: " + metadataFile.getCanonicalPath()));
+                Message.print(messages, "Saving options in: " + metadataFile.getCanonicalPath());
                 writer.write(ps.toJSON());
             } catch (IOException ex) {
-                System.err.println(Conventions.msg("WARNING: cannot save metadata: " + ex.getMessage()));
+                Message.warn(messages, "WARNING: cannot save metadata: " + ex.getMessage());
             }
         }
 
