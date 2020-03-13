@@ -295,6 +295,9 @@ public final class Archiver {
                 if (dc.exists())
                     rules.add(fromInputStreamToString(new FileInputStream(dc)));
             }
+            // Sort by longest-string-first, to avoid mishandling
+            // rules being subset of each other.
+            Collections.sort(rules, ((String s1, String s2) -> s2.length() - s1.length()));
             String totalRules = fromInputStreamToString(new FileInputStream(printConfigFile));
             for (String r : rules) {
                 int idx = totalRules.indexOf(r);
