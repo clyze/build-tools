@@ -207,7 +207,7 @@ abstract class Platform {
         else if (m.isDebug())
             project.logger.debug msg(m.text)
         else
-            project.logger.info msg(m.text)
+            println msg(m.text)
     }
 
     /**

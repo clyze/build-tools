@@ -112,4 +112,13 @@ class Extension {
         }
         return scavengeDir
     }
+
+    /**
+     * Check if this is an Android project.
+     *
+     * @return true if this an Android project, false otherwise
+     */
+    boolean isAndroidProject() {
+        return (platform instanceof AndroidPlatform)
+    }
 }

@@ -41,7 +41,8 @@ class PostBundleTask extends PostTask {
             opts.project = ext.project
             opts.dry = ext.dry
             List<Message> messages = new LinkedList<>()
-            (new Poster(opts, ext.cachePost, ext.getBundleDir(project)))
+            (new Poster(opts, ext.cachePost, ext.getBundleDir(project),
+                        ext.isAndroidProject()))
                     .post(bundlePostState, messages)
             messages.each { Platform.showMessage(project, it) }
         } else {
