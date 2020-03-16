@@ -29,9 +29,6 @@ import static org.clyze.utils.JHelper.throwRuntimeException
 @TypeChecked
 class AndroidPlatform extends Platform {
 
-    /** The name of the Gradle plugin task that will generate the
-     *  code input for the server. */
-    static final String CODE_ARCHIVE = 'codeApk'
     /** The name prefix of the Android Gradle plugin task that will
       * compile and package the program. */
     static final String ASSEMBLE_PRE = 'assemble'
@@ -144,7 +141,7 @@ class AndroidPlatform extends Platform {
         project.afterEvaluate {
             def tasks = project.gradle.startParameter.taskNames
             // Skip configuration if no plugin tasks will run.
-            if (!tasks.any { it.endsWith(CODE_ARCHIVE) || PTask.taskNameMatches(it) }) {
+            if (!tasks.any { String s -> PTask.values().any { s.endsWith(it.name) } }) {
                 project.logger.info msg("No ${Conventions.TOOL_NAME} task invoked, skipping configuration.")
                 return
             }
@@ -166,7 +163,7 @@ class AndroidPlatform extends Platform {
                 // If not using an explicit metadata scavenge task, hook into the
                 // compiler instead. If this is a run that throws away code (because
                 // no archive task is called), skip this integration.
-                def taskArch = tasks.find { it.endsWith(CODE_ARCHIVE) || it.endsWith(PTask.CREATE_BUNDLE.name) }
+                def taskArch = tasks.find { it.endsWith(PTask.ANDROID_CODE_ARCHIVE.name) || it.endsWith(PTask.CREATE_BUNDLE.name) }
                 if (!explicitScavengeTask() && taskArch)
                     configureCompileHook()
             }
@@ -176,16 +173,26 @@ class AndroidPlatform extends Platform {
             confTask.dependsOn getAssembleTaskName()
             activateSpecialConfiguration()
 
-            // If "create bundle" and "post bundle" are called
-            // together, make the second depend on the first, so they
-            // are executed in the correct order.
-            if (tasks.find { it.endsWith(PTask.CREATE_BUNDLE.name) } &&
-                tasks.find { it.endsWith(PTask.POST_BUNDLE.name) }) {
-                project.tasks.findByName(PTask.POST_BUNDLE.name)
-                    .dependsOn(project.tasks.findByName(PTask.CREATE_BUNDLE.name))
-            }
+            // If some tasks are invoked together, configure which runs first.
+            taskPrecedes(project, tasks, PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
+            taskPrecedes(project, tasks, PTask.ANDROID_CODE_ARCHIVE, PTask.REPACKAGE)
 
             configureTestRepackaging()
+        }
+    }
+
+    /**
+     * Helper method: if tasks a and b are invoked, then b should depend on a.
+     *
+     * @param project   the current project
+     * @param tasks     the currently invoked tasks
+     * @param a         the first task to be executed
+     * @param b         the second task to be executed
+     */
+    private static taskPrecedes(Project project, Collection<String> tasks, PTask a, PTask b) {
+        if (tasks.find { it.endsWith(a.name) } && tasks.find { it.endsWith(b.name) }) {
+            project.tasks.findByName(b.name)
+                .dependsOn(project.tasks.findByName(a.name))
         }
     }
 
@@ -475,7 +482,7 @@ class AndroidPlatform extends Platform {
      */
     @Override
     void configureCodeTask() {
-        Jar codeJarTask = project.tasks.create(CODE_ARCHIVE, Jar)
+        Jar codeJarTask = project.tasks.create(PTask.ANDROID_CODE_ARCHIVE.name, Jar)
         codeJarTask.description = 'Generates the code archive'
         codeJarTask.group = Conventions.TOOL_NAME
     }
@@ -485,9 +492,9 @@ class AndroidPlatform extends Platform {
      */
     private void configureCodeTaskAfterEvaluate() {
         // Update location of class files for JAR task.
-        Jar codeTask = project.tasks.findByName(CODE_ARCHIVE) as Jar
+        Jar codeTask = project.tasks.findByName(PTask.ANDROID_CODE_ARCHIVE.name) as Jar
         if (!codeTask) {
-            project.logger.warn(msg("ERROR: code task ${CODE_ARCHIVE} does not exist!"))
+            project.logger.warn(msg("ERROR: code task ${PTask.ANDROID_CODE_ARCHIVE.name} does not exist!"))
             return
         }
         String classDir = "${appBuildDir}/intermediates/classes/${flavorDir}"
@@ -629,7 +636,7 @@ class AndroidPlatform extends Platform {
     }
 
     @Override
-    String codeTaskName() { return CODE_ARCHIVE }
+    String codeTaskName() { return PTask.ANDROID_CODE_ARCHIVE.name }
 
     /**
      * Returns the code files that will be given as "input" to the server.

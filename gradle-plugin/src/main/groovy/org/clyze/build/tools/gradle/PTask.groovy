@@ -17,21 +17,14 @@ enum PTask {
     REPACKAGE('repackage'),
     REPACKAGE_TEST('repackageTest'),
     /** The task that creates the bundle for posting. */
-    CREATE_BUNDLE('createBundle')
+    CREATE_BUNDLE('createBundle'),
+    /** Android-only: the name of the Gradle plugin task that will
+     *  generate the code input for the server. */
+    ANDROID_CODE_ARCHIVE('codeApk'),
 
     final String name
 
     PTask(String name) {
         this.name = name
-    }
-
-    /**
-     * Helper method to filter user-submitted tasks.
-     *
-     * @param  s   a task name
-     * @return     true if the task looks like a plugin task
-     */
-    static boolean taskNameMatches(String s) {
-        return values().any { s.endsWith(it.name) }
     }
 }
