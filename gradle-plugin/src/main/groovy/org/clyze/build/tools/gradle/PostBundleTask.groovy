@@ -113,6 +113,9 @@ class PostBundleTask extends PostTask {
         // The platform to use when analyzing the code.
         ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? Conventions.getR8AndroidPlatform("25") : "java_8")
 
+        // Add the configurations archive.
+        addFileInput(project, ps, 'PG_ZIP', Conventions.CONFIGURATIONS_FILE)
+
         if (ext.sources) {
             // Upload sources (user can override with alternative sources archive).
             String altSourcesJar = ext.useSourcesJar
