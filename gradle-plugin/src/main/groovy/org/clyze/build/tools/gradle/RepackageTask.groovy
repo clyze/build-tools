@@ -21,7 +21,10 @@ class RepackageTask extends PostTask {
     void repackage() {
         Extension ext = Extension.of(project)
         File out = repackageCodeArchive(project, ext, ext.platform.getOutputCodeArchive(), "repackaged-apk", ".apk", null)
-        println msg("Repackaged output: ${out.canonicalPath}")
+        if (out)
+            println msg("Repackaged output: ${out.canonicalPath}")
+        else
+            println msg("Could not repackage application.")
     }
 
     static File repackageCodeArchive(Project project, Extension ext, String codeArchive,
