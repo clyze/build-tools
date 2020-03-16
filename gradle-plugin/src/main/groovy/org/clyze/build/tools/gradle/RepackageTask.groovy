@@ -2,6 +2,8 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
 import org.apache.http.HttpEntity
+import org.apache.http.client.ClientProtocolException
+import org.apache.http.conn.HttpHostConnectException
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.clyze.client.web.api.AttachmentHandler
@@ -48,16 +50,23 @@ class RepackageTask extends PostTask {
 
         File out = File.createTempFile(repackBaseName, repackExtension)
 
-        Remote api = Helper.connect(ext.host, ext.port, ext.username, ext.password)
+        try {
+            Remote api = Helper.connect(ext.host, ext.port, ext.username, ext.password)
 
-        AttachmentHandler saveAttachment = new AttachmentHandler() {
-            @Override
-            String handleAttachment(HttpEntity entity) {
-                out.withOutputStream { entity.writeTo(it) }
-                return out.canonicalPath
+            AttachmentHandler saveAttachment = new AttachmentHandler() {
+                @Override
+                String handleAttachment(HttpEntity entity) {
+                    out.withOutputStream { entity.writeTo(it) }
+                    return out.canonicalPath
+                }
             }
+            api.repackageBundleForCI(ext.username, ext.project, ps, saveAttachment)
+            return out
+        } catch (HttpHostConnectException ex) {
+            project.logger.error msg( "ERROR: could not post bundle, is the server running?")
+        } catch (ClientProtocolException ex) {
+            project.logger.error msg("ERROR: ${ex.message}")
         }
-        api.repackageBundleForCI(ext.username, ext.project, ps, saveAttachment)
-        return out
+        return null
     }
 }
