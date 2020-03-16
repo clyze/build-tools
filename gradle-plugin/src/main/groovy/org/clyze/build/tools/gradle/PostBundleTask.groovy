@@ -2,10 +2,9 @@ package org.clyze.build.tools.gradle
 
 import groovy.io.FileType
 import groovy.transform.TypeChecked
-import org.clyze.build.tools.Message
-
 import java.nio.file.Files
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.Message
 import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
@@ -98,7 +97,7 @@ class PostBundleTask extends PostTask {
         }
 
         if (!submitInputs) {
-            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${Tasks.POST_BUNDLE}'.")
+            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${PTask.POST_BUNDLE.name}'.")
             return null
         }
 

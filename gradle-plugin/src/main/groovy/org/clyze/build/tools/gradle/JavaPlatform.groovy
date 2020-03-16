@@ -68,7 +68,7 @@ class JavaPlatform extends Platform {
             List<String> extras = ext.getExtraInputFiles(project.rootDir)
             if (extras != null && extras.size() > 0) {
                 String extraCp = extras.join(File.pathSeparator)
-                JavaCompile scavengeTask = project.tasks.findByName(Tasks.SCAVENGE) as JavaCompile
+                JavaCompile scavengeTask = project.tasks.findByName(PTask.SCAVENGE.name) as JavaCompile
                 scavengeTask.options.compilerArgs << "-cp"
                 scavengeTask.options.compilerArgs << extraCp
             }
@@ -77,9 +77,9 @@ class JavaPlatform extends Platform {
                 configureSourceTasks()
                 String sourcesJar = ext.useSourcesJar
                 if (sourcesJar != null) {
-                    project.logger.info msg("No setup for '${Tasks.SOURCES_JAR}' task, using: ${sourcesJar}")
+                    project.logger.info msg("No setup for '${PTask.SOURCES_JAR.name}' task, using: ${sourcesJar}")
                 } else {
-                    Jar sourcesJarTask = project.tasks.findByName(Tasks.SOURCES_JAR) as Jar
+                    Jar sourcesJarTask = project.tasks.findByName(PTask.SOURCES_JAR.name) as Jar
                     sourcesJarTask.dependsOn project.tasks.findByName('classes')
                 }
             }

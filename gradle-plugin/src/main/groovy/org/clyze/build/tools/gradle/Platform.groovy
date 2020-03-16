@@ -145,16 +145,16 @@ abstract class Platform {
     }
 
     private synchronized void configureSourceJarTask() {
-        def existing = project.tasks.findByName(Tasks.SOURCES_JAR)
+        def existing = project.tasks.findByName(PTask.SOURCES_JAR.name)
         Jar task
         if (existing == null) {
-            task = project.tasks.create(Tasks.SOURCES_JAR, Jar)
+            task = project.tasks.create(PTask.SOURCES_JAR.name, Jar)
         } else if (existing instanceof Jar) {
             // Heuristic to handle repeated configuration by Gradle.
-            project.logger.info msg("Reusing existing task ${Tasks.SOURCES_JAR}")
+            project.logger.info msg("Reusing existing task ${PTask.SOURCES_JAR.name}")
             task = existing as Jar
         } else {
-            project.logger.warn msg("WARNING: Non-JAR task ${Tasks.SOURCES_JAR} exists, cannot configure ${Conventions.TOOL_NAME} plugin.")
+            project.logger.warn msg("WARNING: Non-JAR task ${PTask.SOURCES_JAR.name} exists, cannot configure ${Conventions.TOOL_NAME} plugin.")
             return
         }
 
@@ -175,14 +175,14 @@ abstract class Platform {
      * Configures the metadata scavenging task.
      */
     private void configureMetadataTask() {
-        Zip task = project.tasks.create(Tasks.JCPLUGIN_ZIP, Zip)
+        Zip task = project.tasks.create(PTask.JCPLUGIN_ZIP.name, Zip)
         task.description = 'Zips the output files of the metadata processor'
         task.group = Conventions.TOOL_NAME
 
         // If a separate metadata generation task exists, depend on it;
         // otherwise depend on build task (which integrates metadata generation).
         if (explicitScavengeTask()) {
-	        task.dependsOn project.tasks.findByName(Tasks.SCAVENGE)
+	        task.dependsOn project.tasks.findByName(PTask.SCAVENGE.name)
         } else {
 	        task.dependsOn project.tasks.findByName(codeTaskName())
         }
@@ -195,10 +195,10 @@ abstract class Platform {
     }
 
     private void configureCreateBundleTask_step2() {
-        Task createBundleTask = project.tasks.findByName(Tasks.CREATE_BUNDLE)
-        dependOn(project, createBundleTask, Tasks.JCPLUGIN_ZIP, 'metadata task', false)
-        dependOn(project, project.tasks.findByName(Tasks.JCPLUGIN_ZIP), codeTaskName(), 'core build task (metadata dependency)', false)
-        dependOn(project, createBundleTask, Tasks.SOURCES_JAR, 'sources task', false)
+        Task createBundleTask = project.tasks.findByName(PTask.CREATE_BUNDLE.name)
+        dependOn(project, createBundleTask, PTask.JCPLUGIN_ZIP.name, 'metadata task', false)
+        dependOn(project, project.tasks.findByName(PTask.JCPLUGIN_ZIP.name), codeTaskName(), 'core build task (metadata dependency)', false)
+        dependOn(project, createBundleTask, PTask.SOURCES_JAR.name, 'sources task', false)
     }
 
     static void showMessage(Project project, Message m) {

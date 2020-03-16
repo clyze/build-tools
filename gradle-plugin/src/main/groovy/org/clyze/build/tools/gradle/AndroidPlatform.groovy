@@ -144,15 +144,7 @@ class AndroidPlatform extends Platform {
         project.afterEvaluate {
             def tasks = project.gradle.startParameter.taskNames
             // Skip configuration if no plugin tasks will run.
-            if (!tasks.any {
-                    it.endsWith(CODE_ARCHIVE) ||
-                    it.endsWith(Tasks.CONFIGURATIONS) ||
-                    it.endsWith(Tasks.SCAVENGE) ||
-                    it.endsWith(Tasks.JCPLUGIN_ZIP) ||
-                    it.endsWith(Tasks.POST_BUNDLE) ||
-                    it.endsWith(Tasks.SOURCES_JAR) ||
-                    it.endsWith(Tasks.CREATE_BUNDLE)
-                }) {
+            if (!tasks.any { it.endsWith(CODE_ARCHIVE) || PTask.taskNameMatches(it) }) {
                 project.logger.info msg("No ${Conventions.TOOL_NAME} task invoked, skipping configuration.")
                 return
             }
@@ -168,29 +160,29 @@ class AndroidPlatform extends Platform {
             if (repackageExt.sources) {
                 configureSourceTasks()
 
-                Jar sourcesTask = project.tasks.findByName(Tasks.SOURCES_JAR) as Jar
+                Jar sourcesTask = project.tasks.findByName(PTask.SOURCES_JAR.name) as Jar
                 gatherSourcesAfterEvaluate(sourcesTask)
 
                 // If not using an explicit metadata scavenge task, hook into the
                 // compiler instead. If this is a run that throws away code (because
                 // no archive task is called), skip this integration.
-                def taskArch = tasks.find { it.endsWith(CODE_ARCHIVE) || it.endsWith(Tasks.CREATE_BUNDLE) }
+                def taskArch = tasks.find { it.endsWith(CODE_ARCHIVE) || it.endsWith(PTask.CREATE_BUNDLE.name) }
                 if (!explicitScavengeTask() && taskArch)
                     configureCompileHook()
             }
 
 
-            Task confTask = project.tasks.findByName(Tasks.CONFIGURATIONS) as Task
+            Task confTask = project.tasks.findByName(PTask.CONFIGURATIONS.name) as Task
             confTask.dependsOn getAssembleTaskName()
             activateSpecialConfiguration()
 
             // If "create bundle" and "post bundle" are called
             // together, make the second depend on the first, so they
             // are executed in the correct order.
-            if (tasks.find { it.endsWith(Tasks.CREATE_BUNDLE) } &&
-                tasks.find { it.endsWith(Tasks.POST_BUNDLE) }) {
-                project.tasks.findByName(Tasks.POST_BUNDLE)
-                    .dependsOn(project.tasks.findByName(Tasks.CREATE_BUNDLE))
+            if (tasks.find { it.endsWith(PTask.CREATE_BUNDLE.name) } &&
+                tasks.find { it.endsWith(PTask.POST_BUNDLE.name) }) {
+                project.tasks.findByName(PTask.POST_BUNDLE.name)
+                    .dependsOn(project.tasks.findByName(PTask.CREATE_BUNDLE.name))
             }
 
             configureTestRepackaging()
@@ -217,7 +209,7 @@ class AndroidPlatform extends Platform {
     private void configureTestRepackaging() {
         // Insert test-code repackager between the javac
         // invocation and the test runner.
-        Task testRepackageTask = project.tasks.findByName(Tasks.REPACKAGE_TEST) as Task
+        Task testRepackageTask = project.tasks.findByName(PTask.REPACKAGE_TEST.name) as Task
         String utciTaskName = getUnitTestCompileInnerTask()
         Task utciTask = project.tasks.findByName(utciTaskName)
         String utcTaskName = getUnitTestCompileTask()
@@ -226,9 +218,9 @@ class AndroidPlatform extends Platform {
             testRepackageTask.dependsOn getUnitTestCompileInnerTask()
             utcTask.dependsOn testRepackageTask
         } else if (!utciTask) {
-            project.logger.warn msg("WARNING: no '${utciTaskName}' task, skipping configuration of task '${Tasks.REPACKAGE_TEST}'.")
+            project.logger.warn msg("WARNING: no '${utciTaskName}' task, skipping configuration of task '${PTask.REPACKAGE_TEST.name}'.")
         } else if (!utcTask) {
-            project.logger.warn msg("WARNING: no '${utcTaskName}' task, skipping configuration of task '${Tasks.REPACKAGE_TEST}'.")
+            project.logger.warn msg("WARNING: no '${utcTaskName}' task, skipping configuration of task '${PTask.REPACKAGE_TEST.name}'.")
         }
     }
 
@@ -459,7 +451,7 @@ class AndroidPlatform extends Platform {
             def genSourceDirs = findGeneratedSourceDirs(getAppBuildDir(), getFlavorDir())
             genSourceDirs.each { dir -> sourcesJarTask.from dir}
             if (explicitScavengeTask()) {
-                JavaCompile scavengeTask = project.tasks.findByName(Tasks.SCAVENGE) as JavaCompile
+                JavaCompile scavengeTask = project.tasks.findByName(PTask.SCAVENGE.name) as JavaCompile
                 if (scavengeTask)
                     scavengeTask.source(genSourceDirs)
                 else
@@ -552,7 +544,7 @@ class AndroidPlatform extends Platform {
 
     @Override
     void configureConfigurationsTask() {
-        Task confTask = project.tasks.create(Tasks.CONFIGURATIONS, Task)
+        Task confTask = project.tasks.create(PTask.CONFIGURATIONS.name, Task)
         confTask.description = 'Generates the configurations archive'
         confTask.group = Conventions.TOOL_NAME
         confTask.doFirst {
