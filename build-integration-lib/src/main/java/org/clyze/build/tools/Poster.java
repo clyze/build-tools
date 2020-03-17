@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostState;
+import org.clyze.client.web.api.AttachmentHandler;
 import org.clyze.client.web.api.Remote;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
 
 /**
@@ -52,21 +54,53 @@ public class Poster {
 
         try {
             // Check if the server can receive Android bundles.
-            if (android) {
-                Map<String, Object> diag = Remote.at(options.host, options.port).diagnose();
-                Boolean androidSDK_OK = (Boolean)diag.get("ANDROID_SDK_OK");
-                if ((androidSDK_OK != null) && (androidSDK_OK == false)) {
-                    Message.print(messages, "ERROR: Cannot post bundle: Android SDK setup missing.");
-                    return;
-                }
+            if (android && !isAndroidSupported(diagnose())) {
+                Message.print(messages, "ERROR: Cannot post bundle: Android SDK setup missing.");
+                return;
             }
+
             if (!options.dry)
                 Helper.doPost(options.host, options.port, options.username,
                               options.password, options.project, options.profile, ps);
         } catch (HttpHostConnectException ex) {
-            Message.print(messages, "ERROR: could not post bundle, is the server running?");
+            Message.print(messages, "ERROR: cannot not post bundle, is the server running?");
             return;
         }
+    }
+
+    /**
+     * Helper method to check if the "diagnose" output of the server supports
+     * posting of Android apps.
+     *
+     * @param diag   the JSON output of the server endpoint (as a Map)
+     * @return       true if the server supports Android apps, false otherwise
+     */
+    public static boolean isAndroidSupported(Map<String, Object> diag) {
+        Boolean androidSDK_OK = (Boolean)diag.get("ANDROID_SDK_OK");
+        return (androidSDK_OK == null) || (androidSDK_OK == true);
+    }
+
+    /**
+     * Invokes the "diagnose" endpoint of the server.
+     *
+     * @return the JSON response as a Map
+     * @throws HttpHostConnectException if the server did not respond
+     */
+    public Map<String, Object> diagnose() throws HttpHostConnectException {
+        return Remote.at(options.host, options.port).diagnose();
+    }
+
+    /**
+     * Invokes the automated repackaging endpoint.
+     *
+     * @param ps       the bundle representation
+     * @param handler  a handler of the resulting file returned by the server
+     * @throws ClientProtocolException  if the server encountered an error
+     */
+    public void repackageBundleForCI(PostState ps, AttachmentHandler<String> handler)
+    throws ClientProtocolException{
+        Remote.at(options.host, options.port)
+            .repackageBundleForCI(options.username, options.project, ps, handler);
     }
 
     /**

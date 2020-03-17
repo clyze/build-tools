@@ -4,6 +4,7 @@ import groovy.transform.TypeChecked
 import org.apache.http.HttpEntity
 import org.apache.http.client.ClientProtocolException
 import org.apache.http.conn.HttpHostConnectException
+import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
 import org.clyze.client.web.api.AttachmentHandler
@@ -51,19 +52,30 @@ class RepackageTask extends PostTask {
         File out = File.createTempFile(repackBaseName, repackExtension)
 
         try {
-            Remote api = Helper.connect(ext.host, ext.port, ext.username, ext.password)
+            Poster poster = getPoster(project)
+            Map<String, Object> diag = poster.diagnose()
+            if (ext.androidProject && !Poster.isAndroidSupported(diag)) {
+                println msg("ERROR: Cannot repackage bundle: Android SDK setup missing.")
+                return
+            }
 
-            AttachmentHandler saveAttachment = new AttachmentHandler() {
+            Boolean supportsRepackaging = (Boolean)diag.get("AUTOMATED_REPACKAGING")
+            if (!supportsRepackaging) {
+                println msg("This version of the server does not support automated repackaging.")
+                return
+            }
+
+            AttachmentHandler<String> saveAttachment = new AttachmentHandler() {
                 @Override
                 String handleAttachment(HttpEntity entity) {
                     out.withOutputStream { entity.writeTo(it) }
                     return out.canonicalPath
                 }
             }
-            api.repackageBundleForCI(ext.username, ext.project, ps, saveAttachment)
+            poster.repackageBundleForCI(ps, saveAttachment)
             return out
         } catch (HttpHostConnectException ex) {
-            project.logger.error msg( "ERROR: could not post bundle, is the server running?")
+            project.logger.error msg( "ERROR: cannot repackage bundle, is the server running?")
         } catch (ClientProtocolException ex) {
             project.logger.error msg("ERROR: ${ex.message}")
         }

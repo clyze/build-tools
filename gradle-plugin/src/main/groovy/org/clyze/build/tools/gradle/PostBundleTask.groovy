@@ -31,22 +31,11 @@ class PostBundleTask extends PostTask {
         PostState bundlePostState = newBundlePostState(project)
 
         if (bundlePostState) {
-            Poster.Options opts = new Poster.Options()
-            opts.host = ext.host
-            opts.port = ext.port
-            opts.username = ext.username
-            opts.password = ext.password
-            opts.profile = ext.profile
-            opts.project = ext.project
-            opts.dry = ext.dry
             List<Message> messages = new LinkedList<>()
-            (new Poster(opts, ext.cachePost, ext.getBundleDir(project),
-                        ext.isAndroidProject()))
-                    .post(bundlePostState, messages)
+            getPoster(project).post(bundlePostState, messages)
             messages.each { Platform.showMessage(project, it) }
-        } else {
+        } else
             project.logger.error msg("ERROR: could not package bundle.")
-        }
 
         ext.platform.cleanUp()
     }

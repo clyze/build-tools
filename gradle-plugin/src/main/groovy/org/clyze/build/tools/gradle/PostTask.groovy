@@ -2,6 +2,7 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.Poster
 import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -60,5 +61,25 @@ abstract class PostTask extends DefaultTask {
             }
             ps.addStringInput('SHRINK_RESOURCES', shrinkResources)
         }
+    }
+
+    /**
+     * Constructs the "Poster" object that will handle interactions with the server.
+     *
+     * @param project   the current project
+     * @return          the Poster object
+     */
+    protected static Poster getPoster(Project project) {
+        Extension ext = Extension.of(project)
+        Poster.Options opts = new Poster.Options()
+        opts.host = ext.host
+        opts.port = ext.port
+        opts.username = ext.username
+        opts.password = ext.password
+        opts.profile = ext.profile
+        opts.project = ext.project
+        opts.dry = ext.dry
+        return new Poster(opts, ext.cachePost, ext.getBundleDir(project),
+                          ext.androidProject)
     }
 }
