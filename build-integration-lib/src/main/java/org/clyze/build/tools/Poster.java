@@ -53,9 +53,9 @@ public class Poster {
         try {
             // Check if the server can receive Android bundles.
             if (android) {
-                Map<String, String> diag = Remote.at(options.host, options.port).diagnose();
-                String androidSDK_OK = diag.get("ANDROID_SDK_OK");
-                if ((androidSDK_OK != null) && (androidSDK_OK.equals("false"))) {
+                Map<String, Object> diag = Remote.at(options.host, options.port).diagnose();
+                Boolean androidSDK_OK = (Boolean)diag.get("ANDROID_SDK_OK");
+                if ((androidSDK_OK != null) && (androidSDK_OK == false)) {
                     Message.print(messages, "ERROR: Cannot post bundle: Android SDK setup missing.");
                     return;
                 }
