@@ -2,6 +2,7 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.JcPlugin
 import org.clyze.build.tools.Message
 import org.clyze.build.tools.Settings
 import org.gradle.api.Project
@@ -208,6 +209,66 @@ abstract class Platform {
             project.logger.debug msg(m.text)
         else
             println msg(m.text)
+    }
+
+    /**
+     * Configures the metadata processor (when integrated with a build task).
+     */
+    protected void configureCompileHook() {
+
+        String javacPluginArtifact
+        try {
+            javacPluginArtifact = JcPlugin.jcPluginArtifact
+        } catch (Exception ex) {
+            ex.printStackTrace()
+        }
+
+        if (javacPluginArtifact) {
+            List<String> jcplugin = JcPlugin.getJcPluginClasspath()
+            int sz = jcplugin.size()
+            if (sz == 0) {
+                project.logger.warn msg('WARNING: could not find metadata processor, sources will not be processed.')
+                return
+            } else {
+                String jcpluginProc = jcplugin.get(0)
+                project.dependencies.add('annotationProcessor', project.files(jcpluginProc))
+                project.logger.info msg("Metadata processor added: ${jcpluginProc}")
+                if (sz > 1) {
+                    project.logger.warn msg('WARNING: too many metadata processors found: ' + jcplugin)
+                }
+            }
+        } else {
+            project.logger.warn msg('WARNING: Could not integrate metadata processor, sources will not be processed.')
+            return
+        }
+
+        Set<JavaCompile> tasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
+            if (tasks.size() == 0) {
+            project.logger.error msg("Could not integrate metadata processor, no compile tasks found.")
+            return
+        }
+
+        tasks.each { task ->
+            project.logger.info msg("Plugging metadata processor into task ${task.name}")
+            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBundleDir(project), repackageExt.jcPluginOutput)
+        }
+    }
+
+    /**
+     * Configure the task that gathers configuration files (containing
+     * keep rules and directives).
+     */
+    void configureConfigurationsTask() {
+        Task confTask = project.tasks.create(PTask.CONFIGURATIONS.name, Task)
+        confTask.description = 'Generates the configurations archive'
+        confTask.group = Conventions.TOOL_NAME
+        confTask.doFirst {
+            if (repackageExt.ignoreConfigurations) {
+                project.logger.warn msg("WARNING: ignoreConfigurations = true, configuration files will not be read.")
+            } else {
+                readConfigurationFiles()
+            }
+        }
     }
 
     /**

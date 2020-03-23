@@ -8,7 +8,6 @@ import java.util.function.Function
 import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
-import org.clyze.build.tools.JcPlugin
 import org.clyze.build.tools.Message
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
@@ -781,50 +780,6 @@ class AndroidPlatform extends Platform {
     boolean explicitScavengeTask() {
         // Current behavior: integrate with existing compile task.
         return false
-    }
-
-    /**
-     * Configures the metadata processor (when integrated with a build task).
-     */
-    private void configureCompileHook() {
-
-        String javacPluginArtifact
-
-        try {
-            javacPluginArtifact = JcPlugin.jcPluginArtifact
-        } catch (Exception ex) {
-            ex.printStackTrace()
-        }
-
-        if (javacPluginArtifact) {
-            List<String> jcplugin = JcPlugin.getJcPluginClasspath()
-            int sz = jcplugin.size()
-            if (sz == 0) {
-                project.logger.warn msg('WARNING: could not find metadata processor, sources will not be processed.')
-                return
-            } else {
-                String jcpluginProc = jcplugin.get(0)
-                project.dependencies.add('annotationProcessor', project.files(jcpluginProc))
-                project.logger.info msg("Metadata processor added: ${jcpluginProc}")
-                if (sz > 1) {
-                    project.logger.warn msg('WARNING: too many metadata processors found: ' + jcplugin)
-                }
-            }
-        } else {
-            project.logger.warn msg('WARNING: Could not integrate metadata processor, sources will not be processed.')
-            return
-        }
-
-        Set<JavaCompile> tasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
-        if (tasks.size() == 0) {
-            project.logger.error msg("Could not integrate metadata processor, no compile tasks found.")
-            return
-        }
-
-        tasks.each { task ->
-            project.logger.info msg("Plugging metadata processor into task ${task.name}")
-            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBundleDir(project), repackageExt.jcPluginOutput)
-        }
     }
 
     /**

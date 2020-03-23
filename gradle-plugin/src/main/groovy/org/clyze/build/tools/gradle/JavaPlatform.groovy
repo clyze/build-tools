@@ -148,10 +148,14 @@ class JavaPlatform extends Platform {
     @Override
     void cleanUp() { }
 
-    // In Java mode, always use an explicit "scavenge" Gradle task.
+    /**
+     * Do not use an explicit "scavenge" Gradle task. NOTE: if this
+     * returns true, then the classpath passed to javac should contain
+     * the metadata processor JAR.
+     */
     @Override
     boolean explicitScavengeTask() {
-        return true
+        return false
     }
 
     @Override
