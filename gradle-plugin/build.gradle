@@ -57,7 +57,7 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
 
 jar {
     manifest {
-        attributes 'Implementation-Version' : archiveVersion
+        attributes 'Implementation-Version' : version  // not "archiveVersion"
     }
 }
 
