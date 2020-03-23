@@ -583,20 +583,6 @@ class AndroidPlatform extends Platform {
         return null
     }
 
-    @Override
-    void configureConfigurationsTask() {
-        Task confTask = project.tasks.create(PTask.CONFIGURATIONS.name, Task)
-        confTask.description = 'Generates the configurations archive'
-        confTask.group = Conventions.TOOL_NAME
-        confTask.doFirst {
-            if (repackageExt.ignoreConfigurations) {
-                project.logger.warn msg("WARNING: ignoreConfigurations = true, configuration files will not be read.")
-            } else {
-                readConfigurationFiles()
-            }
-        }
-    }
-
     /**
      * Injects a configuration file (containing extra rules or directives) to
      * the transform phase.
@@ -626,7 +612,8 @@ class AndroidPlatform extends Platform {
      * set up by the Android Gradle plugin. This uses the internal API
      * of the Android Gradle plugin.
      */
-    private void readConfigurationFiles() {
+    @Override
+    protected void readConfigurationFiles() {
         if (!repackageExt.configurationFiles) {
             // Preserve the ordering of the configurations, while avoiding duplicates.
             Set<File> allPros = new LinkedHashSet<>()

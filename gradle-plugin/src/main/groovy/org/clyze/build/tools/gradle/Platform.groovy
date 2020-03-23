@@ -325,12 +325,6 @@ abstract class Platform {
     /** Clean up resources on plugin exit. */
     abstract void cleanUp()
 
-    /**
-     * Configure the task that gathers configuration files (containing
-     * keep rules and directives).
-     */
-    abstract void configureConfigurationsTask()
-
     /** Return the output code archive (JAR, APK, AAR). */
     abstract String getOutputCodeArchive()
 
@@ -344,4 +338,9 @@ abstract class Platform {
      *         false if the processor is integrated in an existing task.
      */
     abstract boolean explicitScavengeTask()
+
+    /**
+     * Read configurations from current project.
+     */
+    abstract protected void readConfigurationFiles()
 }

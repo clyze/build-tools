@@ -158,9 +158,13 @@ class JavaPlatform extends Platform {
         return false
     }
 
+    /**
+     * Dummy implementation, since the 'java' Gradle plugin does not
+     * integrate with rule files.
+     */
     @Override
-    void configureConfigurationsTask() {
-        project.logger.warn msg("WARNING: the configurations task is not yet implemented. Please option 'configurationFiles' to set configuration inputs manually.")
+    protected void readConfigurationFiles() {
+        project.logger.warn msg("WARNING: configurations are not gathered automatically. Use option 'configurationFiles' to set configuration inputs manually.")
     }
 
     @Override
