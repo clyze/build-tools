@@ -61,6 +61,17 @@ jar {
     }
 }
 
+task writeGitCommitHash() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', 'HEAD'
+        standardOutput = stdout
+    }
+    String hash = stdout.toString().trim()
+   file('src/main/resources/git-hash.txt').withWriter { w -> w.writeLine(hash) }
+}
+jar.dependsOn writeGitCommitHash
+
 // Take care of race condition when generating the shadow JAR as main
 // artifact (https://github.com/uber/NullAway/blob/master/nullaway/build.gradle).
 shadowJar.dependsOn jar
