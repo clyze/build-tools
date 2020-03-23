@@ -2,12 +2,12 @@ package org.clyze.build.tools.gradle
 
 import groovy.io.FileType
 import groovy.transform.TypeChecked
-import org.clyze.build.tools.Conventions
-
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.function.Function
 import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
+import org.clyze.build.tools.Conventions
 import org.clyze.build.tools.JcPlugin
 import org.clyze.build.tools.Message
 import org.clyze.utils.AARUtils
@@ -331,40 +331,77 @@ class AndroidPlatform extends Platform {
     }
 
     private void createSourcesJarDep(Jar sourcesJarTask) {
-        String assembleTaskDep = getAssembleTaskName()
-        project.logger.info msg("Using task '${assembleTaskDep}' to generate the sources JAR.")
-        sourcesJarTask.dependsOn project.tasks.findByName(assembleTaskDep)
+        String codeTaskName = PTask.ANDROID_CODE_ARCHIVE.name
+        project.logger.info msg("Depending on task '${codeTaskName}' to generate the sources JAR.")
+        sourcesJarTask.dependsOn project.tasks.findByName(codeTaskName)
     }
 
     // Add auto-generated Java files (examples are the app's R.java,
     // other R.java files, and classes in android.support packages).
-    private List findGeneratedSourceDirs(String appBuildHome, String flavorDir) {
-        def genSourceDirs = []
-        def generatedSources = "${appBuildHome}/generated/source"
-        File genDir = new File(generatedSources)
-        if (!genDir.exists()) {
-            project.logger.warn msg("WARNING: Generated sources dir does not exist: ${generatedSources}")
-            return []
+    private List<String> findGeneratedSourceDirs() {
+        List<String> genSourceDirs = []
+
+        File gDir1 = new File("${appBuildDir}/generated/source")
+        if (!gDir1.exists()) {
+            project.logger.warn msg("WARNING: Generated sources dir does not exist: ${gDir1}")
+        } else {
+            // Add subdirectories containing .java files.
+            String flavorDir = getFlavorDir()
+            procGeneratedSourceDir(genSourceDirs, gDir1, 1,
+                                   { it.canonicalPath.endsWith(flavorDir) ? it : null })
         }
-        genDir.eachFile (FileType.DIRECTORIES) { dir ->
-            dir.eachFile (FileType.DIRECTORIES) { bPath ->
-                if (bPath.canonicalPath.endsWith(flavorDir)) {
+
+        String variantName = getFlavorAndBuildType()
+        def matchingSubDir =
+            { String subDir -> { File dir ->
+            if (dir.canonicalPath.endsWith(variantName)) {
+                File out = new File(dir, subDir)
+                if (out.exists())
+                    return out
+            }
+            return null
+        } as Function<File, File> }
+        File gDir2 = new File("${appBuildDir}/generated/ap_generated_sources")
+        procGeneratedSourceDir(genSourceDirs, gDir2, 0, matchingSubDir('out'))
+        File gDir3 = new File("${appBuildDir}/generated/not_namespaced_r_class_sources")
+        procGeneratedSourceDir(genSourceDirs, gDir3, 0, matchingSubDir('r'))
+
+        return genSourceDirs
+    }
+
+    /**
+     * Helper method to find generated sources.
+     *
+     * @param genSourceDirs  the list to receive any detected source directory
+     * @param genDir         the directory to start searching
+     * @param depth          how many levels to dive before applying the checking logic
+     * @param dirCheck       the check logic: applied to a directory <f>, it should
+     *                       return (sub)directory <g> containing sources (null for none)
+     */
+    private void procGeneratedSourceDir(List<String> genSourceDirs, File genDir,
+                                        int depth, Function<File, File> dirCheck) {
+        if (depth > 0) {
+            genDir.eachFile (FileType.DIRECTORIES) { File dir ->
+                procGeneratedSourceDir(genSourceDirs, dir, depth-1, dirCheck)
+            }
+        } else {
+            genDir.eachFile (FileType.DIRECTORIES) { File dir ->
+                File sourceDir = dirCheck.apply(dir)
+                if (sourceDir) {
                     // Add subdirectories containing .java files.
-                    project.logger.info msg("Adding sources in ${bPath}")
-                    def containsJava = false
-                    bPath.eachFileRecurse (FileType.FILES) { f ->
-                        def fName = f.name
-                        if ((!containsJava) && fName.endsWith('.java'))
+                    project.logger.info msg("Adding sources in ${sourceDir}")
+                    boolean containsJava = false
+                    sourceDir.eachFileRecurse (FileType.FILES) { f ->
+                        if ((!containsJava) && f.name.endsWith('.java'))
                             containsJava = true
                     }
                     if (containsJava) {
-                        project.logger.info msg("Found generated Java sources in ${bPath}")
-                        genSourceDirs << bPath.getAbsolutePath()
+                        project.logger.info msg("Found generated Java sources in ${sourceDir}")
+                        genSourceDirs << sourceDir.absolutePath
                     }
                 }
             }
         }
-        return genSourceDirs
     }
 
     /**
@@ -453,25 +490,23 @@ class AndroidPlatform extends Platform {
             sourcesJarTask.from srcAndroidTestMaven
         }
 
-        // For AAR libraries, attempt to read autogenerated sources.
-        if (isLibrary) {
-            def genSourceDirs = findGeneratedSourceDirs(getAppBuildDir(), getFlavorDir())
-            genSourceDirs.each { dir -> sourcesJarTask.from dir}
-            if (explicitScavengeTask()) {
-                JavaCompile scavengeTask = project.tasks.findByName(PTask.SCAVENGE.name) as JavaCompile
-                if (scavengeTask)
-                    scavengeTask.source(genSourceDirs)
-                else
-                    project.logger.error msg("ERROR: scavenge task is missing.")
-            }
-            // Create dependency on source JAR task in order to create
-            // the R.java files. This cannot happen at an earlier
-            // stage because 'assemble' creates a circular dependency
-            // and thus we use 'assemble{Debug,Release}' (or
-            // equivalent flavor task, given via the 'flavor'
-            // parameter).
-            createSourcesJarDep(sourcesJarTask)
+        // Attempt to read autogenerated sources.
+        def genSourceDirs = findGeneratedSourceDirs()
+        genSourceDirs.each { dir -> sourcesJarTask.from dir}
+        if (explicitScavengeTask()) {
+            JavaCompile scavengeTask = project.tasks.findByName(PTask.SCAVENGE.name) as JavaCompile
+            if (scavengeTask)
+                scavengeTask.source(genSourceDirs)
+            else
+                project.logger.error msg("ERROR: scavenge task is missing.")
         }
+        // Create dependency on source JAR task in order to create
+        // the R.java files. This cannot happen at an earlier
+        // stage because 'assemble' creates a circular dependency
+        // and thus we use 'assemble{Debug,Release}' (or
+        // equivalent flavor task, given via the 'flavor'
+        // parameter).
+        createSourcesJarDep(sourcesJarTask)
     }
 
     /**
