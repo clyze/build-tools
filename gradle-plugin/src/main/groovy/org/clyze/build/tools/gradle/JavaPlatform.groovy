@@ -156,7 +156,7 @@ class JavaPlatform extends Platform {
 
     @Override
     void configureConfigurationsTask() {
-        project.logger.warn msg("WARNING: the configurations task is not yet implemented.")
+        project.logger.warn msg("WARNING: the configurations task is not yet implemented. Please option 'configurationFiles' to set configuration inputs manually.")
     }
 
     @Override
