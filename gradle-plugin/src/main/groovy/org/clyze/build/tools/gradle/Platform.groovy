@@ -135,16 +135,16 @@ abstract class Platform {
      * so that it can be invoked as a last step.
      */
     void configureSourceTasks() {
-        if (repackageExt.sources) {
+        Extension ext = getRepackageExt()
+        if (ext.sources) {
             project.logger.debug msg("Configuring sources task")
             configureSourceJarTask()
             project.logger.debug msg("Configuring metadata task")
             configureMetadataTask()
             project.logger.debug msg("Configuring bundling task (step 2)")
             configureCreateBundleTask_step2()
-        } else {
+        } else
             project.logger.info msg("Note: sources will not be processed.")
-        }
     }
 
     private synchronized void configureSourceJarTask() {
