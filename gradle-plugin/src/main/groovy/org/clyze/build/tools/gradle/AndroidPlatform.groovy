@@ -46,8 +46,6 @@ class AndroidPlatform extends Platform {
     // the server when in AAR mode, but not when in APK mode.
     private Set<String> scavengeDeps = new HashSet<>()
     private Set<String> tmpDirs
-    /** The special configuration used to turn off R8 passes. */
-    private Conventions.SpecialConfiguration sc = null;
 
     /**
      * Initializes an Android platform handler for a project.
@@ -186,20 +184,6 @@ class AndroidPlatform extends Platform {
         if (tasks.find { it.endsWith(a.name) } && tasks.find { it.endsWith(b.name) }) {
             project.tasks.findByName(b.name)
                 .dependsOn(project.tasks.findByName(a.name))
-        }
-    }
-
-    /**
-     * Disable rules by adding a "disabling configuration" with -dont* directives.
-     */
-    private void activateSpecialConfiguration() {
-        sc = Conventions.getSpecialConfiguration(repackageExt.getBundleDir(project), true, true)
-        if (!sc)
-            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
-        else
-            injectConfiguration(sc.file, Conventions.COULD_NOT_DISABLE_RULES)
-        if (repackageExt.printConfig) {
-            repackageExt.configurationFiles = [ sc.outputRulesPath ] as List<String>
         }
     }
 
@@ -584,7 +568,8 @@ class AndroidPlatform extends Platform {
      * @param conf           the configuration file
      * @param errorMessage   a message to show when a problem occurs (warning/error)
      */
-    private void injectConfiguration(File conf, String errorMessage) {
+    @Override
+    protected void injectConfiguration(File conf, String errorMessage) {
         AndroidAPI.forEachRepackageTransform(
             project, flavorAndBuildType, { FileCollection pros ->
                 try {
@@ -642,12 +627,7 @@ class AndroidPlatform extends Platform {
             project.logger.info msg("Using provided configuration files: ${repackageExt.configurationFiles}")
         }
 
-        File confZip = getConfFile()
-        List<Message> messages = [] as List<Message>
-        Archiver.zipConfigurations(repackageExt.configurationFiles.collect { new File(it) }, confZip, messages, project.rootDir.canonicalPath, sc?.file.canonicalPath, sc.outputRulesPath)
-        if (messages.size() > 0)
-            messages.each { showMessage(project, it) }
-        project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
+        zipConfigurations()
     }
 
     @Override

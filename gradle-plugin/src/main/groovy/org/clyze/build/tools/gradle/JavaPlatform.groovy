@@ -166,6 +166,12 @@ class JavaPlatform extends Platform {
     @Override
     protected void readConfigurationFiles() {
         project.logger.warn msg("WARNING: configurations are not gathered automatically. Use option 'configurationFiles' to set configuration inputs manually.")
+        zipConfigurations()
+    }
+
+    @Override
+    protected void injectConfiguration(File conf, String errorMessage) {
+        project.logger.debug msg("WARNING: special configuration injection is not yet supported for Java projects.")
     }
 
     @Override

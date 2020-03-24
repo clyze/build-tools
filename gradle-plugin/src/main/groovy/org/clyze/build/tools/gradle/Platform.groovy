@@ -1,6 +1,7 @@
 package org.clyze.build.tools.gradle
 
 import groovy.transform.CompileStatic
+import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
 import org.clyze.build.tools.JcPlugin
 import org.clyze.build.tools.Message
@@ -35,6 +36,8 @@ abstract class Platform {
     protected Project project
     /** Field to hold the configuration data structure. */
     private Extension repackageExt = null
+    /** The special configuration used to turn off optimization passes. */
+    protected Conventions.SpecialConfiguration sc = null
 
     /**
      * Default constructor.
@@ -108,15 +111,6 @@ abstract class Platform {
             ext.ruleFile = DEFAULT_RULES
         }
         return true
-    }
-
-    /**
-     * Returns the file containing configuration rules.
-     *
-     * @return the configuration file
-     */
-    protected File getConfFile() {
-        return new File(repackageExt.getBundleDir(project), Conventions.CONFIGURATIONS_FILE)
     }
 
     /**
@@ -280,6 +274,34 @@ abstract class Platform {
     }
 
     /**
+     * Disable rules by adding a "disabling configuration" with -dont* directives.
+     */
+    protected void activateSpecialConfiguration() {
+        sc = Conventions.getSpecialConfiguration(repackageExt.getBundleDir(project), true, true)
+        if (!sc)
+            project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
+        else
+            injectConfiguration(sc.file, Conventions.COULD_NOT_DISABLE_RULES)
+        if (repackageExt.printConfig)
+            repackageExt.configurationFiles = [ sc.outputRulesPath ] as List<String>
+    }
+
+    /**
+     * Zips the configurations found in the plugin extension, to generate
+     * the configurations archive of the bundle.
+     */
+    protected void zipConfigurations() {
+        Extension ext = getRepackageExt()
+        File confZip = new File(ext.getBundleDir(project), Conventions.CONFIGURATIONS_FILE)
+        List<Message> messages = [] as List<Message>
+        List<File> files = ext.configurationFiles?.collect { new File(it) } ?: []
+        Archiver.zipConfigurations(files, confZip, messages, project.rootDir.canonicalPath, sc?.file?.canonicalPath, sc?.outputRulesPath)
+        if (messages.size() > 0)
+            messages.each { showMessage(project, it) }
+        project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
+    }
+
+    /**
      * Takes the compilation settings from an already configured
      * build task.
      *
@@ -351,4 +373,10 @@ abstract class Platform {
      * Read configurations from current project.
      */
     abstract protected void readConfigurationFiles()
+
+    /**
+     * Injects a configuration file (containing extra rules or directives) to
+     * the rule files currently used in the project.
+     */
+    abstract protected void injectConfiguration(File conf, String errorMessage);
 }
