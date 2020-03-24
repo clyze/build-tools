@@ -29,7 +29,7 @@ class RepackageTask extends PostTask {
             if (ext.signingConfig) {
                 project.logger.info msg("Signing using configuration '${ext.signingConfig}'")
                 try {
-                    AndroidAPI.sign(project, ext.signingConfig, out)
+                    AndroidAPI.signWithConfig(project, ext.signingConfig, out)
                 } catch (Throwable t) {
                     project.logger.error msg("Signing failed: ${t.message}")
                     t.printStackTrace()

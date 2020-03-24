@@ -232,6 +232,12 @@ class AndroidAPI {
         return ret
     }
 
+    static Object getSigningConfiguration(Project project, String signingConfigName) {
+        Class<?> c = getInternalClass(project, 'com.android.build.gradle.internal.dsl.SigningConfig')
+        Object sc = project.android.signingConfigs?.getByName(signingConfigName)
+        return (sc && c?.isInstance(sc)) ? sc : null
+    }
+
     /**
      * Signs a file using a named signing configuration defined in the Gradle
      * build file.
@@ -240,41 +246,58 @@ class AndroidAPI {
      * @param signingConfigName  the name of the signing configuration
      * @param f                  the file to sign
      */
-    static void sign(Project project, String signingConfigName, File f) {
+    static void signWithConfig(Project project, String signingConfigName, File f) {
         project.logger.info msg("Signing using configuration: ${signingConfigName}")
-        Class<?> c = getInternalClass(project, 'com.android.build.gradle.internal.dsl.SigningConfig')
-        Object sc = project.android.signingConfigs?.getByName(signingConfigName)
-        if (sc && c?.isInstance(sc)) {
+        Object sc = getSigningConfiguration(project, signingConfigName)
+        if (sc) {
             project.logger.info msg("Found signing configuration")
-            String fPath = f.canonicalPath
-            String ANDROID_SDK = System.getenv('ANDROID_SDK')
-            if (ANDROID_SDK) {
-                File sdkDir = new File(ANDROID_SDK, 'build-tools')
-                List<String> apkSigners = []
-                if (sdkDir.exists()) {
-                    sdkDir.eachFileRecurse (FileType.DIRECTORIES) { d ->
-                        // TODO: Windows
-                        File apkSigner = new File(d, 'apksigner')
-                        if (apkSigner.exists())
-                            apkSigners << apkSigner.canonicalPath
-                    }
-                    if (apkSigners.size() == 0)
-                        project.logger.error msg("No apksigner found, are build-tools installed (ANDROID_SDK=${ANDROID_SDK})?")
-                    else {
-                        String apkSignerBinary = apkSigners.sort().reverse().get(0)
-                        String signedFile = "signed-" + fPath
-                        List<String> cmd = [
-                            apkSignerBinary,
-                            'sign', '--ks', sc.storeFile, '--ks-key-alias', sc.keyAlias,
-                            '--ks-pass', "pass:${sc.keyPassword}",
-                            '--in', fPath, '--out', signedFile
-                        ]
-                        println msg("Signed file: ${signedFile}")
-                        Executor.execute(cmd)
-                    }
-                }
-            } else
-                println "Please set environment variable ANDROID_SDK."
+            String signedFile = callApksigner(project, f.canonicalPath, sc.storeFile, sc.storePassword, sc.keyAlias, sc.keyPassword)
+            println msg("Signed file: ${signedFile}")
+        } else if (signingConfigName)
+            project.logger.error msg("ERROR: could not read signing configuration ${signingConfigName}")
+    }
+
+    /**
+     * Calls the 'apksigner' tool from the Android SDK to sign an .apk file.
+     *
+     * @param project         the current project
+     * @param apkPath         the path of the .apk file
+     * @param storeFile       the store file to use for signing
+     * @param storePassword   the store password
+     * @param keyAlias        the key alias in the store
+     * @param keyPassword     the key password
+     */
+    static File callApksigner(Project project, String apkPath, String storeFile, String storePassword, String keyAlias, String keyPassword) {
+        String ANDROID_SDK = System.getenv('ANDROID_SDK')
+        if (!ANDROID_SDK) {
+            println "Please set environment variable ANDROID_SDK."
+            return null
         }
+
+        File sdkDir = new File(ANDROID_SDK, 'build-tools')
+        List<String> apkSigners = []
+        if (sdkDir.exists()) {
+            sdkDir.eachFileRecurse (FileType.DIRECTORIES) { d ->
+                // TODO: Windows
+                File apkSigner = new File(d, 'apksigner')
+                if (apkSigner.exists())
+                    apkSigners << apkSigner.canonicalPath
+            }
+            if (apkSigners.size() == 0)
+                project.logger.error msg("No apksigner found, are build-tools installed (ANDROID_SDK=${ANDROID_SDK})?")
+            else {
+                String apkSignerBinary = apkSigners.sort().reverse().get(0)
+                String signedFile = "signed-" + apkPath
+                List<String> cmd = [
+                    apkSignerBinary,
+                    'sign', '--ks', storeFile, '--ks-key-alias', keyAlias,
+                    '--ks-pass', "pass:${keyPassword}",
+                    '--in', apkPath, '--out', signedFile
+                ]
+                Executor.execute(cmd)
+                return signedFile
+            }
+        }
+        return null
     }
 }
