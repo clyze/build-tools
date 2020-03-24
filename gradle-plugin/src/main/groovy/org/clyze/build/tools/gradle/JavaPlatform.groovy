@@ -19,6 +19,11 @@ import static org.clyze.build.tools.Conventions.msg
 @InheritConstructors
 class JavaPlatform extends Platform {
 
+    /**
+     * This copies the compilation settings (sources and classpath) of the
+     * Java compilation tasks defined in the project.
+     * @param task   the target task to receive the copy
+     */
     @Override
     void copyCompilationSettings(JavaCompile task) {
         JavaCompile projectDefaultTask = project.tasks.findByName("compileJava") as JavaCompile
@@ -89,9 +94,18 @@ class JavaPlatform extends Platform {
         }
     }
 
+    /**
+     * Dummy implementation of createScavengeDependency().
+     * @param scavengeTask  the scavenge task (if enabled)
+     */
     @Override
     void createScavengeDependency(JavaCompile scavengeTask) {}
 
+    /**
+     * Gathers the sources from the project "source sets".
+     * @param sourcesJarTask   the "source archive" task to use
+     *                         for gathering the sources
+     */
     @Override
     void gatherSources(Jar sourcesJarTask) {
         SourceSetContainer sourceSets = JavaAPI.getSourceSets(project)
@@ -105,12 +119,16 @@ class JavaPlatform extends Platform {
     }
 
     /**
-     * No code JAR task is created, the 'java' gradle plugin already
+     * No code JAR task is created, the 'java' Gradle plugin already
      * provides 'jar'.
      */
     @Override
     void configureCodeTask() {}
 
+    /**
+     * The Gradle task that generates the code input of the bundle.
+     * @return the name of the Gradle task
+     */
     @Override
     String codeTaskName() { return 'jar' }
 
@@ -173,11 +191,21 @@ class JavaPlatform extends Platform {
         zipConfigurations()
     }
 
+    /**
+     * Dummy implementation of injectConfiguration().
+     * @param conf           the configuration to inject
+     * @param errorMessage   message to show on failure
+     */
     @Override
     protected void injectConfiguration(File conf, String errorMessage) {
         project.logger.debug msg("WARNING: special configuration injection is not yet supported for Java projects.")
     }
 
+    /**
+     * Filter for Java project code artifacts.
+     * @param filename    a file name
+     * @return true if the file is a code artifact, false otherwise
+     */
     @Override
     boolean isCodeArtifact(String filename) {
         return filename.toLowerCase().endsWith('.jar')
