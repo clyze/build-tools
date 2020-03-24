@@ -32,8 +32,10 @@ public class Conventions {
     public static final String DEFAULT_PASSWORD    = "user123";
     /** Default server project. */
     public static final String DEFAULT_PROJECT     = "scrap";
-    /** Default server profile to use for posing. */
-    public static final String DEFAULT_PROFILE     = "apiTargetAndroid";
+    /** Default server profile to use for posting Android code. */
+    public static final String DEFAULT_ANDROID_PROFILE = "apiTargetAndroid";
+    /** Default server profile to use for posting Java (non-Android) code. */
+    public static final String DEFAULT_JAVA_PROFILE= "apiTargetJava";
     /** Default bundle identifier. */
     public static final String BUNDLE_ID           = "bundle";
     /** Default file to record metadata when posting a bundle. */

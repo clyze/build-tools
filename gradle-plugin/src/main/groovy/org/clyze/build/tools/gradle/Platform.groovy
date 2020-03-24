@@ -103,8 +103,8 @@ abstract class Platform {
             ext.project = Conventions.DEFAULT_PROJECT
         }
         if (ext.profile == null) {
-            project.logger.debug msg("Missing property 'profile', assuming profile=${Conventions.DEFAULT_PROFILE}")
-            ext.profile = Conventions.DEFAULT_PROFILE
+            ext.profile = getDefaultProfile()
+            project.logger.debug msg("Missing property 'profile', assuming profile=${ext.profile}")
         }
         if (ext.ruleFile == null) {
             project.logger.debug msg("Missing property 'ruleFile', assuming ruleFile=${DEFAULT_RULES}")
@@ -384,9 +384,7 @@ abstract class Platform {
      */
     abstract boolean explicitScavengeTask()
 
-    /**
-     * Read configurations from current project.
-     */
+    /** Read configurations from current project. */
     abstract protected void readConfigurationFiles()
 
     /**
@@ -394,4 +392,11 @@ abstract class Platform {
      * the rule files currently used in the project.
      */
     abstract protected void injectConfiguration(File conf, String errorMessage);
+
+    /**
+     * Returns the default profile used for posting bundles.
+     *
+     * @return the profile name
+     */
+    abstract protected String getDefaultProfile();
 }

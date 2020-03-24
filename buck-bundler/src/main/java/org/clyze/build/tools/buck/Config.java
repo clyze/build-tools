@@ -46,7 +46,7 @@ class Config {
         this.opts.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
         this.opts.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
         this.opts.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
-        this.opts.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_PROFILE);
+        this.opts.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_ANDROID_PROFILE);
         this.opts.dry = !cmd.hasOption("p");
     }
 
@@ -65,12 +65,12 @@ class Config {
         opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
         opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
         opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
-        opts.addOption(null, "profile", true, "The profile (default: "+Conventions.DEFAULT_PROFILE+").");
+        opts.addOption(null, "profile", true, "The profile (default (Android): "+Conventions.DEFAULT_ANDROID_PROFILE+", other (Java): "+Conventions.DEFAULT_JAVA_PROFILE+").");
         opts.addOption(null, "trace", true, "The Buck trace file (default: "+DEFAULT_TRACE_FILE+").");
         opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
         opts.addOption(null, PROGUARD_BINARY_OPT, true, "The location of the proguard binary.");
         opts.addOption(null, "configuration", true, "The configuration file(s) to use. If not specified, the trace file will be read to autodetect configuration (via option '"+PROGUARD_BINARY_OPT+"').");
-        opts.addOption(null, AUTODETECT_SOURCES_OPT, false, "Attempt to automatically detect source directories. Companion to options '" + SOURCE_DIR_S + "'/'" + SOURCE_DIR_L + "'");
+        opts.addOption(null, AUTODETECT_SOURCES_OPT, false, "Attempt to automatically detect source directories. Companion to options '" + SOURCE_DIR_S + "' and '" + SOURCE_DIR_L + "'.");
         return opts;
     }
 
@@ -84,6 +84,7 @@ class Config {
 
     static void showUsage() {
         HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(80);
         formatter.printHelp("buck-bundler", opts());
     }
 

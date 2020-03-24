@@ -771,4 +771,9 @@ class AndroidPlatform extends Platform {
         }
         return false
     }
+
+    @Override
+    protected String getDefaultProfile() {
+        return Conventions.DEFAULT_ANDROID_PROFILE
+    }
 }

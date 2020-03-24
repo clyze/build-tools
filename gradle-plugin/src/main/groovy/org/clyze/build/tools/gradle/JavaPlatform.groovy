@@ -2,6 +2,7 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.InheritConstructors
 import groovy.transform.TypeChecked
+import org.clyze.build.tools.Conventions
 import org.clyze.client.SourceProcessor
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.artifacts.Configuration
@@ -209,5 +210,10 @@ class JavaPlatform extends Platform {
     @Override
     boolean isCodeArtifact(String filename) {
         return filename.toLowerCase().endsWith('.jar')
+    }
+
+    @Override
+    protected String getDefaultProfile() {
+        return Conventions.DEFAULT_JAVA_PROFILE
     }
 }
