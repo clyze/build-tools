@@ -235,7 +235,7 @@ abstract class Platform {
             } else {
                 String jcpluginProc = jcplugin.get(0)
                 project.dependencies.add('annotationProcessor', project.files(jcpluginProc))
-                project.logger.info msg("Metadata processor added: ${jcpluginProc}")
+                project.logger.debug msg("Metadata processor added: ${jcpluginProc}")
                 if (sz > 1) {
                     project.logger.warn msg('WARNING: too many metadata processors found: ' + jcplugin)
                 }
