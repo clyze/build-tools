@@ -74,6 +74,7 @@ class JavaPlatform extends Platform {
             }
 
             if (ext.sources) {
+                configureCompileHook()
                 configureSourceTasks()
                 String sourcesJar = ext.useSourcesJar
                 if (sourcesJar != null) {

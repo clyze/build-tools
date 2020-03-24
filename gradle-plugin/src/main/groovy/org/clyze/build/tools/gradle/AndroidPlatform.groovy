@@ -154,17 +154,11 @@ class AndroidPlatform extends Platform {
             configureCodeTaskAfterEvaluate()
 
             if (repackageExt.sources) {
+                configureCompileHook()
                 configureSourceTasks()
 
                 Jar sourcesTask = project.tasks.findByName(PTask.SOURCES_JAR.name) as Jar
                 gatherSourcesAfterEvaluate(sourcesTask)
-
-                // If not using an explicit metadata scavenge task, hook into the
-                // compiler instead. If this is a run that throws away code (because
-                // no archive task is called), skip this integration.
-                def taskArch = tasks.find { it.endsWith(PTask.ANDROID_CODE_ARCHIVE.name) || it.endsWith(PTask.CREATE_BUNDLE.name) }
-                if (!explicitScavengeTask() && taskArch)
-                    configureCompileHook()
             }
 
 

@@ -215,6 +215,12 @@ abstract class Platform {
      * Configures the metadata processor (when integrated with a build task).
      */
     protected void configureCompileHook() {
+        // If not using an explicit metadata scavenge task, hook into the
+        // compiler instead. If this is a run that throws away code (because
+        // no archive task is called), skip this configuration.
+        def taskArch = project.gradle.startParameter.taskNames.find { it.endsWith(codeTaskName()) || it.endsWith(PTask.CREATE_BUNDLE.name) }
+        if (explicitScavengeTask() || !taskArch)
+            return
 
         String javacPluginArtifact
         try {
@@ -242,13 +248,13 @@ abstract class Platform {
             return
         }
 
-        Set<JavaCompile> tasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
-            if (tasks.size() == 0) {
+        Set<JavaCompile> compileTasks = project.tasks.findAll { it instanceof JavaCompile } as Set<JavaCompile>
+            if (compileTasks.size() == 0) {
             project.logger.error msg("Could not integrate metadata processor, no compile tasks found.")
             return
         }
 
-        tasks.each { task ->
+        compileTasks.each { task ->
             project.logger.info msg("Plugging metadata processor into task ${task.name}")
             RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBundleDir(project), repackageExt.jcPluginOutput)
         }
