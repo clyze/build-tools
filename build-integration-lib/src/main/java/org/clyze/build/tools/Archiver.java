@@ -175,7 +175,7 @@ public final class Archiver {
                     // entryName = "DISABLING_RULES";
                 } else if (projectDir != null && path.startsWith(projectDir))
                     entryName = stripRootPrefix(path.substring(projectDir.length()));
-                else if (path.indexOf(GRADLE_CACHE) != -1) {
+                else if (path.contains(GRADLE_CACHE)) {
                     String[] parts = path.split(SEP.equals("\\") ? "\\\\" : "/");
                     entryName = path.contains("META-INF") ?
                         parts[parts.length-3] + SEP + parts[parts.length-2] + SEP + parts[parts.length-1] :
@@ -297,7 +297,7 @@ public final class Archiver {
             }
             // Sort by longest-string-first, to avoid mishandling
             // rules being subset of each other.
-            Collections.sort(rules, ((String s1, String s2) -> s2.length() - s1.length()));
+            rules.sort(((String s1, String s2) -> s2.length() - s1.length()));
             String totalRules = fromInputStreamToString(new FileInputStream(printConfigFile));
             for (String r : rules) {
                 int idx = totalRules.indexOf(r);

@@ -64,7 +64,6 @@ public class Poster {
                               options.password, options.project, options.profile, ps);
         } catch (HttpHostConnectException ex) {
             Message.print(messages, "ERROR: cannot not post bundle, is the server running?");
-            return;
         }
     }
 
@@ -77,7 +76,7 @@ public class Poster {
      */
     public static boolean isAndroidSupported(Map<String, Object> diag) {
         Boolean androidSDK_OK = (Boolean)diag.get("ANDROID_SDK_OK");
-        return (androidSDK_OK == null) || (androidSDK_OK == true);
+        return (androidSDK_OK == null) || androidSDK_OK;
     }
 
     /**

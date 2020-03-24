@@ -333,7 +333,7 @@ public class BundlerMain {
             println("Posting bundle to the server...");
 
         List<Message> messages = new LinkedList<>();
-        boolean android = conf.opts.profile.toUpperCase().indexOf("ANDROID") >= 0;
+        boolean android = conf.opts.profile.toUpperCase().contains("ANDROID");
         (new Poster(conf.opts, false, new File(Conventions.CLUE_BUNDLE_DIR), android))
                 .post(ps, messages);
         showMessages(messages);
