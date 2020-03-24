@@ -323,9 +323,11 @@ class AndroidPlatform extends Platform {
             return null
         } as Function<File, File> }
         File gDir2 = new File("${appBuildDir}/generated/ap_generated_sources")
-        procGeneratedSourceDir(genSourceDirs, gDir2, 0, matchingSubDir('out'))
+        if (gDir2.exists())
+            procGeneratedSourceDir(genSourceDirs, gDir2, 0, matchingSubDir('out'))
         File gDir3 = new File("${appBuildDir}/generated/not_namespaced_r_class_sources")
-        procGeneratedSourceDir(genSourceDirs, gDir3, 0, matchingSubDir('r'))
+        if (gDir3.exists())
+            procGeneratedSourceDir(genSourceDirs, gDir3, 0, matchingSubDir('r'))
 
         return genSourceDirs
     }
