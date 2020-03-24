@@ -152,7 +152,6 @@ class AndroidPlatform extends Platform {
             configureCodeTaskAfterEvaluate()
 
             if (repackageExt.sources) {
-                configureCompileHook()
                 configureSourceTasks()
 
                 Jar sourcesTask = project.tasks.findByName(PTask.SOURCES_JAR.name) as Jar
