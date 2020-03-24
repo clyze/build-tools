@@ -164,25 +164,10 @@ class AndroidPlatform extends Platform {
             activateSpecialConfiguration()
 
             // If some tasks are invoked together, configure which runs first.
-            taskPrecedes(project, tasks, PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
-            taskPrecedes(project, tasks, PTask.ANDROID_CODE_ARCHIVE, PTask.REPACKAGE)
+            taskPrecedes(PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
+            taskPrecedes(PTask.ANDROID_CODE_ARCHIVE, PTask.REPACKAGE)
 
             configureTestRepackaging()
-        }
-    }
-
-    /**
-     * Helper method: if tasks a and b are invoked, then b should depend on a.
-     *
-     * @param project   the current project
-     * @param tasks     the currently invoked tasks
-     * @param a         the first task to be executed
-     * @param b         the second task to be executed
-     */
-    private static taskPrecedes(Project project, Collection<String> tasks, PTask a, PTask b) {
-        if (tasks.find { it.endsWith(a.name) } && tasks.find { it.endsWith(b.name) }) {
-            project.tasks.findByName(b.name)
-                .dependsOn(project.tasks.findByName(a.name))
         }
     }
 
