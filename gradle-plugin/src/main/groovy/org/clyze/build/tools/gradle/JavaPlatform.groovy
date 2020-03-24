@@ -165,7 +165,9 @@ class JavaPlatform extends Platform {
      */
     @Override
     protected void readConfigurationFiles() {
-        project.logger.warn msg("WARNING: configurations are not gathered automatically. Use option 'configurationFiles' to set configuration inputs manually.")
+        if (!getRepackageExt().configurationFiles) {
+            project.logger.warn msg("WARNING: configurations are not gathered automatically. Use option 'configurationFiles' to set configuration inputs manually.")
+        }
         zipConfigurations()
     }
 
