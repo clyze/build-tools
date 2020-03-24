@@ -54,6 +54,8 @@ abstract class Platform {
         if (!repackageExt) {
             repackageExt = Extension.of(project)
         }
+        if (!repackageExt)
+            project.logger.warn msg("WARNING: could not find extension")
         return repackageExt
     }
 
