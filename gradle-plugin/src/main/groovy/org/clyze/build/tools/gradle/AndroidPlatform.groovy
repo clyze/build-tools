@@ -352,7 +352,6 @@ class AndroidPlatform extends Platform {
                 File sourceDir = dirCheck.apply(dir)
                 if (sourceDir) {
                     // Add subdirectories containing .java files.
-                    project.logger.info msg("Adding sources in ${sourceDir}")
                     boolean containsJava = false
                     sourceDir.eachFileRecurse (FileType.FILES) { f ->
                         if ((!containsJava) && f.name.endsWith('.java'))
