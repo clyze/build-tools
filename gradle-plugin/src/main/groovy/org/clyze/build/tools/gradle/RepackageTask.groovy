@@ -29,7 +29,10 @@ class RepackageTask extends PostTask {
             if (ext.signingConfig) {
                 project.logger.info msg("Signing using configuration '${ext.signingConfig}'")
                 try {
-                    AndroidAPI.signWithConfig(project, ext.signingConfig, out)
+                    if (platform instanceof AndroidPlatform)
+                        AndroidAPI.signWithConfig(project, ext.signingConfig, out)
+                    else
+                        project.logger.warn msg("WARNING: signing not yet supported for JAR inputs.")
                 } catch (Throwable t) {
                     project.logger.error msg("Signing failed: ${t.message}")
                     t.printStackTrace()
