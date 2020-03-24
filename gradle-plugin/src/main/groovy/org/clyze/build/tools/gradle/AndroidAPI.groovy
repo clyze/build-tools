@@ -1,7 +1,6 @@
 package org.clyze.build.tools.gradle
 
-import groovy.io.FileType
-import org.clyze.utils.Executor
+import org.clyze.signing.Signer
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -256,53 +255,13 @@ class AndroidAPI {
                 project.logger.error "ERROR: set environment variable ANDROID_SDK."
                 return null
             }
-            String signedFile = callApksigner(androidSdkHome, project, f.canonicalPath, sc.storeFile, sc.storePassword, sc.keyAlias, sc.keyPassword)
+
+            List<String> messages = []
+            String signedFile = Signer.signWithApkSigner(androidSdkHome, messages, f.canonicalPath, sc.storeFile, sc.storePassword, sc.keyAlias, sc.keyPassword)
+            messages.each { project.logger.error msg(it) }
+
             println msg("Signed file: ${signedFile}")
         } else if (signingConfigName)
             project.logger.error msg("ERROR: could not read signing configuration ${signingConfigName}")
-    }
-
-    /**
-     * Calls the 'apksigner' tool from the Android SDK to sign an .apk file.
-     *
-     * @param androidSdkHome  the path to the Android SDK
-     * @param project         the current project
-     * @param apkPath         the path of the .apk file
-     * @param storeFile       the store file to use for signing
-     * @param storePassword   the store password
-     * @param keyAlias        the key alias in the store
-     * @param keyPassword     the key password
-     */
-    static File callApksigner(String androidSdkHome, Project project, String apkPath, String storeFile, String storePassword, String keyAlias, String keyPassword) {
-        if (!androidSdkHome) {
-            project.logger.error msg("ERROR: cannot run apksigner, empty Android SDK home")
-            return null
-        }
-
-        File sdkDir = new File(androidSdkHome, 'build-tools')
-        List<String> apkSigners = []
-        if (sdkDir.exists()) {
-            sdkDir.eachFileRecurse (FileType.DIRECTORIES) { d ->
-                // TODO: Windows
-                File apkSigner = new File(d, 'apksigner')
-                if (apkSigner.exists())
-                    apkSigners << apkSigner.canonicalPath
-            }
-            if (apkSigners.size() == 0)
-                project.logger.error msg("No apksigner found, are build-tools installed (ANDROID_SDK=${androidSdkHome})?")
-            else {
-                String apkSignerBinary = apkSigners.sort().reverse().get(0)
-                String signedFile = "signed-" + apkPath
-                List<String> cmd = [
-                    apkSignerBinary,
-                    'sign', '--ks', storeFile, '--ks-key-alias', keyAlias,
-                    '--ks-pass', "pass:${keyPassword}",
-                    '--in', apkPath, '--out', signedFile
-                ]
-                Executor.execute(cmd)
-                return signedFile
-            }
-        }
-        return null
     }
 }
