@@ -212,6 +212,11 @@ clyze {
 * boolean _printConfig_: if `true`, then a "print configuration" directive
   is used to gather the configuration rules and directives.
 
+* String _signingConfig_: the name of the signing configuration
+  (defined in build.gradle) to use when signing code via automated
+  repackaging. To use this feature, you must set environment variable
+  ANDROID_SDK to point to the Android SDK location.
+
 ## Replay the post ##
 
 When invoking the plugin with the ```cachePost``` option set to true,

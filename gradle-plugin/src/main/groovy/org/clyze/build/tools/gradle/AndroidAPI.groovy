@@ -1,5 +1,7 @@
 package org.clyze.build.tools.gradle
 
+import groovy.io.FileType
+import org.clyze.utils.Executor
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -228,5 +230,51 @@ class AndroidAPI {
             }
         }
         return ret
+    }
+
+    /**
+     * Signs a file using a named signing configuration defined in the Gradle
+     * build file.
+     *
+     * @param project            the current project
+     * @param signingConfigName  the name of the signing configuration
+     * @param f                  the file to sign
+     */
+    static void sign(Project project, String signingConfigName, File f) {
+        project.logger.info msg("Signing using configuration: ${signingConfigName}")
+        Class<?> c = getInternalClass(project, 'com.android.build.gradle.internal.dsl.SigningConfig')
+        Object sc = project.android.signingConfigs?.getByName(signingConfigName)
+        if (sc && c?.isInstance(sc)) {
+            project.logger.info msg("Found signing configuration")
+            String fPath = f.canonicalPath
+            String ANDROID_SDK = System.getenv('ANDROID_SDK')
+            if (ANDROID_SDK) {
+                File sdkDir = new File(ANDROID_SDK, 'build-tools')
+                List<String> apkSigners = []
+                if (sdkDir.exists()) {
+                    sdkDir.eachFileRecurse (FileType.DIRECTORIES) { d ->
+                        // TODO: Windows
+                        File apkSigner = new File(d, 'apksigner')
+                        if (apkSigner.exists())
+                            apkSigners << apkSigner.canonicalPath
+                    }
+                    if (apkSigners.size() == 0)
+                        project.logger.error msg("No apksigner found, are build-tools installed (ANDROID_SDK=${ANDROID_SDK})?")
+                    else {
+                        String apkSignerBinary = apkSigners.sort().reverse().get(0)
+                        String signedFile = "signed-" + fPath
+                        List<String> cmd = [
+                            apkSignerBinary,
+                            'sign', '--ks', sc.storeFile, '--ks-key-alias', sc.keyAlias,
+                            '--ks-pass', "pass:${sc.keyPassword}",
+                            '--in', fPath, '--out', signedFile
+                        ]
+                        println msg("Signed file: ${signedFile}")
+                        Executor.execute(cmd)
+                    }
+                }
+            } else
+                println "Please set environment variable ANDROID_SDK."
+        }
     }
 }

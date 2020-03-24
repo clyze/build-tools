@@ -58,6 +58,8 @@ class Extension {
     String useSourcesJar
     /** Show output when the javac plugin runs. */
     boolean jcPluginOutput = false
+    /** Signing configuration for automated repackaging. */
+    String signingConfig = null
 
     Platform platform
 

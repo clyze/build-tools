@@ -24,9 +24,18 @@ class RepackageTask extends PostTask {
     void repackage() {
         Extension ext = Extension.of(project)
         File out = repackageCodeArchive(project, ext, ext.platform.getOutputCodeArchive(), "repackaged-apk", ".apk", null)
-        if (out)
+        if (out) {
             println msg("Repackaged output: ${out.canonicalPath}")
-        else
+            if (ext.signingConfig) {
+                project.logger.info msg("Signing using configuration '${ext.signingConfig}'")
+                try {
+                    AndroidAPI.sign(project, ext.signingConfig, out)
+                } catch (Throwable t) {
+                    project.logger.error msg("Signing failed: ${t.message}")
+                    t.printStackTrace()
+                }
+            }
+        } else
             println msg("Could not repackage application.")
     }
 
