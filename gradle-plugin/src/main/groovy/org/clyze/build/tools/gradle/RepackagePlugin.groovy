@@ -133,6 +133,7 @@ class RepackagePlugin implements Plugin<Project> {
         RepackageTask repackage = project.tasks.create(PTask.REPACKAGE.name, RepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules'
         repackage.group = Conventions.TOOL_NAME
+        dependOnCodeAndConfigurations(platform, repackage)
     }
 
     private void dependOnCodeAndConfigurations(Platform platform, Task task) {
