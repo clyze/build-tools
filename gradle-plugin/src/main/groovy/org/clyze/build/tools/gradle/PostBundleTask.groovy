@@ -32,7 +32,7 @@ class PostBundleTask extends PostTask {
 
         if (bundlePostState) {
             List<Message> messages = new LinkedList<>()
-            getPoster(project).post(bundlePostState, messages)
+            getPoster(project, false).post(bundlePostState, messages)
             messages.each { Platform.showMessage(project, it) }
         } else
             project.logger.error msg("ERROR: could not package bundle.")

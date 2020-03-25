@@ -66,10 +66,11 @@ abstract class PostTask extends DefaultTask {
     /**
      * Constructs the "Poster" object that will handle interactions with the server.
      *
-     * @param project   the current project
-     * @return          the Poster object
+     * @param project     the current project
+     * @param autoRepack  if the Poster should support automated repackaging
+     * @return            the Poster object
      */
-    protected static Poster getPoster(Project project) {
+    protected static Poster getPoster(Project project, boolean autoRepack) {
         Extension ext = Extension.of(project)
         Poster.Options opts = new Poster.Options()
         opts.host = ext.host
@@ -80,6 +81,6 @@ abstract class PostTask extends DefaultTask {
         opts.project = ext.project
         opts.dry = ext.dry
         return new Poster(opts, ext.cachePost, ext.getBundleDir(project),
-                          ext.androidProject)
+                          ext.androidProject, autoRepack)
     }
 }

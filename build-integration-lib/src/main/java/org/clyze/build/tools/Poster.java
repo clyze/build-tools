@@ -20,13 +20,16 @@ public class Poster {
     private final Options options;
     private final File metadataDir;
     private final boolean android;
+    private final boolean forAutomatedRepackaging;
 
     public Poster(Options options, boolean cachePost,
-                  File metadataDir, boolean android) {
+                  File metadataDir, boolean android,
+                  boolean forAutomatedRepackaging) {
         this.options = options;
         this.cachePost = cachePost;
         this.metadataDir = metadataDir;
         this.android = android;
+        this.forAutomatedRepackaging = forAutomatedRepackaging;
     }
 
     public void post(PostState ps, List<Message> messages) {
@@ -53,11 +56,8 @@ public class Poster {
         }
 
         try {
-            // Check if the server can receive Android bundles.
-            if (android && !isAndroidSupported(diagnose())) {
-                Message.print(messages, "ERROR: Cannot post bundle: Android SDK setup missing.");
+            if (!isServerCapable(messages))
                 return;
-            }
 
             if (!options.dry)
                 Helper.doPost(options.host, options.port, options.username,
@@ -65,6 +65,33 @@ public class Poster {
         } catch (HttpHostConnectException ex) {
             Message.print(messages, "ERROR: cannot not post bundle, is the server running?");
         }
+    }
+
+    /**
+     * Tests that the server capabilities match this Poster.
+     *
+     * @param messages  a list of messages to contain resulting errors/warnings
+     * @return true     if the server is compatible, false otherwise (see
+     *                  messages for reason)
+     * @throws HttpHostConnectException if the server did not respond
+     */
+    public boolean isServerCapable(List<Message> messages)
+        throws HttpHostConnectException {
+        Map<String, Object> diag = diagnose();
+        // Check if the server can receive Android bundles.
+        if (android && !isAndroidSupported(diagnose())) {
+            Message.print(messages, "ERROR: Cannot post bundle: Android SDK setup missing.");
+            return false;
+        } else if (forAutomatedRepackaging && !supportsAutomatedRepackaging(diag)) {
+            Message.print(messages, "ERROR: This version of the server does not support automated repackaging.");
+            return false;
+        } else {
+            String sv = getServerVersion(diag);
+            String expected = "1.0.3";
+            if (!sv.equals(expected))
+                Message.warn(messages, "WARNING: server version not compatible: " + sv + " (expected: " + expected + ")");
+        }
+        return true;
     }
 
     /**
@@ -80,7 +107,27 @@ public class Poster {
     }
 
     /**
-     * Invokes the "diagnose" endpoint of the server.
+     * Returns the server version.
+     *
+     * @param   diag the output of the 'diagnose' endpoint
+     * @return  the contents of the server version field
+     */
+    public static String getServerVersion(Map<String, Object> diag) {
+        return (String)diag.get("SERVER_VERSION");
+    }
+
+    /**
+     * Checks if the server supports automated repackaging.
+     *
+     * @param   diag the output of the 'diagnose' endpoint
+     * @return  true if the server supports automated repackaging
+     */
+    public static boolean supportsAutomatedRepackaging(Map<String, Object> diag) {
+        return (Boolean)diag.get("AUTOMATED_REPACKAGING");
+    }
+
+    /**
+     * Invokes the "diagnose" endpoint of the server and returns its response.
      *
      * @return the JSON response as a Map
      * @throws HttpHostConnectException if the server did not respond

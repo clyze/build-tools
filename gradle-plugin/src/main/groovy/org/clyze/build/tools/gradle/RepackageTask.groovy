@@ -4,6 +4,7 @@ import groovy.transform.TypeChecked
 import org.apache.http.HttpEntity
 import org.apache.http.client.ClientProtocolException
 import org.apache.http.conn.HttpHostConnectException
+import org.clyze.build.tools.Message
 import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
@@ -64,16 +65,10 @@ class RepackageTask extends PostTask {
         File out = File.createTempFile(repackBaseName, repackExtension)
 
         try {
-            Poster poster = getPoster(project)
-            Map<String, Object> diag = poster.diagnose()
-            if (ext.androidProject && !Poster.isAndroidSupported(diag)) {
-                println msg("ERROR: Cannot repackage bundle: Android SDK setup missing.")
-                return
-            }
-
-            Boolean supportsRepackaging = (Boolean)diag.get("AUTOMATED_REPACKAGING")
-            if (!supportsRepackaging) {
-                println msg("This version of the server does not support automated repackaging.")
+            Poster poster = getPoster(project, true)
+            List<Message> messages = new LinkedList<>()
+            if (!poster.isServerCapable(messages)) {
+                messages.each { Platform.showMessage(project, it) }
                 return
             }
 
