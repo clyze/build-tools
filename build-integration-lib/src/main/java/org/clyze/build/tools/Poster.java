@@ -77,6 +77,10 @@ public class Poster {
      */
     public boolean isServerCapable(List<Message> messages)
         throws HttpHostConnectException {
+
+        if (options.dry)
+            return true;
+
         Map<String, Object> diag = diagnose();
         // Check if the server can receive Android bundles.
         if (android && !isAndroidSupported(diagnose())) {

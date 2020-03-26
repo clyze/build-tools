@@ -32,7 +32,8 @@ class Extension {
     Map<String, Object> options
     boolean cachePost = false
     String convertUTF8Dir
-    boolean dry
+    /** Dry mode, for sample bundle creation. */
+    boolean dry = false
     boolean ignoreConfigurations = false
     String profile
     String ruleFile
