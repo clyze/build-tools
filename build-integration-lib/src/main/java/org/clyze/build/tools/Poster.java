@@ -49,7 +49,7 @@ public class Poster {
             File metadataFile = new File(metadataDir, Conventions.POST_METADATA);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
                 Message.debug(messages, "Saving options in: " + metadataFile.getCanonicalPath());
-                writer.write(ps.toJSON());
+                writer.write(ps.toJSONWithRelativePaths(metadataDir.getCanonicalPath()));
             } catch (IOException ex) {
                 Message.warn(messages, "WARNING: cannot save metadata: " + ex.getMessage());
             }
