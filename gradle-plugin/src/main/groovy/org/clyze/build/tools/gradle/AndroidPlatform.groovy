@@ -492,12 +492,16 @@ class AndroidPlatform extends Platform {
             project.logger.warn(msg("ERROR: code task ${PTask.ANDROID_CODE_ARCHIVE.name} does not exist!"))
             return
         }
-        String classDir = "${appBuildDir}/intermediates/classes/${flavorDir}"
-        if (!(new File(classDir)).exists()) {
-            project.logger.debug msg("WARNING: class directory does not exist: ${classDir}, maybe a wrong 'flavor'/'buildType' setting? (Ignore this warning if this is a clean build.)")
+        String classDir1 = "${appBuildDir}/intermediates/classes/${flavorDir}"
+        if ((new File(classDir1)).exists())
+            codeTask.from(classDir1)
+        else {
+            String classDir2 = "${appBuildDir}/intermediates/javac/${flavorAndBuildType}/classes/"
+            if ((new File(classDir2)).exists())
+                codeTask.from(classDir2)
+            else
+                project.logger.debug msg("WARNING: intermediate class directory does not exist, locations checked: ${classDir1}, ${classDir2}. Maybe a wrong 'flavor'/'buildType' setting? (Ignore this warning if this is a clean build.)")
         }
-
-        codeTask.from(classDir)
 
         // Create dependency (needs configuration section so it must happen late).
         // Copy compiled outputs to local bundle cache.
