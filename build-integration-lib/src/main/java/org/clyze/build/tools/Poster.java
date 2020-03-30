@@ -64,6 +64,8 @@ public class Poster {
                                   options.password, options.project, options.profile, ps);
         } catch (HttpHostConnectException ex) {
             Message.print(messages, "ERROR: cannot not post bundle, is the server running?");
+        } catch (Exception ex) {
+            Message.print(messages, "ERROR: cannot not post bundle: " + ex.getMessage());
         }
     }
 
