@@ -2,6 +2,7 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
 import org.clyze.build.tools.Conventions
+import org.clyze.build.tools.Message
 import org.clyze.build.tools.Poster
 import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask
@@ -83,4 +84,21 @@ abstract class PostTask extends DefaultTask {
         return new Poster(opts, ext.cachePost, ext.getBundleDir(project),
                           ext.androidProject, autoRepack)
     }
+
+    /**
+     * The actual method that posts a bundle and shows the generated messages.
+     *
+     * @param bundlePostState   the PostState object representing the bundle
+     */
+    protected void postBundlePostState(PostState bundlePostState) {
+        Extension ext = Extension.of(project)
+        if (bundlePostState) {
+            List<Message> messages = new LinkedList<>()
+            getPoster(project, false).post(bundlePostState, messages)
+            messages.each { Platform.showMessage(project, it) }
+        } else
+            project.logger.error msg("ERROR: could not post bundle.")
+        ext.platform.cleanUp()
+    }
+
 }

@@ -4,7 +4,6 @@ import groovy.io.FileType
 import groovy.transform.TypeChecked
 import java.nio.file.Files
 import org.clyze.build.tools.Conventions
-import org.clyze.build.tools.Message
 import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
@@ -24,20 +23,7 @@ class PostBundleTask extends PostTask {
      */
     @TaskAction
     void postBundle() {
-
-        Extension ext = Extension.of(project)
-        
-        // Package all information needed to post the bundle and the analysis.
-        PostState bundlePostState = newBundlePostState(project)
-
-        if (bundlePostState) {
-            List<Message> messages = new LinkedList<>()
-            getPoster(project, false).post(bundlePostState, messages)
-            messages.each { Platform.showMessage(project, it) }
-        } else
-            project.logger.error msg("ERROR: could not package bundle.")
-
-        ext.platform.cleanUp()
+        postBundlePostState(newBundlePostState(project))
     }
 
     // A PostState for preserving all the information required to replay a bundle post

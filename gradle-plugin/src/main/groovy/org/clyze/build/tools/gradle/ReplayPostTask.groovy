@@ -1,5 +1,6 @@
 package org.clyze.build.tools.gradle
 
+import groovy.transform.TypeChecked
 import org.clyze.client.web.PostState
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -11,7 +12,8 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * A task that replays the posting of a bundle.
  */
-class ReplayPostTask extends DefaultTask {
+@TypeChecked
+class ReplayPostTask extends PostTask {
 
     @InputDirectory
     File fromDir
@@ -26,25 +28,27 @@ class ReplayPostTask extends DefaultTask {
      */
     @TaskAction
     void replayPost() {
-        PostState bundlePostState, analysisPostState
+        PostState bundlePostState
+        if (!fromDir)
+            project.logger.error msg("ERROR: missing input directory (property 'fromDir')")
         try {
             // Check if a bundle post state exists.
             bundlePostState = new PostState(id:"bundle")
             bundlePostState.loadFrom(fromDir)
         } catch (any) {
-            project.logger.error msg("Error bundling state: ${any.getMessage()}")
-            return
-        }
-
-        try {
-            // Check if an analysis post state exists.
-            analysisPostState = new PostState(id: "analysis")
-            analysisPostState.loadFrom(fromDir)
-        } catch (any) {
             project.logger.error msg("Error bundling state: ${any.message}")
             return
         }
 
-        PostBundleTask.doPost(Extension.of(project), bundlePostState, analysisPostState)
+        Extension ext = Extension.of(project)
+        if (ext.dry) {
+            project.logger.warn msg("WARNING: ignoring 'dry' option")
+            ext.dry = false
+        }
+        if (ext.cachePost) {
+            project.logger.warn msg("WARNING: ignoring 'cache' option")
+            ext.cachePost = false
+        }
+        postBundlePostState(bundlePostState)
     }
 }
