@@ -257,7 +257,7 @@ class AndroidAPI {
             }
 
             List<String> messages = []
-            String signedFile = Signer.signWithApkSigner(androidSdkHome, messages, f.canonicalPath, sc.storeFile, sc.storePassword, sc.keyAlias, sc.keyPassword)
+            String signedFile = Signer.signWithApksigner(androidSdkHome, f.parentFile, f.name, messages, sc.storeFile, sc.storePassword, sc.keyAlias, sc.keyPassword)
             messages.each { project.logger.error msg(it) }
 
             println msg("Signed file: ${signedFile}")
