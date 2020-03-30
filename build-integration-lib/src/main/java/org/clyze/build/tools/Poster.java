@@ -60,8 +60,8 @@ public class Poster {
                 return;
 
             if (!options.dry)
-                Helper.doPost(options.host, options.port, options.username,
-                              options.password, options.project, options.profile, ps);
+                Helper.postBundle(options.host, options.port, options.username,
+                                  options.password, options.project, options.profile, ps);
         } catch (HttpHostConnectException ex) {
             Message.print(messages, "ERROR: cannot not post bundle, is the server running?");
         }
@@ -149,8 +149,8 @@ public class Poster {
      */
     public void repackageBundleForCI(PostState ps, AttachmentHandler<String> handler)
     throws ClientProtocolException{
-        Remote.at(options.host, options.port)
-            .repackageBundleForCI(options.username, options.project, ps, handler);
+        Helper.repackageBundleForCI(options.host, options.port, options.username,
+                                    options.password, options.project, ps, handler);
     }
 
     /**
