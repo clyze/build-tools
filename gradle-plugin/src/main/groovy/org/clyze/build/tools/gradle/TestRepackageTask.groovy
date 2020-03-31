@@ -14,7 +14,7 @@ import static org.clyze.build.tools.Conventions.msg
  * A task that runs project tests on the optimized output.
  */
 @TypeChecked
-class TestRepackageTask extends DefaultTask {
+class TestRepackageTask extends PostTask {
 
     /**
      * The main task action.
@@ -67,7 +67,7 @@ class TestRepackageTask extends DefaultTask {
             }
 
             // Call standard 'repackage' task functionality on test code.
-            File repackagedCode = RepackageTask.repackageCodeArchive(project, ext, preTestCodeJar.canonicalPath, 'repackaged-test-code', '.jar', 'false')
+            File repackagedCode = repackageCodeArchive(ext, preTestCodeJar.canonicalPath, 'repackaged-test-code', '.jar', 'false')
             println msg("Repackaged code: ${repackagedCode.canonicalPath}")
 
             println msg("Replacing " + originalCodeDir + " with contents of " + repackagedCode)

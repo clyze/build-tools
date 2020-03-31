@@ -303,20 +303,6 @@ abstract class Platform {
     }
 
     /**
-     * Helper method: if tasks a and b are invoked, then b should depend on a.
-     *
-     * @param a         the first task to be executed
-     * @param b         the second task to be executed
-     */
-    protected void taskPrecedes(PTask a, PTask b) {
-        def tasks = project.gradle.startParameter.taskNames
-        if (tasks.find { it.endsWith(a.name) } && tasks.find { it.endsWith(b.name) }) {
-            project.tasks.findByName(b.name)
-                .dependsOn(project.tasks.findByName(a.name))
-        }
-    }
-
-    /**
      * Takes the compilation settings from an already configured
      * build task.
      *

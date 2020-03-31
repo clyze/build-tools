@@ -217,6 +217,23 @@ clyze {
   repackaging. To use this feature, you must set environment variable
   ANDROID_SDK to point to the Android SDK location.
 
+## Automated repackaging ##
+
+To post a bundle and automatically get back an optimized binary, first
+add your optimization rules file in build.gradle:
+
+```
+clyze {
+    ruleFile = 'rules.json'
+}
+```
+
+Then, crate a bundle and post it for repackaging.
+
+```
+gradle createBundle repackage
+```
+
 ## Replay the post ##
 
 When invoking the plugin with the ```cachePost``` option set to true,

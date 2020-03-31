@@ -72,6 +72,25 @@ class RepackagePlugin implements Plugin<Project> {
         configureRepackageTestTask()
         project.logger.debug msg("Configuring bundling task (step 1)")
         configureCreateBundleTask_step1()
+
+        // If some tasks are invoked together, configure which runs first.
+        taskPrecedes(project, PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
+        taskPrecedes(project, PTask.CREATE_BUNDLE, PTask.REPACKAGE)
+    }
+
+    /**
+     * Helper method: if tasks a and b are invoked, then b should depend on a.
+     *
+     * @param project   the current project
+     * @param a         the first task to be executed
+     * @param b         the second task to be executed
+     */
+    protected void taskPrecedes(Project project, PTask a, PTask b) {
+        def tasks = project.gradle.startParameter.taskNames
+        if (tasks.find { it.endsWith(a.name) } && tasks.find { it.endsWith(b.name) }) {
+            project.tasks.findByName(b.name)
+                .dependsOn(project.tasks.findByName(a.name))
+        }
     }
 
     private void configureDefaults() {
@@ -133,7 +152,6 @@ class RepackagePlugin implements Plugin<Project> {
         RepackageTask repackage = project.tasks.create(PTask.REPACKAGE.name, RepackageTask)
         repackage.description = 'Repackage the build output using a given set of rules'
         repackage.group = Conventions.TOOL_NAME
-        dependOnCodeAndConfigurations(platform, repackage)
     }
 
     private void dependOnCodeAndConfigurations(Platform platform, Task task) {

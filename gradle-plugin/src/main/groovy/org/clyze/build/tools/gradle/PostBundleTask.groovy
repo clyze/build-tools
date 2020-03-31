@@ -23,11 +23,15 @@ class PostBundleTask extends PostTask {
      */
     @TaskAction
     void postBundle() {
-        postBundlePostState(newBundlePostState(project))
+        postBundlePostState(newBundlePostState())
     }
 
-    // A PostState for preserving all the information required to replay a bundle post
-    private static final PostState newBundlePostState(Project project) {
+    /**
+     * Generates a PostState representation of the current bundle (e.g., for
+     * preserving all the information required to replay a bundle post).
+     * @return the current bundle as a PostState object
+     */
+    private final PostState newBundlePostState() {
 
         /*         
         These are the options for bundles: 
@@ -45,15 +49,7 @@ class PostBundleTask extends PostTask {
         Extension ext = Extension.of(project)
         Platform p = ext.platform
         PostState ps = new PostState(id:Conventions.BUNDLE_ID)
-        addBasicPostOptions(project, ps, null)
-
-        // The aplication regex.
-        addStringInputFromExtensionOption(ps, ext, "APP_REGEX", "app_regex")
-
-        // The heap snapshots are optional.
-        ext.hprofs?.collect {
-            ps.addFileInput("HEAPDLS", it)
-        }
+        addBasicPostOptions(ext, ps, null)
 
         boolean submitInputs = false
         ext.getBundleDir(project).eachFile(FileType.FILES) { File f ->
@@ -82,55 +78,11 @@ class PostBundleTask extends PostTask {
             project.logger.info msg("Added library: ${it}")
         }
 
-        // The main class of the program. Usually empty on Android code.
-        addStringInputFromExtensionOption(ps, ext, "MAIN_CLASS", "main_class")
-
         // The platform to use when analyzing the code.
         ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? Conventions.getR8AndroidPlatform("25") : "java_8")
-
-        // Add the configurations archive.
-        addFileInput(project, ps, 'PG_ZIP', Conventions.CONFIGURATIONS_FILE)
-
-        if (ext.sources) {
-            // Upload sources (user can override with alternative sources archive).
-            String altSourcesJar = ext.useSourcesJar
-            if (altSourcesJar) {
-                File sources = new File(altSourcesJar)
-                if (!sources.exists()) {
-                    project.logger.warn msg("WARNING: explicit sources JAR ${altSourcesJar} does not exist, no sources will be uploaded.")
-                } else {
-                    ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
-                }
-            } else {
-                ext.getBundleDir(project).eachFile(FileType.FILES) { File f ->
-                    String n = f.name
-                    if (n.endsWith(Conventions.SOURCES_FILE)) {
-                        addFileInput(project, ps, 'SOURCES_JAR', n)
-                    }
-                }
-            }
-            // Upload source metadata.
-            addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
-        }
-
-        //tamiflex
-        addFileInputFromExtensionOption(ps, ext, "TAMIFLEX", "tamiflex")
 
         project.logger.info msg("PostState object: ${ps.toJSON()}")
 
         return ps
     }
-
-    private static void addStringInputFromExtensionOption(PostState ps, Extension ext, String inputId, String optionId) {
-        if (ext.options.containsKey(optionId)) {
-            ps.addStringInput(inputId, ext.options[(optionId)] as String)
-        }
-    }
-
-    private static void addFileInputFromExtensionOption(PostState ps, Extension ext, String inputId, String optionId) {
-        if (ext.options.containsKey(optionId)) {
-            ps.addFileInput(inputId, ext.options[(optionId)] as String)
-        }
-    }
-
 }

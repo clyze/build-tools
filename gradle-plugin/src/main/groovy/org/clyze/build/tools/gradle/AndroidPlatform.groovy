@@ -158,10 +158,6 @@ class AndroidPlatform extends Platform {
             confTask.dependsOn getAssembleTaskName()
             activateSpecialConfiguration()
 
-            // If some tasks are invoked together, configure which runs first.
-            taskPrecedes(PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
-            taskPrecedes(PTask.ANDROID_CODE_ARCHIVE, PTask.REPACKAGE)
-
             configureTestRepackaging()
         }
     }

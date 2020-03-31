@@ -89,9 +89,6 @@ class JavaPlatform extends Platform {
                     sourcesJarTask.dependsOn project.tasks.findByName('classes')
                 }
             }
-
-            // If some tasks are invoked together, configure which runs first.
-            taskPrecedes(PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
         }
     }
 
