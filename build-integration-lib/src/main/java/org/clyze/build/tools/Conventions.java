@@ -33,9 +33,9 @@ public class Conventions {
     /** Default server project. */
     public static final String DEFAULT_PROJECT     = "scrap";
     /** Default server profile to use for posting Android code. */
-    public static final String DEFAULT_ANDROID_PROFILE = "apiTargetAndroid";
+    public static final String DEFAULT_ANDROID_PROFILE = "clyzeAndroid";
     /** Default server profile to use for posting Java (non-Android) code. */
-    public static final String DEFAULT_JAVA_PROFILE= "apiTargetJava";
+    public static final String DEFAULT_JAVA_PROFILE= "clyzeJava";
     /** Default bundle identifier. */
     public static final String BUNDLE_ID           = "bundle";
     /** Default file to record metadata when posting a bundle. */
