@@ -33,7 +33,7 @@ public class Conventions {
     /** Default server project. */
     public static final String DEFAULT_PROJECT     = "scrap";
     /** Default server profile to use for posting Android code. */
-    public static final String DEFAULT_ANDROID_PROFILE = "clyzeAndroid";
+    public static final String DEFAULT_ANDROID_PROFILE = "proAndroid";
     /** Default server profile to use for posting Java (non-Android) code. */
     public static final String DEFAULT_JAVA_PROFILE= "clyzeJava";
     /** Default bundle identifier. */
