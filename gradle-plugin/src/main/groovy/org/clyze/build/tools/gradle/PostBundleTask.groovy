@@ -48,7 +48,7 @@ class PostBundleTask extends PostTask {
         */
         Extension ext = Extension.of(project)
         Platform p = ext.platform
-        PostState ps = new PostState(id:Conventions.BUNDLE_ID)
+        PostState ps = new PostState(id:Conventions.BUNDLE_ID, profile:ext.profile)
         addBasicPostOptions(ext, ps, null)
 
         boolean submitInputs = false
