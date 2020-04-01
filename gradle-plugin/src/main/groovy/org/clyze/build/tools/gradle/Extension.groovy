@@ -1,6 +1,8 @@
 package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
+import org.clyze.client.Message
+import org.clyze.client.web.PostOptions
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
 
@@ -30,7 +32,8 @@ class Extension {
      * has failed or extra code. */
     List<String> extraInputs
     Map<String, Object> options
-    boolean cachePost = false
+    /** Directory to receive the serialized bundle before posting to the server. */
+    String cachePostDir = null
     String convertUTF8Dir
     /** Dry mode, for sample bundle creation. */
     boolean dry = false
@@ -61,6 +64,8 @@ class Extension {
     boolean jcPluginOutput = false
     /** Signing configuration for automated repackaging. */
     String signingConfig = null
+    /** If true, print extra debug information. */
+    boolean debug = false
 
     Platform platform
 
@@ -123,5 +128,25 @@ class Extension {
      */
     boolean isAndroidProject() {
         return (platform instanceof AndroidPlatform)
+    }
+
+    /**
+     * Creates a PostOptions object from the setup in this extension.
+     *
+     * @param autoRepack   true if automated repackaging is going to be used
+     * @return             the options object for lower-level use
+     */
+    PostOptions createPostOptions(boolean autoRepack) {
+        PostOptions opts = new PostOptions()
+        opts.host = this.host
+        opts.port = this.port
+        opts.username = this.username
+        opts.password = this.password
+        opts.profile = this.profile
+        opts.project = this.project
+        opts.dry = this.dry
+        opts.android = this.androidProject
+        opts.autoRepackaging = autoRepack
+        return opts
     }
 }

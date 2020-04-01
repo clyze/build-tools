@@ -7,6 +7,7 @@ import org.apache.commons.cli.*;
 import org.clyze.build.tools.Conventions;
 import org.clyze.build.tools.Poster;
 import org.clyze.build.tools.Settings;
+import org.clyze.client.web.PostOptions;
 
 class Config {
     private static final String DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
@@ -24,7 +25,7 @@ class Config {
     final List<String> configurations;
     final String proguard;
     final boolean autodetectSources;
-    final Poster.Options opts = new Poster.Options();
+    final PostOptions opts = new PostOptions();
 
     Config(String[] args) throws ParseException {
         CommandLineParser parser = new DefaultParser();

@@ -8,7 +8,7 @@ import java.util.function.Function
 import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
-import org.clyze.build.tools.Message
+import org.clyze.client.Message
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project

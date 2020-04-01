@@ -6,8 +6,9 @@ import org.apache.http.HttpEntity
 import org.apache.http.client.ClientProtocolException
 import org.apache.http.conn.HttpHostConnectException
 import org.clyze.build.tools.Conventions
-import org.clyze.build.tools.Message
 import org.clyze.build.tools.Poster
+import org.clyze.client.Message
+import org.clyze.client.web.PostOptions
 import org.clyze.client.web.PostState
 import org.clyze.client.web.api.AttachmentHandler
 import org.gradle.api.DefaultTask
@@ -142,16 +143,8 @@ abstract class PostTask extends DefaultTask {
      */
     protected static Poster getPoster(Project project, boolean autoRepack) {
         Extension ext = Extension.of(project)
-        Poster.Options opts = new Poster.Options()
-        opts.host = ext.host
-        opts.port = ext.port
-        opts.username = ext.username
-        opts.password = ext.password
-        opts.profile = ext.profile
-        opts.project = ext.project
-        opts.dry = ext.dry
-        return new Poster(opts, ext.cachePost, ext.getBundleDir(project),
-                          ext.androidProject, autoRepack)
+        PostOptions opts = ext.createPostOptions(autoRepack)
+        return new Poster(opts, ext.cachePostDir, ext.getBundleDir(project))
     }
 
     /**
@@ -162,8 +155,8 @@ abstract class PostTask extends DefaultTask {
     protected void postBundlePostState(PostState bundlePostState) {
         Extension ext = Extension.of(project)
         if (bundlePostState) {
-            List<Message> messages = new LinkedList<>()
-            getPoster(project, false).post(bundlePostState, messages)
+            List<Message> messages = [] as List<Message>
+            getPoster(project, false).post(bundlePostState, messages, ext.debug)
             messages.each { Platform.showMessage(project, it) }
         } else
             project.logger.error msg("ERROR: could not post bundle.")

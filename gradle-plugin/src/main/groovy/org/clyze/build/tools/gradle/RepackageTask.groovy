@@ -1,7 +1,7 @@
 package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
-import org.clyze.build.tools.Message
+import org.clyze.client.Message
 import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState

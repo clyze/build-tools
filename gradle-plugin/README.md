@@ -236,9 +236,9 @@ gradle createBundle repackage
 
 ## Replay the post ##
 
-When invoking the plugin with the ```cachePost``` option set to true,
-the bundling task will report a directory containing the post state.
-You can then trigger a replay of posting this state with the following
+When invoking the plugin with the ```cachePostDir``` option set to a
+path, the bundling task will write the post state to that path.  You
+can then trigger a replay of posting this state with the following
 command:
 
 ```

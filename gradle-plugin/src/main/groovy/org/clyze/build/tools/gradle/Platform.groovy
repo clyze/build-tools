@@ -4,8 +4,8 @@ import groovy.transform.CompileStatic
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
 import org.clyze.build.tools.JcPlugin
-import org.clyze.build.tools.Message
 import org.clyze.build.tools.Settings
+import org.clyze.client.Message
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar

@@ -11,6 +11,7 @@ import java.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.*;
+import org.clyze.client.Message;
 import org.zeroturnaround.zip.*;
 
 import static org.clyze.build.tools.Conventions.msg;

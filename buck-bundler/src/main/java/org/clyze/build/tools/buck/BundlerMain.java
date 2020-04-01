@@ -24,6 +24,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.tools.ant.types.Commandline;
 import org.clyze.build.tools.*;
+import org.clyze.client.Message;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
@@ -334,8 +335,8 @@ public class BundlerMain {
 
         List<Message> messages = new LinkedList<>();
         boolean android = conf.opts.profile.toUpperCase().contains("ANDROID");
-        (new Poster(conf.opts, false, new File(Conventions.CLUE_BUNDLE_DIR), android, false))
-                .post(ps, messages);
+        (new Poster(conf.opts, null, new File(Conventions.CLUE_BUNDLE_DIR)))
+            .post(ps, messages, true);
         showMessages(messages);
     }
 
