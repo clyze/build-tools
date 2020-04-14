@@ -99,8 +99,12 @@ abstract class Platform {
             ext.password = Conventions.DEFAULT_PASSWORD
         }
         if (ext.project == null) {
-            project.logger.debug msg("WARNING: missing property 'project', assuming host=${Conventions.DEFAULT_PROJECT}")
-            ext.project = Conventions.DEFAULT_PROJECT
+            // Get name of top-level project.
+            ext.project = project.rootProject?.name
+            if (ext.project == null) {
+                project.logger.debug msg("WARNING: missing property 'project' and project name is null, assuming host=${Conventions.DEFAULT_PROJECT}")
+                ext.project = Conventions.DEFAULT_PROJECT
+            }
         }
         if (ext.profile == null) {
             ext.profile = getDefaultProfile()
