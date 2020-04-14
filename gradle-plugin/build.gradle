@@ -4,6 +4,7 @@ plugins {
     id 'maven-publish'
     id 'net.researchgate.release' version '2.6.0'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id "com.jfrog.bintray" version "1.8.4"
 }
 
 sourceCompatibility = "1.8"
@@ -142,4 +143,31 @@ void checkForLocalDependencies(String projectName) {
 project.afterEvaluate {
     checkForLocalDependencies(':gradle-plugin')
     checkForLocalDependencies(':build-integration-lib')
+}
+
+// Upload to bintray with:
+//   ./gradlew clean :gradle-plugin:build :gradle-plugin:bintrayUpload --info
+// Needs properties: bintray_clyze_user, bintray_clyze_key.
+if (project.hasProperty('bintray_clyze_user') && project.hasProperty('bintray_clyze_key')) {
+    if (bintray_clyze_user != 'clyze')
+	throw new RuntimeException("Unsupported bintray user: ${bintray_clyze_user}")
+    bintray {
+        user = bintray_clyze_user
+        key = bintray_clyze_key
+        publications = ['mavenJava']
+        configurations = ['archives']
+        pkg {
+            repo = 'plugins'
+            name = 'gradle-plugin'
+            desc = 'Clyze Gradle plugin'
+            licenses = ['MIT']
+            labels = ['java', 'groovy']
+            vcsUrl = 'https://bitbucket.org/yanniss/build-tools'
+            version {
+                name = project.version
+                released = new Date()
+                vcsTag = project.version
+            }
+        }
+    }
 }
