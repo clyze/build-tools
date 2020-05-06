@@ -257,8 +257,8 @@ class AndroidAPI {
             }
 
             List<String> messages = []
-            String signedFile = Signer.signWithApksigner(androidSdkHome, f.parentFile, f.name, messages, false, '21', null, Boolean.toString(sc.v1SigningEnabled), Boolean.toString(sc.v2SigningEnabled), null, sc.storeFile.canonicalPath, sc.storePassword, sc.keyAlias, sc.keyPassword)
-            messages.each { project.logger.error msg(it) }
+            String signedFile = Signer.signWithApksigner(androidSdkHome, f.parentFile, f.name, messages, true, null, null, Boolean.toString(sc.v1SigningEnabled), Boolean.toString(sc.v2SigningEnabled), null, sc.storeFile.canonicalPath, sc.storePassword, sc.keyAlias, sc.keyPassword)
+            messages.each { project.logger.debug msg(it) }
 
             println msg("Signed file: ${signedFile}")
         } else if (signingConfigName)
