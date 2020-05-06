@@ -20,7 +20,7 @@ class RepackageTask extends PostTask {
     @TaskAction
     void repackage() {
         Extension ext = Extension.of(project)
-        File out = repackageCodeArchive(ext, ext.platform.getOutputCodeArchive(), "repackaged-apk", ".apk", null)
+        File out = repackageCodeArchive(ext, ext.platform.getOutputCodeArchive(), "repackaged", ".zip", null)
         if (out) {
             println msg("Repackaged output: ${out.canonicalPath}")
             if (ext.signingConfig) {
