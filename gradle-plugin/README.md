@@ -191,6 +191,9 @@ clyze {
 
 * boolean _sources_: if 'false', no sources will be posted.
 
+* String _repackageOutput_: the filename to use when saving the output
+  of the automated repackaging task (optional).
+
 ### Android-specific options ###
 
 * String _subprojectName_: sub-project name (used when an `app`

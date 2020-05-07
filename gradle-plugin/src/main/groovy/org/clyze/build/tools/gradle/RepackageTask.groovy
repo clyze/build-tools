@@ -2,6 +2,7 @@ package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import org.clyze.client.Message
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Poster
@@ -45,6 +46,11 @@ class RepackageTask extends PostTask {
                     project.logger.error msg("Signing failed: ${t.message}")
                     t.printStackTrace()
                 }
+            }
+            if (ext.repackageOutput) {
+                File userOut = project.file(ext.repackageOutput)
+                Files.move(out.toPath(), userOut.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                out = userOut
             }
             println msg("Repackaged output: ${out.canonicalPath}")
         } else

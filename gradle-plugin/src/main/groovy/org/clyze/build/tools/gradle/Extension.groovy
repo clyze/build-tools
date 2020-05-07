@@ -64,6 +64,8 @@ class Extension {
     boolean jcPluginOutput = false
     /** Signing configuration for automated repackaging. */
     String signingConfig = null
+    /** Filename of automated repackaging output. */
+    String repackageOutput = null
     /** If true, print extra debug information. */
     boolean debug = false
 
