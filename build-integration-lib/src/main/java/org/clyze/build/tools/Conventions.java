@@ -35,7 +35,7 @@ public class Conventions {
     /** Default server profile to use for posting Android code. */
     public static final String DEFAULT_ANDROID_PROFILE = "proAndroid";
     /** Default server profile to use for posting Java (non-Android) code. */
-    public static final String DEFAULT_JAVA_PROFILE= "clyzeJava";
+    public static final String DEFAULT_JAVA_PROFILE= "proJava";
     /** Default bundle identifier. */
     public static final String BUNDLE_ID           = "bundle";
     /** Server API version. */
