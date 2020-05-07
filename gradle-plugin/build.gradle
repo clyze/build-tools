@@ -134,15 +134,16 @@ afterReleaseBuild.dependsOn publish
  * Checks for dependencies that may come from mavenLocal and can harm
  * build reproducibility (e.g. for releases).
  */
-void checkForLocalDependencies(String projectName) {
-    project(projectName).configurations.runtime
+void checkForLocalDependencies(String projectName, String configurationName) {
+    project(projectName).configurations.getProperty(configurationName)
 	.collect { it.canonicalPath }
 	.findAll { it.contains('.m2') }
 	.each { println "WARNING: '${projectName}' may be using mavenLocal(): ${it}" }
 }
 project.afterEvaluate {
-    checkForLocalDependencies(':gradle-plugin')
-    checkForLocalDependencies(':build-integration-lib')
+    checkForLocalDependencies(':gradle-plugin', 'runtime')
+    checkForLocalDependencies(':build-integration-lib', 'runtime')
+    checkForLocalDependencies(':build-integration-lib', 'jcplugin')
 }
 
 // Upload to bintray with:
