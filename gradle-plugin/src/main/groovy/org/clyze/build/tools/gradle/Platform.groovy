@@ -299,7 +299,7 @@ abstract class Platform {
         Extension ext = getRepackageExt()
         File confZip = new File(ext.getBundleDir(project), Conventions.CONFIGURATIONS_FILE)
         List<Message> messages = [] as List<Message>
-        List<File> files = ext.configurationFiles?.collect { new File(it) } ?: []
+        List<File> files = ext.configurationFiles?.collect { project.file(it) } ?: []
         Archiver.zipConfigurations(files, confZip, messages, project.rootDir.canonicalPath, sc?.file?.canonicalPath, sc?.outputRulesPath)
         if (messages.size() > 0)
             messages.each { showMessage(project, it) }
