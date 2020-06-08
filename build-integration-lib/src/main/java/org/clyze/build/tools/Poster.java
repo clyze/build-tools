@@ -1,15 +1,12 @@
 package org.clyze.build.tools;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.List;
-import java.util.Map;
 import org.clyze.client.Message;
 import org.clyze.client.web.Helper;
 import org.clyze.client.web.PostOptions;
 import org.clyze.client.web.PostState;
 import org.clyze.client.web.api.AttachmentHandler;
-import org.clyze.client.web.api.Remote;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.HttpHostConnectException;
 
@@ -56,7 +53,7 @@ public class Poster {
     public void repackageBundleForCI(PostState ps, AttachmentHandler<String> handler)
     throws ClientProtocolException{
         Helper.repackageBundleForCI(options.host, options.port, options.username,
-                                    options.password, options.project, ps, handler);
+                                    options.password, options.project, options.platform, ps, handler);
     }
 
 }

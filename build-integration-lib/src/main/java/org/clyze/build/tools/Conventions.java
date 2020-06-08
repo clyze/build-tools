@@ -36,6 +36,10 @@ public class Conventions {
     public static final String DEFAULT_ANDROID_PROFILE = "proAndroid";
     /** Default server profile to use for posting Java (non-Android) code. */
     public static final String DEFAULT_JAVA_PROFILE= "proJava";
+    /** Default server project platform for Android projects. */
+    public static final String DEFAULT_ANDROID_PLATFORM = "ANDROID";
+    /** Default server project platform for Java projects. */
+    public static final String DEFAULT_JAVA_PLATFORM = "JAVA";
     /** Default bundle identifier. */
     public static final String BUNDLE_ID           = "bundle";
     /** Server API version. */

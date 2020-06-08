@@ -48,6 +48,7 @@ class Config {
         this.opts.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
         this.opts.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
         this.opts.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_ANDROID_PROFILE);
+        this.opts.platform = Conventions.DEFAULT_ANDROID_PLATFORM;
         this.opts.dry = !cmd.hasOption("p");
     }
 

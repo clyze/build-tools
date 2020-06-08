@@ -1,6 +1,7 @@
 package org.clyze.build.tools.gradle
 
 import groovy.transform.TypeChecked
+import org.clyze.build.tools.Conventions
 import org.clyze.client.Message
 import org.clyze.client.web.PostOptions
 import org.gradle.api.Project
@@ -148,6 +149,7 @@ class Extension {
         opts.project = this.project
         opts.dry = this.dry
         opts.android = this.androidProject
+        opts.platform = this.androidProject ? Conventions.DEFAULT_ANDROID_PLATFORM : Conventions.DEFAULT_JAVA_PLATFORM
         opts.autoRepackaging = autoRepack
         return opts
     }
