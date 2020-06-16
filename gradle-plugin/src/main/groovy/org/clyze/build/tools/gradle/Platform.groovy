@@ -26,7 +26,7 @@ import static org.clyze.build.tools.gradle.RepackagePlugin.dependOn
 abstract class Platform {
 
     /** The name of the default rules file (in our format). */
-    private static final String DEFAULT_RULES = 'optimize.clue'
+    private static final String DEFAULT_RULES = 'clyze.json'
     /**
      * Message to display when configuration block is missing
      * and initialization cannot happen.
