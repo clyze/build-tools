@@ -11,7 +11,7 @@ Use the "clyze" plugin in your Gradle build:
 ```
 buildscript {
     repositories {
-        maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
+        maven { url "https://dl.bintray.com/clyze/plugins" }
     }
     dependencies {
        classpath 'org.clyze:gradle-plugin:4.0.+'
