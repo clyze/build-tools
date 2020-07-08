@@ -8,8 +8,8 @@ import java.io.*;
 public class Conventions {
     /** Tool name. */
     public static final String TOOL_NAME           = "Clyze";
-    /** The directory where bundle contents are gethered for posting. */
-    public static final String CLUE_BUNDLE_DIR     = ".clue-bundle";
+    /** The directory where build contents are gethered for posting. */
+    public static final String CLUE_BUILD_DIR      = ".clue-build";
     /** The name of the metadata archive to post. */
     public static final String METADATA_FILE       = "metadata.zip";
     /** The name of the configurations archive to post. */
@@ -40,8 +40,8 @@ public class Conventions {
     public static final String DEFAULT_ANDROID_PLATFORM = "ANDROID";
     /** Default server project platform for Java projects. */
     public static final String DEFAULT_JAVA_PLATFORM = "JAVA";
-    /** Default bundle identifier. */
-    public static final String BUNDLE_ID           = "bundle";
+    /** Default build identifier. */
+    public static final String BUILD_ID = "build";
     /** Server API version. */
     public static final String API_VERSION         = "1.0";
     /** Disabling rules file name. */

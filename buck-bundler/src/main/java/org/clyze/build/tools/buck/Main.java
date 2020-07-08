@@ -28,9 +28,9 @@ import org.clyze.client.Message;
 import org.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
-import static org.clyze.build.tools.buck.BundlerUtil.*;
+import static org.clyze.build.tools.buck.Util.*;
 
-public class BundlerMain {
+public class Main {
 
     private static List<String> cachedJcpluginClasspath = null;
 
@@ -72,18 +72,18 @@ public class BundlerMain {
 
         Collection<SourceFile> sourceFiles = Sources.getSources(conf.sourceDirs, conf.autodetectSources);
 
-        println("Using bundle directory: " + Conventions.CLUE_BUNDLE_DIR);
-        boolean mk = new File(Conventions.CLUE_BUNDLE_DIR).mkdirs();
-        logDebug("Directory " + Conventions.CLUE_BUNDLE_DIR + " created: " + mk);
+        println("Using build directory: " + Conventions.CLUE_BUILD_DIR);
+        boolean mk = new File(Conventions.CLUE_BUILD_DIR).mkdirs();
+        logDebug("Directory " + Conventions.CLUE_BUILD_DIR + " created: " + mk);
 
-        String bundleApk = gatherApk(codeFiles.get(0));
+        String buildApk = gatherApk(codeFiles.get(0));
 
-        File sourcesJar = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.SOURCES_FILE);
+        File sourcesJar = new File(Conventions.CLUE_BUILD_DIR, Conventions.SOURCES_FILE);
         Collection<File> sourceJars = new HashSet<>();
         Sources.packSources(sourceFiles, sourcesJar);
         sourceJars.add(sourcesJar);
 
-        BundleMetadataConf bmc = null;
+        BuildMetadataConf bmc = null;
         try {
             boolean explicitConf = conf.configurations != null && conf.configurations.size() > 0;
             // If explicit configuration is provided, disable rule autodetection.
@@ -100,17 +100,17 @@ public class BundlerMain {
             ex.printStackTrace();
         }
 
-        postBundle(bundleApk, sourceJars, bmc, conf);
+        postBuild(buildApk, sourceJars, bmc, conf);
     }
 
     /**
-     * Copies the code archive to the bundle directory.
+     * Copies the code archive to the build directory.
      *
      * @param code the path to the code archive
-     * @return     the path of the code inside the bundle directory (null on failure)
+     * @return     the path of the code inside the build directory (null on failure)
      */
     private static String gatherApk(String code) {
-        File target = new File(Conventions.CLUE_BUNDLE_DIR, new File(code).getName());
+        File target = new File(Conventions.CLUE_BUILD_DIR, new File(code).getName());
         try {
             Files.copy(Paths.get(code), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return target.getCanonicalPath();
@@ -122,7 +122,7 @@ public class BundlerMain {
     }
 
     private static File getConfigurationsFile() {
-        return new File(Conventions.CLUE_BUNDLE_DIR, Conventions.CONFIGURATIONS_FILE);
+        return new File(Conventions.CLUE_BUILD_DIR, Conventions.CONFIGURATIONS_FILE);
     }
 
     /**
@@ -132,7 +132,7 @@ public class BundlerMain {
      * @param jsonDir     the JSON metadata output directory (for the metadata generator)
      * @param proguard    the optimizer binary used (null to skip configuration autodetection)
      */
-    private static BundleMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir, String proguard) throws IOException {
+    private static BuildMetadataConf gatherMetadataAndConfigurations(String traceFile, String jsonDir, String proguard) throws IOException {
         println("Gathering metadata and configurations using trace file '" + traceFile +"'...");
 
         File configurationsFile = getConfigurationsFile();
@@ -152,7 +152,7 @@ public class BundlerMain {
             }
         }
 
-        String metadataFile = new File(Conventions.CLUE_BUNDLE_DIR, Conventions.METADATA_FILE).getCanonicalPath();
+        String metadataFile = new File(Conventions.CLUE_BUILD_DIR, Conventions.METADATA_FILE).getCanonicalPath();
         println("Adding JSON metadata to file: " + metadataFile);
 
         try (FileOutputStream fos = new FileOutputStream(metadataFile);
@@ -170,7 +170,7 @@ public class BundlerMain {
             }
         }
 
-        return new BundleMetadataConf(metadataFile, configurationsFile);
+        return new BuildMetadataConf(metadataFile, configurationsFile);
     }
 
     private static String[] insertSpace(String[] src, int pos, int extraElems) {
@@ -303,16 +303,16 @@ public class BundlerMain {
                 if (m.isPrint())
                     System.out.println(m.text);
                 else
-                    BundlerUtil.logError(m.text);
+                    Util.logError(m.text);
         });
     }
 
-    private static void postBundle(String bundleApk, Collection<File> sourceJars,
-                                   BundleMetadataConf bmc, Config conf) {
+    private static void postBuild(String buildApk, Collection<File> sourceJars,
+                                  BuildMetadataConf bmc, Config conf) {
         PostState ps = new PostState();
-        ps.setId(Conventions.BUNDLE_ID);
+        ps.setId(Conventions.BUILD_ID);
         ps.addStringInput("API_VERSION", Conventions.API_VERSION);
-        ps.addFileInput("INPUTS", bundleApk);
+        ps.addFileInput("INPUTS", buildApk);
         if (sourceJars != null)
             sourceJars.forEach (sj -> addSourceJar(ps, sj));
         if (bmc != null) {
@@ -320,7 +320,7 @@ public class BundlerMain {
             try {
                 ps.addFileInput("PG_ZIP", bmc.configuration.getCanonicalPath());
             } catch (IOException ex) {
-                logError("Error: could not bundle configurations file: " + bmc.configuration);
+                logError("Error: could not add configurations file: " + bmc.configuration);
             }
         }
 
@@ -329,13 +329,13 @@ public class BundlerMain {
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
 
         if (conf.opts.dry)
-            println("Assembling bundle (dry mode)...");
+            println("Assembling build (dry mode)...");
         else
-            println("Posting bundle to the server...");
+            println("Posting build to the server...");
 
         List<Message> messages = new LinkedList<>();
         boolean android = conf.opts.profile.toUpperCase().contains("ANDROID");
-        (new Poster(conf.opts, null, new File(Conventions.CLUE_BUNDLE_DIR)))
+        (new Poster(conf.opts, null, new File(Conventions.CLUE_BUILD_DIR)))
             .post(ps, messages, true);
         showMessages(messages);
     }
@@ -350,10 +350,10 @@ public class BundlerMain {
 
 }
 
-class BundleMetadataConf {
+class BuildMetadataConf {
     final String metadata;
     final File configuration;
-    BundleMetadataConf(String metadata, File configuration) {
+    BuildMetadataConf(String metadata, File configuration) {
         this.metadata = metadata;
         this.configuration = configuration;
     }

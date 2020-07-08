@@ -1,7 +1,7 @@
 package org.clyze.build.tools.gradle
 
+import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
-import groovy.transform.TypeChecked
 import org.clyze.build.tools.Conventions
 import org.clyze.client.SourceProcessor
 import org.gradle.api.tasks.SourceSetContainer
@@ -16,7 +16,7 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * This class controls how the plugin adapts to projects based on the JDK.
  */
-@TypeChecked
+@CompileStatic
 @InheritConstructors
 class JavaPlatform extends Platform {
 
@@ -124,7 +124,7 @@ class JavaPlatform extends Platform {
     void configureCodeTask() {}
 
     /**
-     * The Gradle task that generates the code input of the bundle.
+     * The Gradle task that generates the code input of the build.
      * @return the name of the Gradle task
      */
     @Override

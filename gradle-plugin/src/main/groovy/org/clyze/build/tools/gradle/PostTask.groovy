@@ -1,7 +1,7 @@
 package org.clyze.build.tools.gradle
 
 import groovy.io.FileType
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import org.apache.http.HttpEntity
 import org.apache.http.client.ClientProtocolException
 import org.apache.http.conn.HttpHostConnectException
@@ -19,11 +19,11 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * This class represents tasks that post data to the server.
  */
-@TypeChecked
+@CompileStatic
 abstract class PostTask extends DefaultTask {
 
     /**
-     * Helper method to add a file input from the local "bundle" directory.
+     * Helper method to add a file input from the local "build" directory.
      *
      * @param project the current project
      * @param ps      the PostState to update
@@ -33,7 +33,7 @@ abstract class PostTask extends DefaultTask {
     protected static void addFileInput(Project project, PostState ps, String tag, String fName) {
         Extension ext = Extension.of(project)
         try {
-            File f = new File(ext.getBundleDir(project), fName)
+            File f = new File(ext.getBuildDir(project), fName)
             if (f.exists()) {
                 ps.addFileInput(tag, f.canonicalPath)
                 project.logger.info msg("Added local cached ${tag} item: ${f}")
@@ -57,7 +57,7 @@ abstract class PostTask extends DefaultTask {
     }
 
     /**
-     * Adds the basic options that are common in all bundles posted.
+     * Adds the basic options that are common in all builds posted.
      *
      * @param ext              the plugin extension data structure
      * @param ps               the 'post state' object to fill in
@@ -88,7 +88,7 @@ abstract class PostTask extends DefaultTask {
      * Adds the source (sources, metadata) and configurations inputs.
      *
      * @param ext   the plugin extension data structure
-     * @param ps    the bundle representation
+     * @param ps    the build representation
      */
     protected void addSourcesDataAndConfigurations(Extension ext, PostState ps) {
         // Add the configurations archive.
@@ -105,7 +105,7 @@ abstract class PostTask extends DefaultTask {
                     ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
                 }
             } else {
-                ext.getBundleDir(project).eachFile(FileType.FILES) { File f ->
+                ext.getBuildDir(project).eachFile(FileType.FILES) { File f ->
                     String n = f.name
                     if (n.endsWith(Conventions.SOURCES_FILE)) {
                         addFileInput(project, ps, 'SOURCES_JAR', n)
@@ -121,7 +121,7 @@ abstract class PostTask extends DefaultTask {
      * Add options needed for deep analysis.
      *
      * @param ext   the plugin extension data structure
-     * @param ps    the bundle representation
+     * @param ps    the build representation
      */
     protected void addDeepOptions(Extension ext, PostState ps) {
         // The heap snapshots are optional.
@@ -144,22 +144,22 @@ abstract class PostTask extends DefaultTask {
     protected static Poster getPoster(Project project, boolean autoRepack) {
         Extension ext = Extension.of(project)
         PostOptions opts = ext.createPostOptions(autoRepack)
-        return new Poster(opts, ext.cachePostDir, ext.getBundleDir(project))
+        return new Poster(opts, ext.cachePostDir, ext.getBuildDir(project))
     }
 
     /**
-     * The actual method that posts a bundle and shows the generated messages.
+     * The actual method that posts a build and shows the generated messages.
      *
-     * @param bundlePostState   the PostState object representing the bundle
+     * @param buildPostState   the PostState object representing the build
      */
-    protected void postBundlePostState(PostState bundlePostState) {
+    protected void postBuildPostState(PostState buildPostState) {
         Extension ext = Extension.of(project)
-        if (bundlePostState) {
+        if (buildPostState) {
             List<Message> messages = [] as List<Message>
-            getPoster(project, false).post(bundlePostState, messages, ext.debug)
+            getPoster(project, false).post(buildPostState, messages, ext.debug)
             messages.each { Platform.showMessage(project, it) }
         } else
-            project.logger.error msg("ERROR: could not post bundle.")
+            project.logger.error msg("ERROR: could not post build.")
         ext.platform.cleanUp()
     }
 
@@ -208,10 +208,10 @@ abstract class PostTask extends DefaultTask {
                     return out.canonicalPath
                 }
             }
-            poster.repackageBundleForCI(ps, saveAttachment)
+            poster.repackageBuildForCI(ps, saveAttachment)
             return out
         } catch (HttpHostConnectException ex) {
-            project.logger.error msg( "ERROR: cannot repackage bundle, is the server running?")
+            project.logger.error msg( "ERROR: cannot repackage build, is the server running?")
         } catch (ClientProtocolException ex) {
             project.logger.error msg("ERROR: ${ex.message}")
         }

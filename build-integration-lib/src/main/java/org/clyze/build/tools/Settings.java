@@ -99,7 +99,7 @@ public class Settings {
     }
 
     /**
-     * Returns the port used by the installation for posting bundles.
+     * Returns the port used by the installation for posting builds.
      *
      * @return a string representation of the port
      */

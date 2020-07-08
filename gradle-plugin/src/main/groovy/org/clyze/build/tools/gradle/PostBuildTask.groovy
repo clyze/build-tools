@@ -1,40 +1,37 @@
 package org.clyze.build.tools.gradle
 
 import groovy.io.FileType
-import groovy.transform.TypeChecked
-import java.nio.file.Files
+import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
-import org.clyze.build.tools.Poster
 import org.clyze.client.web.Helper
 import org.clyze.client.web.PostState
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 import static org.clyze.build.tools.Conventions.msg
 
 /**
- * The task that posts a bundle to the server.
+ * The task that posts a build to the server.
  */
-@TypeChecked
-class PostBundleTask extends PostTask {
+@CompileStatic
+class PostBuildTask extends PostTask {
 
     /**
      * The main task action.
      */
     @TaskAction
-    void postBundle() {
-        postBundlePostState(newBundlePostState())
+    void postBuild() {
+        postBuildPostState(newBuildPostState())
     }
 
     /**
-     * Generates a PostState representation of the current bundle (e.g., for
-     * preserving all the information required to replay a bundle post).
-     * @return the current bundle as a PostState object
+     * Generates a PostState representation of the current build (e.g., for
+     * preserving all the information required to replay a build post).
+     * @return the current build as a PostState object
      */
-    private final PostState newBundlePostState() {
+    private final PostState newBuildPostState() {
 
         /*         
-        These are the options for bundles: 
+        These are the options for builds:
         --app_regex <arg>        
         --heapdls <files>
         --inputs <files>
@@ -48,11 +45,11 @@ class PostBundleTask extends PostTask {
         */
         Extension ext = Extension.of(project)
         Platform p = ext.platform
-        PostState ps = new PostState(id:Conventions.BUNDLE_ID, profile:ext.profile)
+        PostState ps = new PostState(id:Conventions.BUILD_ID, profile:ext.profile)
         addBasicPostOptions(ext, ps, null)
 
         boolean submitInputs = false
-        ext.getBundleDir(project).eachFile(FileType.FILES) { File f ->
+        ext.getBuildDir(project).eachFile(FileType.FILES) { File f ->
             String n = f.name
             if (p.isCodeArtifact(n) && !n.endsWith(Conventions.SOURCES_FILE)) {
                 addFileInput(project, ps, 'INPUTS', n)
@@ -68,7 +65,7 @@ class PostBundleTask extends PostTask {
         }
 
         if (!submitInputs) {
-            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${PTask.POST_BUNDLE.name}'.")
+            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${PTask.POST_BUILD.name}'.")
             return null
         }
 

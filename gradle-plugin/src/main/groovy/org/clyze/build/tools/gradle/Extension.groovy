@@ -1,6 +1,6 @@
 package org.clyze.build.tools.gradle
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
 import org.clyze.client.Message
 import org.clyze.client.web.PostOptions
@@ -12,7 +12,7 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * The data structure maintained by the plugin.
  */
-@TypeChecked
+@CompileStatic
 class Extension {
     static final String SECTION_NAME = 'clyze'
 
@@ -33,10 +33,10 @@ class Extension {
      * has failed or extra code. */
     List<String> extraInputs
     Map<String, Object> options
-    /** Directory to receive the serialized bundle before posting to the server. */
+    /** Directory to receive the serialized build before posting to the server. */
     String cachePostDir = null
     String convertUTF8Dir
-    /** Dry mode, for sample bundle creation. */
+    /** Dry mode, for sample build creation. */
     boolean dry = false
     boolean ignoreConfigurations = false
     String profile
@@ -108,13 +108,13 @@ class Extension {
     }
 
     /**
-     * Returns the bundle directory (creating it if it does not already
+     * Returns the build directory (creating it if it does not already
      * exist). Use this method before writing to this directory.
      *
      * @param project   the current project
      * @return          a File object representing the directory
      */
-    static File getBundleDir(Project project) {
+    static File getBuildDir(Project project) {
         // Create output directory.
         File scavengeDir = of(project).scavengeOutputDir
         if (!scavengeDir.exists()) {

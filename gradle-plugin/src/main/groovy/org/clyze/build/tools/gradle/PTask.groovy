@@ -1,23 +1,23 @@
 package org.clyze.build.tools.gradle
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 
 /**
  * The tasks created by the plugin.
  */
-@TypeChecked
+@CompileStatic
 enum PTask {
     SCAVENGE('scavenge'),
     JCPLUGIN_ZIP('jcpluginZip'),
     SOURCES_JAR('sourcesJar'),
-    POST_BUNDLE('postBundle'),
+    POST_BUILD('postBuild'),
     REPLAY_POST('replay'),
     /** The task that gathers all optimization directive configurations. */
     CONFIGURATIONS('configurations'),
     REPACKAGE('repackage'),
     REPACKAGE_TEST('repackageTest'),
-    /** The task that creates the bundle for posting. */
-    CREATE_BUNDLE('createBundle'),
+    /** The task that creates the build for posting. */
+    CREATE_BUILD('createBuild'),
     /** Android-only: the name of the Gradle plugin task that will
      *  generate the code input for the server. */
     ANDROID_CODE_ARCHIVE('codeApk'),

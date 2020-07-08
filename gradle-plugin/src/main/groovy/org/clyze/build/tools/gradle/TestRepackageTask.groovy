@@ -1,10 +1,9 @@
 package org.clyze.build.tools.gradle
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
-import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.zeroturnaround.zip.ZipUtil
 
@@ -13,7 +12,7 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * A task that runs project tests on the optimized output.
  */
-@TypeChecked
+@CompileStatic
 class TestRepackageTask extends PostTask {
 
     /**
@@ -45,11 +44,11 @@ class TestRepackageTask extends PostTask {
         } else {
             project.logger.info msg("Test code directories: " + existingTestCodeDirs)
             println msg("Test code directories searched: " + codeDirs)
-            File testCodeBundleDir = new File(ext.getBundleDir(project), Conventions.TEST_CODE_DIR)
-            if (!testCodeBundleDir.exists()) {
-                testCodeBundleDir.mkdirs()
+            File testCodeBuildDir = new File(ext.getBuildDir(project), Conventions.TEST_CODE_DIR)
+            if (!testCodeBuildDir.exists()) {
+                testCodeBuildDir.mkdirs()
             }
-            Map<File, File> testCodeArchives = Archiver.zipTrees(existingTestCodeDirs, testCodeBundleDir)
+            Map<File, File> testCodeArchives = Archiver.zipTrees(existingTestCodeDirs, testCodeBuildDir)
             Map<File, File> codeJars = testCodeArchives.findAll {dir, jar -> codeDirs.contains(dir)}
             if (codeJars.size() == 0) {
                 project.logger.error msg("ERROR: no code JARs found.")

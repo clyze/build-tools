@@ -46,14 +46,14 @@ public class Poster {
     /**
      * Invokes the automated repackaging endpoint.
      *
-     * @param ps       the bundle representation
+     * @param ps       the build representation
      * @param handler  a handler of the resulting file returned by the server
      * @throws ClientProtocolException  if the server encountered an error
      */
-    public void repackageBundleForCI(PostState ps, AttachmentHandler<String> handler)
+    public void repackageBuildForCI(PostState ps, AttachmentHandler<String> handler)
     throws ClientProtocolException{
-        Helper.repackageBundleForCI(options.host, options.port, options.username,
-                                    options.password, options.project, options.platform, ps, handler);
+        Helper.repackageBuildForCI(options.host, options.port, options.username,
+                                   options.password, options.project, options.platform, ps, handler);
     }
 
 }

@@ -27,9 +27,9 @@ class Sources {
             String nsErr = "WARNING: No sources were explicitly given.";
             if (!autodetectSources)
                 nsErr += " Consider using option: --" + Config.AUTODETECT_SOURCES_OPT;
-            BundlerUtil.logError(nsErr);
+            Util.logError(nsErr);
         } else {
-            BundlerUtil.println("Source directories:");
+            Util.println("Source directories:");
             sourceDirs.forEach(sd -> registerSourcesInDir(sd, sourceFiles));
         }
 
@@ -37,13 +37,13 @@ class Sources {
         if (autodetectSources)
             Sources.autodetectSourceDirs(sourceFiles);
 
-        BundlerUtil.logDebug("Source files:");
-        sourceFiles.forEach(fs -> BundlerUtil.logDebug(fs.toString()));
+        Util.logDebug("Source files:");
+        sourceFiles.forEach(fs -> Util.logDebug(fs.toString()));
         return filterDuplicateSources(sourceFiles);
     }
 
     private static void registerSourcesInDir(String dirPath, Collection<SourceFile> sourceFiles) {
-        BundlerUtil.println("Gathering sources in directory: " + dirPath);
+        Util.println("Gathering sources in directory: " + dirPath);
         try {
             File dir = new File(dirPath);
             String dirPathCanonical = dir.getCanonicalPath();
@@ -51,7 +51,7 @@ class Sources {
                 .filter(Sources::isSourceFile)
                 .forEach(p -> registerJavaSourceInDir(dirPathCanonical, p, sourceFiles));
         } catch (IOException ex) {
-            BundlerUtil.logDebug("Could not process source directory: " + dirPath);
+            Util.logDebug("Could not process source directory: " + dirPath);
         }
     }
 
@@ -72,7 +72,7 @@ class Sources {
                 sourceFiles.add(new SourceFile(entry, f));
             }
         } catch (IOException ex) {
-            BundlerUtil.logDebug("Could not process source " + p + ": " + ex.getMessage());
+            Util.logDebug("Could not process source " + p + ": " + ex.getMessage());
         }
     }
 
@@ -95,15 +95,15 @@ class Sources {
     public static void packSources(Collection<SourceFile> sourceFiles,
                                    File targetArchive) {
         boolean del = targetArchive.delete();
-        BundlerUtil.logDebug("Delete " + targetArchive + ": " + del);
+        Util.logDebug("Delete " + targetArchive + ": " + del);
         String targetArchivePath;
         try {
             FileUtils.touch(targetArchive);
             targetArchivePath = targetArchive.getCanonicalPath();
-            BundlerUtil.println("Packing sources to file: " + targetArchivePath);
+            Util.println("Packing sources to file: " + targetArchivePath);
             ZipUtil.pack(sourceFiles.toArray(new FileSource[0]), targetArchive);
         } catch (IOException ex) {
-            BundlerUtil.logError("Error creating sources archive: " + targetArchive);
+            Util.logError("Error creating sources archive: " + targetArchive);
             ex.printStackTrace();
         }
     }
@@ -139,7 +139,7 @@ class Sources {
                 .filter(Sources::isSourceFile)
                 .forEach(p -> autoregisterSource(p, sourceFiles));
         } catch(IOException ex) {
-            BundlerUtil.logError("Could not autodect source directories in current path: " + ex.getMessage());
+            Util.logError("Could not autodect source directories in current path: " + ex.getMessage());
         }
     }
 
@@ -169,10 +169,10 @@ class Sources {
             final String DOT_SLASH = "." + File.separator;
             if (entry.startsWith(DOT_SLASH))
                 entry = entry.substring(DOT_SLASH.length());
-            BundlerUtil.println("Entry: " + entry + " -> " + sourceFile);
+            Util.println("Entry: " + entry + " -> " + sourceFile);
             sourceFiles.add(new SourceFile(entry, sourceFile));
         } catch (IOException ex) {
-            BundlerUtil.logError("Could not register Java source in file: " + p);
+            Util.logError("Could not register Java source in file: " + p);
         }
     }
 }

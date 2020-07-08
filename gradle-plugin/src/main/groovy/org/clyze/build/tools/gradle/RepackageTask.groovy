@@ -1,15 +1,9 @@
 package org.clyze.build.tools.gradle
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import org.clyze.client.Message
 import org.clyze.build.tools.Archiver
-import org.clyze.build.tools.Poster
-import org.clyze.client.web.Helper
-import org.clyze.client.web.PostState
-import org.clyze.client.web.api.Remote
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.zeroturnaround.zip.ZipUtil
 
@@ -18,7 +12,7 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * This task repackages a program without UI intervention.
  */
-@TypeChecked
+@CompileStatic
 class RepackageTask extends PostTask {
 
     @TaskAction

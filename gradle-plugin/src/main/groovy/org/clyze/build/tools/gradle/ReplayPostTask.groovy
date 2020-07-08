@@ -1,10 +1,8 @@
 package org.clyze.build.tools.gradle
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import org.clyze.client.Message
 import org.clyze.client.web.Helper
-import org.clyze.client.web.PostState
-import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.options.Option
@@ -12,9 +10,9 @@ import org.gradle.api.tasks.options.Option
 import static org.clyze.build.tools.Conventions.msg
 
 /**
- * A task that replays the posting of a bundle.
+ * A task that replays the posting of a build.
  */
-@TypeChecked
+@CompileStatic
 class ReplayPostTask extends PostTask {
 
     @InputDirectory
@@ -44,7 +42,7 @@ class ReplayPostTask extends PostTask {
         }
 
         List<Message> messages = ([] as List<Message>)
-        Helper.postCachedBundle(ext.createPostOptions(false), fromDir, "bundle", messages, true)
+        Helper.postCachedBuild(ext.createPostOptions(false), fromDir, "build", messages, true)
         messages.each { Platform.showMessage(project, it) }
     }
 }

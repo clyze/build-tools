@@ -303,7 +303,7 @@ public final class Archiver {
             for (String r : rules) {
                 int idx = totalRules.indexOf(r);
                 if (idx < 0)
-                    Message.warn(messages, "Bundled rules not found in total configuration: " + r);
+                    Message.warn(messages, "Included rules not found in total configuration: " + r);
                 else
                     totalRules = totalRules.substring(0, idx) + totalRules.substring(idx + r.length());
             }

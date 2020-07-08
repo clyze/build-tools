@@ -26,7 +26,7 @@ Android Gradle plugin (dependency
 "com.android.tools.build:gradle:X.Y.Z"): 3.4.2, 3.5.1, 3.5.2, 3.5.3,
 3.6.0.
 
-## Running the bundling task on a Java application ##
+## Running the build task on a Java application ##
 
 Assume a Java application that can be built by OpenJDK and has a
 build.gradle.
@@ -40,13 +40,13 @@ clyze {
 }
 ```
 
-Step 2. Run the bundling task:
+Step 2. Run the following tasks to create the build data and post the build:
 
 ```
-gradle createBundle postBundle
+gradle createBuild postBuild
 ```
 
-## Running the bundling task on an Android app ##
+## Running the build task on an Android app ##
 
 Assume an Android Studio project with the following structure:
 
@@ -68,13 +68,13 @@ clyze {
 }
 ```
 
-Step 2. In directory "Project", run the bundling task:
+Step 2. In directory "Project", run the build task:
 
 ```
-gradle createBundle postBundle
+gradle createBuild postBuild
 ```
 
-If the project contains no app submodule, then run the bundling task
+If the project contains no app submodule, then run the build tasks
 in the top level directory.
 
 ## Using HPROF information ##
@@ -99,7 +99,7 @@ hprofs = [ 'java.hprof.zip' ]
 
 Basic Ant projects are supported via Gradle's Ant support.
 
-A sample build.gradle file to bundle an Ant project is the following:
+A sample build.gradle file to generate a build for an Ant project is the following:
 
 ```
 apply plugin: 'java'
@@ -151,7 +151,7 @@ clyze {
 
 * String _password_: the password to use to authenticate to the server.
 
-* String _project_: the project id to post bundles and analyses to, in the form "userName/projectName". E.g., for testing, it is convenient to use the ```"$clue_user/scrap"``` as the value of this option.
+* String _project_: the project id to post builds and analyses to, in the form "userName/projectName". E.g., for testing, it is convenient to use the ```"$clue_user/scrap"``` as the value of this option.
 
 * String _orgName_: organization name of the artifact to post.
 
@@ -222,7 +222,7 @@ clyze {
 
 ## Automated repackaging ##
 
-To post a bundle and automatically get back an optimized binary, first
+To post a build and automatically get back an optimized binary, first
 add your optimization rules file in build.gradle:
 
 ```
@@ -231,16 +231,16 @@ clyze {
 }
 ```
 
-Then, crate a bundle and post it for repackaging.
+Then, crate a build and post it for repackaging.
 
 ```
-gradle createBundle repackage
+gradle createBuild repackage
 ```
 
 ## Replay the post ##
 
 When invoking the plugin with the ```cachePostDir``` option set to a
-path, the bundling task will write the post state to that path.  You
+path, the build task will write the post state to that path.  You
 can then trigger a replay of posting this state with the following
 command:
 

@@ -42,7 +42,7 @@ class AndroidAPI {
 
     /**
      * Get the test configurations, so that they can be excluded from the
-     * bundle. Since testing only uses a build type, no flavor parameter is needed.
+     * build. Since testing only uses a build type, no flavor parameter is needed.
      *
      * @param project    the current project
      * @param buildType  the build type used for testing
@@ -56,7 +56,7 @@ class AndroidAPI {
                     if (t instanceof File) {
                         ret.add(t)
                     } else if (t) {
-                        project.logger.warn msg("WARNING: testProguardFile ${t} could not be excluded from bundle.")
+                        project.logger.warn msg("WARNING: testProguardFile ${t} could not be excluded from build.")
                     }
                 }
             }

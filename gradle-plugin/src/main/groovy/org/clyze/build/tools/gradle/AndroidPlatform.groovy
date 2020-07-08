@@ -1,14 +1,13 @@
 package org.clyze.build.tools.gradle
 
 import groovy.io.FileType
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.function.Function
 import org.apache.commons.io.FileUtils
 import org.clyze.build.tools.Archiver
 import org.clyze.build.tools.Conventions
-import org.clyze.client.Message
 import org.clyze.utils.AARUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
@@ -25,7 +24,7 @@ import static org.clyze.utils.JHelper.throwRuntimeException
 /**
  * This class controls how the plugin adapts to Android build projects.
  */
-@TypeChecked
+@CompileStatic
 class AndroidPlatform extends Platform {
 
     /** The name prefix of the Android Gradle plugin task that will
@@ -500,7 +499,7 @@ class AndroidPlatform extends Platform {
         }
 
         // Create dependency (needs configuration section so it must happen late).
-        // Copy compiled outputs to local bundle cache.
+        // Copy compiled outputs to local build cache.
         Task assembleTask = project.tasks.findByName(assembleTaskName)
         if (!assembleTask) {
             project.logger.warn(msg("ERROR: build task ${assembleTaskName} does not exist!"))
@@ -515,7 +514,7 @@ class AndroidPlatform extends Platform {
                 return
             }
             File codeArchive = new File(output)
-            File target = new File(repackageExt.getBundleDir(project), codeArchive.name)
+            File target = new File(repackageExt.getBuildDir(project), codeArchive.name)
             Files.copy(codeArchive.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
     }
@@ -633,7 +632,7 @@ class AndroidPlatform extends Platform {
 
     /**
      * Returns the library files of the code. For .apk inputs, this
-     * returns nothing, since everything is bundled in the .apk.
+     * returns nothing, since everything is included in the .apk.
      * For .aar inputs, this returns a list of dependencies (libraries).
      *
      * @return a list of file paths
@@ -766,7 +765,7 @@ class AndroidPlatform extends Platform {
             return true
         } else if (n.endsWith('.aar')) {
             // Ignore AAR artifacts, so that they are not posted when
-            // the user invokes the "post bundle" task globally.
+            // the user invokes the "post build" task globally.
             project.logger.warn msg("WARNING: AAR artifact is currently ignored as a standalone artifact to post: ${filename}")
         }
         return false

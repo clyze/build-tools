@@ -1,13 +1,12 @@
 package org.clyze.build.tools.gradle
 
-import groovy.transform.TypeChecked
+import groovy.transform.CompileStatic
 import org.clyze.build.tools.Conventions
 import org.clyze.utils.VersionInfo
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 
 import static org.clyze.build.tools.Conventions.msg
@@ -15,7 +14,7 @@ import static org.clyze.build.tools.Conventions.msg
 /**
  * The entry point of the plugin.
  */
-@TypeChecked
+@CompileStatic
 class RepackagePlugin implements Plugin<Project> {
 
     private Platform platform
@@ -58,8 +57,8 @@ class RepackagePlugin implements Plugin<Project> {
             configureScavengeTask()
         }
 
-        project.logger.debug msg("Configuring bundle posting task")
-        configurePostBundleTask()
+        project.logger.debug msg("Configuring posting task")
+        configurePostBuildTask()
         project.logger.debug msg("Configuring replay task")
         configureReplayPostTask()
         project.logger.debug msg("Configuring configuration-gathering task")
@@ -71,11 +70,11 @@ class RepackagePlugin implements Plugin<Project> {
         project.logger.debug msg("Configuring repackage-test task")
         configureRepackageTestTask()
         project.logger.debug msg("Configuring bundling task (step 1)")
-        configureCreateBundleTask_step1()
+        configureCreateBuildTask_step1()
 
         // If some tasks are invoked together, configure which runs first.
-        taskPrecedes(project, PTask.CREATE_BUNDLE, PTask.POST_BUNDLE)
-        taskPrecedes(project, PTask.CREATE_BUNDLE, PTask.REPACKAGE)
+        taskPrecedes(project, PTask.CREATE_BUILD, PTask.POST_BUILD)
+        taskPrecedes(project, PTask.CREATE_BUILD, PTask.REPACKAGE)
     }
 
     /**
@@ -98,7 +97,7 @@ class RepackagePlugin implements Plugin<Project> {
         ext.orgName = project.group
         ext.projectName = platform.getProjectName()
         ext.projectVersion = project.version?.toString()
-        ext.scavengeOutputDir = new File(project.rootDir, Conventions.CLUE_BUNDLE_DIR)
+        ext.scavengeOutputDir = new File(project.rootDir, Conventions.CLUE_BUILD_DIR)
         ext.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 
@@ -114,7 +113,7 @@ class RepackagePlugin implements Plugin<Project> {
         String processorPath = platform.getClasspath()
         project.logger.info msg("Using processor path: ${processorPath}")
 
-        File dest = Extension.of(project).getBundleDir(project)
+        File dest = Extension.of(project).getBuildDir(project)
         addPluginCommandArgs(task, dest, true)
         task.destinationDir = new File(dest as File, "classes")
         task.options.annotationProcessorPath = project.files(processorPath)
@@ -136,9 +135,9 @@ class RepackagePlugin implements Plugin<Project> {
         task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput + " " + output]
     }
 
-    private void configurePostBundleTask() {
-        PostBundleTask task = project.tasks.create(PTask.POST_BUNDLE.name, PostBundleTask)
-        task.description = 'Posts the current project as a bundle'
+    private void configurePostBuildTask() {
+        PostBuildTask task = project.tasks.create(PTask.POST_BUILD.name, PostBuildTask)
+        task.description = 'Posts the current project as a build'
         task.group = Conventions.TOOL_NAME
     }
 
@@ -165,9 +164,8 @@ class RepackagePlugin implements Plugin<Project> {
         repackage.group = Conventions.TOOL_NAME
     }
 
-    private void configureCreateBundleTask_step1() {
-        CreateBundleTask task = project.tasks.create(PTask.CREATE_BUNDLE.name, CreateBundleTask)
-        task.description = 'Creates a bundle from this project.'
+    private void configureCreateBuildTask_step1() {
+        CreateBuildTask task = project.tasks.create(PTask.CREATE_BUILD.name, CreateBuildTask)
         task.group = Conventions.TOOL_NAME
         dependOnCodeAndConfigurations(platform, task)
     }

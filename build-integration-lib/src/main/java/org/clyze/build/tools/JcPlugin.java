@@ -35,7 +35,7 @@ public class JcPlugin {
     }
 
     /**
-     * Returns the classpath of the bundled javac plugin.
+     * Returns the classpath of the included javac plugin.
      *
      * @return a list of JAR files
      */

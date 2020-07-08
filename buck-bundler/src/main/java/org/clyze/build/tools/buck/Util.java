@@ -2,7 +2,7 @@ package org.clyze.build.tools.buck;
 
 import org.clyze.build.tools.Conventions;
 
-class BundlerUtil {
+class Util {
     // Set to true for extra debug messages.
     private static final boolean debug = false;
 
