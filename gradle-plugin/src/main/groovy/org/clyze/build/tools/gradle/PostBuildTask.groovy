@@ -70,9 +70,12 @@ class PostBuildTask extends PostTask {
         }
 
         // Filter out empty libraries.
-        p.libraryFiles.findAll(Helper.checkFileEmpty).each {
-            ps.addFileInput("LIBRARIES", it)
-            project.logger.info msg("Added library: ${it}")
+        def projectLibs = p.libraryFiles
+        if (projectLibs) {
+            projectLibs.findAll(Helper.checkFileEmpty).each {
+                ps.addFileInput("LIBRARIES", it)
+                project.logger.info msg("Added library: ${it}")
+            }
         }
 
         // The platform to use when analyzing the code.
