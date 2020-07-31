@@ -52,6 +52,8 @@ public class Poster {
      */
     public void repackageBuildForCI(PostState ps, AttachmentHandler<String> handler)
     throws ClientProtocolException{
+        if (options.dry)
+            System.err.println("WARNING: automated repackaging ignores dry option.");
         Helper.repackageBuildForCI(options.host, options.port, options.username,
                                    options.password, options.project, options.platform, ps, handler);
     }
