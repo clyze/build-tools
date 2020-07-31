@@ -190,6 +190,7 @@ abstract class PostTask extends DefaultTask {
         addBasicPostOptions(ext, ps, shrinkResources)
         ps.addFileInput("INPUTS", codeArchive)
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
+        ps.addStringInput("PLATFORM", ext.platform.defaultAutomatedRepackagingProfile)
 
         File out = File.createTempFile(repackBaseName, repackExtension)
 

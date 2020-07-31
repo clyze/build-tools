@@ -34,8 +34,12 @@ public class Conventions {
     public static final String DEFAULT_PROJECT     = "project";
     /** Default server profile to use for posting Android code. */
     public static final String DEFAULT_ANDROID_PROFILE = "proAndroid";
+    /** Default server profile to use for posting Android code (automated repackaging). */
+    public static final String DEFAULT_ANDROID_CLYZE_PROFILE = "clyzeAndroid";
     /** Default server profile to use for posting Java (non-Android) code. */
     public static final String DEFAULT_JAVA_PROFILE= "proJava";
+    /** Default server profile to use for posting Java code (automated repackaging). */
+    public static final String DEFAULT_JAVA_CLYZE_PROFILE = "clyzeJava";
     /** Default server project platform for Android projects. */
     public static final String DEFAULT_ANDROID_PLATFORM = "ANDROID";
     /** Default server project platform for Java projects. */

@@ -775,4 +775,9 @@ class AndroidPlatform extends Platform {
     protected String getDefaultProfile() {
         return Conventions.DEFAULT_ANDROID_PROFILE
     }
+
+    @Override
+    protected String getDefaultAutomatedRepackagingProfile() {
+        return Conventions.DEFAULT_ANDROID_CLYZE_PROFILE
+    }
 }

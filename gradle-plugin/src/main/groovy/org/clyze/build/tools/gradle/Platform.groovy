@@ -389,4 +389,11 @@ abstract class Platform {
      * @return the profile name
      */
     abstract protected String getDefaultProfile();
+
+    /**
+     * Returns the default profile used for repackaging builds from Gradle.
+     *
+     * @return the profile name
+     */
+    abstract protected String getDefaultAutomatedRepackagingProfile();
 }
