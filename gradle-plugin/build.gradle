@@ -37,7 +37,7 @@ dependencies {
 
     compileOnly localGroovy()
     implementation project(":build-integration-lib")
-    implementation 'org.clyze:clue-common:3.21.2'
+    implementation 'org.clyze:clue-common:3.22.4'
 }
 
 gradlePlugin {

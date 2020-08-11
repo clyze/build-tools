@@ -1,5 +1,5 @@
 ext.groovyVersion='2.5.10'
-ext.jcpluginArtifact='org.clyze:doop-jcplugin:2.0.32'
+ext.jcpluginArtifact='org.clyze:doop-jcplugin:2.0.33'
 
 wrapper {
     gradleVersion = '5.4.1'
