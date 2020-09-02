@@ -7,7 +7,7 @@ wrapper {
 }
 
 subprojects {
-    group = 'org.clyze'
+    group = 'com.clyze'
 }
 
 task doc() {}

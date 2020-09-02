@@ -25,7 +25,7 @@ dependencies {
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 }
 
-String mainClass = 'org.clyze.build.tools.buck.Main'
+String mainClass = 'com.clyze.build.tools.buck.Main'
 
 application {
     mainClassName = mainClass

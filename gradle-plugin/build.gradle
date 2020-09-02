@@ -43,8 +43,8 @@ dependencies {
 gradlePlugin {
     plugins {
         closerPlugin {
-            id = "org.clyze.gradle-plugin"
-            implementationClass = "org.clyze.build.tools.gradle.RepackagePlugin"
+            id = "com.clyze.gradle-plugin"
+            implementationClass = "com.clyze.build.tools.gradle.RepackagePlugin"
         }
     }
 }

@@ -14,7 +14,7 @@ buildscript {
         maven { url "https://dl.bintray.com/clyze/plugins" }
     }
     dependencies {
-       classpath 'org.clyze:gradle-plugin:4.0.+'
+       classpath 'com.clyze:gradle-plugin:4.0.+'
     }
 }
 
@@ -111,7 +111,7 @@ buildscript {
         // Put here the repositories needed to find the plugin.
     }
     dependencies {
-        classpath ('org.clyze:gradle-plugin:4.0.+')
+        classpath ('com.clyze:gradle-plugin:4.0.+')
     }
 }
 
