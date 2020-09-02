@@ -1,6 +1,8 @@
 package com.clyze.build.tools;
 
 import com.google.gson.Gson;
+import org.clyze.utils.OS;
+
 import java.io.*;
 import java.util.Map;
 
@@ -8,28 +10,55 @@ import java.util.Map;
  * This class gathers information about the installation.
  */
 public class Settings {
-    private static final String C_DIR = ".clyze";
 
     /**
-     * Returns the installation directory, containing all application
-     * versions.
-     *
-     * @return the installation directory
+     * Finds the home directory of the user.
+     * @return   the home path
      */
-    public static File getAppDirectory() {
-
+    private static String getUserHomeDir() {
         String homeDir = System.getProperty("user.home");
         if (homeDir == null)
             homeDir = System.getenv("HOME");
         if (homeDir == null)
             System.err.println(Conventions.msg("Could not determine home directory"));
-        else {
-            File cDir = new File(homeDir, C_DIR);
-            if (!cDir.exists())
-                System.err.println(Conventions.msg("Could not find directory: " + cDir));
+        return homeDir;
+    }
+
+    /**
+     * Builds the installation "home" directory.
+     * @param root   the top level directory
+     * @return       the installation "home" directory
+     */
+    private static File getAppHomeDir(String root) {
+        File dir = new File(new File(root, "clyze-desktop"), "home");
+        if (!dir.exists())
+            System.err.println(Conventions.msg("Could not find directory: " + dir));
+        return dir;
+    }
+
+    /**
+     * Returns the installation directory, containing all application
+     * versions. See https://www.electronjs.org/docs/api/app#appgetpathname and
+     * https://bitbucket.org/clyze/clyze/commits/c60329629288e176f43b6951f93a8df73e596726
+     *
+     * @return the installation directory
+     */
+    public static File getAppDirectory() {
+        if (OS.isLinux()) {
+            String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
+            if (xdgConfigHome != null)
+                return getAppHomeDir(xdgConfigHome);
             else
-                return cDir;
+                return getAppHomeDir(getUserHomeDir() + "/.config");
+        } else if (OS.getMacOS()) {
+            return getAppHomeDir(getUserHomeDir() + "/Library/Application Support");
+        } else if (OS.getWin()) {
+            String appData = System.getenv("APPDATA");
+            if (appData == null)
+                throw new RuntimeException("Could not determine APPDATA, plase set appropriate environment variable.");
+            return getAppHomeDir(appData);
         }
+        System.err.println(Conventions.msg("ERROR: could not determine system type."));
         return null;
     }
 
