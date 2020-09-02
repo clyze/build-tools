@@ -5,6 +5,7 @@ import groovy.transform.CompileStatic
 import com.clyze.build.tools.Conventions
 import com.clyze.client.web.Helper
 import com.clyze.client.web.PostState
+import org.apache.http.client.ClientProtocolException
 import org.gradle.api.tasks.TaskAction
 
 import static com.clyze.build.tools.Conventions.msg
@@ -20,7 +21,11 @@ class PostBuildTask extends PostTask {
      */
     @TaskAction
     void postBuild() {
-        postBuildPostState(newBuildPostState())
+        try {
+            postBuildPostState(newBuildPostState())
+        } catch (ClientProtocolException ex) {
+            project.logger.error msg("ERROR: " + ex.message)
+        }
     }
 
     /**
