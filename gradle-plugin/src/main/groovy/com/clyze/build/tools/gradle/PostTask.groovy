@@ -164,7 +164,7 @@ abstract class PostTask extends DefaultTask {
     }
 
     /**
-     * Repackages a code archive (.jar or .apk).
+     * Repackages a code archive (.jar, .apk, or .aab).
      *
      * @param ext              the plugin extension data structure
      * @param codeArchive      the path of the code archive to repackage

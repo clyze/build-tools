@@ -27,7 +27,7 @@ class RepackageTask extends PostTask {
                         File tmpDir = Files.createTempDirectory("repackaged-signing").toFile()
                         ZipUtil.unpack(out, tmpDir)
                         for (File f : tmpDir.listFiles()) {
-                            if (f.name.endsWith('.apk')) {
+                            if (AUtils.isAppCodeArtifact(f.name)) {
                                 project.logger.info msg("Signing: ${f.name}")
                                 AndroidAPI.signWithConfig(project, ext.signingConfig, f)
                             }

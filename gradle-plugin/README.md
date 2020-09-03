@@ -201,8 +201,12 @@ clyze {
 
 * String _buildType_: `"debug"` or `"release"` (default).
 
+* boolean aab: 'true' to post generated AAB archives, 'false' (default)
+  to post generated APK archives.
+
 * String _flavor_: the name of the flavor to use. If not given,
-  default tasks are used (such as 'assembleDebug'/'assembleRelease').
+  default tasks are used (such as 'assembleDebug'/'assembleRelease'
+  in APK mode or 'bundleDebug'/'bundleRelease' in AAB mode).
 
 * String _apkFilter_: if more than one .apk outputs are found, pick
   the one that contains this value as a substring.

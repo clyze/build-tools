@@ -51,6 +51,9 @@ class Extension {
     /** List of group-name pairs of artifacts that are resolved by
      *  extraInputs (and thus the resolver should ignore them). */
     List<List<String>> replacedByExtraInputs
+    /** If true, the build uses the generated .aab output, otherwise
+     *  the build uses the .apk output. */
+    boolean aab = false
     /**
      * If true, the collected configurations are gathered via a
      * '-printconfiguration' directive.

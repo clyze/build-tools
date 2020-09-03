@@ -5,12 +5,11 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classpath.ClassPath
 
 import static com.clyze.build.tools.Conventions.msg
 
-/** This class provides access to the Android Gradle API (including
+/**
+ * This class provides access to the Android Gradle API (including
  * internals) without a compile-time dependency.
  */
 class AndroidAPI {
@@ -66,26 +65,9 @@ class AndroidAPI {
 
     static List<String> getOutputs(Project project, Task packageTask) {
         return packageTask.outputs.files
-            .findAll { it.name.endsWith('.apk') || it.name.endsWith('.aar') }
+            .findAll { AUtils.isAppCodeArtifact(it.name) || it.name.endsWith('.aar') }
             .collect { it.canonicalPath }
             .toList() as List<String>
-    }
-
-    /** Get an internal class from the Android Gradle plugin.
-     *
-     * @param project the current project
-     * @param s       the name of the class
-     * @return        the Class object (or null if class was not found)
-     */
-    private static Class getInternalClass(Project project, String s) {
-        try {
-            Class c = Class.forName(s)
-            project.logger.debug msg("Using AGP internal class: ${s}")
-            return c
-        } catch (ClassNotFoundException ex) {
-            project.logger.debug msg("WARNING: class ${s} not found in Android Gradle plugin: ${ex.message}")
-            return null
-        }
     }
 
     /*
@@ -96,10 +78,10 @@ class AndroidAPI {
      * @param closure      an action to perform on each matching transform
      */
     static void forEachRepackageTransform(Project project, String variantName, def closure) {
-        Class transformTask = getInternalClass(project, "com.android.build.gradle.internal.pipeline.TransformTask")
-        Class pgTransform1 = getInternalClass(project, "com.android.build.gradle.internal.transforms.ProguardConfigurable")
-        Class pgTransform2 = getInternalClass(project, "com.android.build.gradle.internal.tasks.ProguardTask")
-        Class pgTransform3 = getInternalClass(project, "com.android.build.gradle.internal.tasks.R8Task")
+        Class transformTask = AUtils.getInternalClass(project, "com.android.build.gradle.internal.pipeline.TransformTask")
+        Class pgTransform1 = AUtils.getInternalClass(project, "com.android.build.gradle.internal.transforms.ProguardConfigurable")
+        Class pgTransform2 = AUtils.getInternalClass(project, "com.android.build.gradle.internal.tasks.ProguardTask")
+        Class pgTransform3 = AUtils.getInternalClass(project, "com.android.build.gradle.internal.tasks.R8Task")
 
         project.logger.debug msg("Variant filter: ${variantName}")
         project.tasks.each {
@@ -125,11 +107,6 @@ class AndroidAPI {
                 println msg("Error reading task ${it.transform}: ${t.message}")
             }
         }
-    }
-
-    static List<URI> getAsURIs(ClassLoader cLoader) {
-        ClassPath cp = ClasspathUtil.getClasspath(cLoader)
-        return cp.getAsURIs()
     }
 
     static void iterateOverVariants(Project project, Closure cl) {
@@ -232,7 +209,7 @@ class AndroidAPI {
     }
 
     static Object getSigningConfiguration(Project project, String signingConfigName) {
-        Class<?> c = getInternalClass(project, 'com.android.build.gradle.internal.dsl.SigningConfig')
+        Class<?> c = AUtils.getInternalClass(project, 'com.android.build.gradle.internal.dsl.SigningConfig')
         Object sc = project.android.signingConfigs?.getByName(signingConfigName)
         return (sc && c?.isInstance(sc)) ? sc : null
     }
@@ -253,7 +230,7 @@ class AndroidAPI {
             String androidSdkHome = System.getenv('ANDROID_SDK')
             if (!androidSdkHome) {
                 project.logger.error "ERROR: set environment variable ANDROID_SDK."
-                return null
+                return
             }
 
             List<String> messages = []
