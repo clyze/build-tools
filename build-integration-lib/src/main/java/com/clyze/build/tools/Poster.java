@@ -15,11 +15,11 @@ import org.apache.http.conn.HttpHostConnectException;
  * posts a project to the server.
  */
 public class Poster {
-    private final String cachePostDir;
+    private final File cachePostDir;
     private final PostOptions options;
     private final File metadataDir;
 
-    public Poster(PostOptions options, String cachePostDir,
+    public Poster(PostOptions options, File cachePostDir,
                   File metadataDir) {
         this.options = options;
         this.cachePostDir = cachePostDir;
