@@ -43,7 +43,7 @@ clyze {
 Step 2. Run the following tasks to create the build data and post the build:
 
 ```
-gradle createBuild postBuild
+gradlew createBuild postBuild
 ```
 
 ## Running the build task on an Android app ##
@@ -65,13 +65,14 @@ apply plugin: 'clyze'
 ...
 clyze {
     flavor = "prod"       // omit if product flavors are not used
+    aab = true            // true to use generated AAB, false (default) to use APK
 }
 ```
 
 Step 2. In directory "Project", run the build task:
 
 ```
-gradle createBuild postBuild
+gradlew createBuild postBuild
 ```
 
 If the project contains no app submodule, then run the build tasks
@@ -238,7 +239,7 @@ clyze {
 Then, crate a build and post it for repackaging.
 
 ```
-gradle createBuild repackage
+gradlew createBuild repackage
 ```
 
 ## Replay the post ##
