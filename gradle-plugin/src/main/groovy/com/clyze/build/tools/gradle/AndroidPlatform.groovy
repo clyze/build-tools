@@ -534,8 +534,8 @@ class AndroidPlatform extends Platform {
     String getOutputCodeArchive() {
         List<String> outputs
         if (repackageExt.aab) {
-            // Use first .aab from "build/outputs/bundle/<BUILD_TYPE>" as output code archive.
-            File aabDir = Paths.get(appBuildDir, 'outputs', 'bundle', getBuildType()).toFile()
+            // Use first .aab from "build/outputs/bundle/<VARIANT>" as output code archive.
+            File aabDir = Paths.get(appBuildDir, 'outputs', 'bundle', getFlavorAndBuildType()).toFile()
             File[] aabDirFiles = aabDir.listFiles()
             if (!aabDirFiles || aabDirFiles.length == 0)
                 noAabFound(aabDir)
