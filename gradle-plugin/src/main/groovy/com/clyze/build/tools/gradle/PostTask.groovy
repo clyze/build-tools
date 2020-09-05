@@ -144,10 +144,10 @@ abstract class PostTask extends DefaultTask {
     protected static Poster getPoster(Project project, boolean autoRepack) {
         Extension ext = Extension.of(project)
         PostOptions opts = ext.createPostOptions(autoRepack)
-        File cachePostDir = new File(ext.cachePostDir)
+        File cachePostDir = ext.cachePostDir ? new File(ext.cachePostDir): null
         // Handle relative paths (so that they don't go in random locations
         // (such as ~/.gradle/daemon).
-        if (cachePostDir.canonicalPath != ext.cachePostDir)
+        if (cachePostDir && cachePostDir.canonicalPath != ext.cachePostDir)
             cachePostDir = project.rootProject.file(cachePostDir) as File
         return new Poster(opts, cachePostDir, ext.getBuildDir(project))
     }
