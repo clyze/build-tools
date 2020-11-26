@@ -88,6 +88,13 @@ shadowJar {
     classifier = null
 }
 
+// Disable Gradle module metadata, since it fails to properly handle the
+// subproject dependency when generating a shadow JAR.
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
+
 artifacts {
     shadowJar
     archives sourcesJar
