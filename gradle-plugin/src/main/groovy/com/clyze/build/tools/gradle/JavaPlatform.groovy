@@ -146,9 +146,9 @@ class JavaPlatform extends Platform {
     }
 
     @Override
-    List<String> getLibraryFiles() {
-        List<String> extraInputFiles = Extension.of(project).getExtraInputFiles(project.rootDir)
-        List<String> runtimeFiles = JavaAPI.getRuntimeFiles(project)
+    Set<String> getLibraryFiles() {
+        Set<String> extraInputFiles = Extension.of(project).getExtraInputFiles(project.rootDir) as Set<String>
+        Set<String> runtimeFiles = JavaAPI.getRuntimeFiles(project)
         return runtimeFiles + extraInputFiles
     }
 

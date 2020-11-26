@@ -1,7 +1,8 @@
 package com.clyze.build.tools.gradle
 
+import com.clyze.build.tools.Conventions
 import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSet
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSetContainer
 
 /**
@@ -42,7 +43,13 @@ class JavaAPI {
      * @param project  the current project
      * @return a list of paths
      */
-    static List<String> getRuntimeFiles(Project project) {
-        return project.configurations.runtime.files.collect { it.canonicalPath }
+    static Set<String> getRuntimeFiles(Project project) {
+        Set<String> ret = getConfigurationFiles(project.configurations.runtime)
+        ret.addAll(getConfigurationFiles(project.configurations.runtimeClasspath))
+        return ret
+    }
+
+    static Set<String> getConfigurationFiles(Configuration conf) {
+        return conf.files.collect { it.canonicalPath } as Set<String>
     }
 }

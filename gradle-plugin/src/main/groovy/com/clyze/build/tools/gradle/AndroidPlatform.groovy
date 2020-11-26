@@ -662,15 +662,15 @@ class AndroidPlatform extends Platform {
      * @return a list of file paths
      */
     @Override
-    List<String> getLibraryFiles() {
+    Set<String> getLibraryFiles() {
         // Only upload dependencies when in AAR mode.
         if (!isLibrary) {
             return null
         }
 
         project.logger.info msg("Detecting library outputs...")
-        List<String> extraInputFiles = repackageExt.getExtraInputFiles(project.rootDir)
-        return getDependencies().asList() + extraInputFiles
+        Set<String> extraInputFiles = repackageExt.getExtraInputFiles(project.rootDir) as Set<String>
+        return getDependencies() + extraInputFiles
     }
 
     private Set<String> getDependencies() {

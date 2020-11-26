@@ -347,9 +347,9 @@ abstract class Platform {
 
     /**
      * Returns the code files that will be given as "libraries" to the server.
-     * @return a list of file paths
+     * @return a set of file paths
      */
-    abstract List<String> getLibraryFiles()
+    abstract Set<String> getLibraryFiles()
 
     /** Return a build classpath. */
     abstract String getClasspath()
