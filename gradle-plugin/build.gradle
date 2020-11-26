@@ -64,6 +64,7 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
 
 jar {
     manifest {
+        //noinspection GrDeprecatedAPIUsage
         attributes 'Implementation-Version' : version  // not "archiveVersion"
     }
 }
@@ -85,7 +86,7 @@ shadowJar.dependsOn jar
 
 shadowJar {
     // Set classifier to "null", to make the shadow JAR the main published artifact.
-    classifier = null
+    archiveClassifier.set(null)
 }
 
 // Disable Gradle module metadata, since it fails to properly handle the
