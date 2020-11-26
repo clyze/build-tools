@@ -123,7 +123,7 @@ abstract class PostTask extends DefaultTask {
      * @param ext   the plugin extension data structure
      * @param ps    the build representation
      */
-    protected void addDeepOptions(Extension ext, PostState ps) {
+    protected static void addDeepOptions(Extension ext, PostState ps) {
         // The heap snapshots are optional.
         ext.hprofs?.collect { ps.addFileInput("HEAPDLS", it) }
         // The main class of the program. Usually empty on Android code.
@@ -216,8 +216,8 @@ abstract class PostTask extends DefaultTask {
             }
             poster.repackageBuildForCI(ps, saveAttachment)
             return out
-        } catch (HttpHostConnectException ex) {
-            project.logger.error msg( "ERROR: cannot repackage build, is the server running?")
+        } catch (HttpHostConnectException ignored) {
+            project.logger.error msg("ERROR: cannot repackage build, is the server running?")
         } catch (ClientProtocolException ex) {
             project.logger.error msg("ERROR: ${ex.message}")
         }

@@ -84,7 +84,7 @@ class RepackagePlugin implements Plugin<Project> {
      * @param a         the first task to be executed
      * @param b         the second task to be executed
      */
-    protected void taskPrecedes(Project project, PTask a, PTask b) {
+    protected static void taskPrecedes(Project project, PTask a, PTask b) {
         def tasks = project.gradle.startParameter.taskNames
         if (tasks.find { it.endsWith(a.name) } && tasks.find { it.endsWith(b.name) }) {
             project.tasks.findByName(b.name)
