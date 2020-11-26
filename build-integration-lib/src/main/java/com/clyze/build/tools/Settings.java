@@ -44,15 +44,15 @@ public class Settings {
      * @return the installation directory
      */
     public static File getAppDirectory() {
-        if (OS.isLinux()) {
+        if (OS.linux) {
             String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
             if (xdgConfigHome != null)
                 return getAppHomeDir(xdgConfigHome);
             else
                 return getAppHomeDir(getUserHomeDir() + "/.config");
-        } else if (OS.getMacOS()) {
+        } else if (OS.macOS) {
             return getAppHomeDir(getUserHomeDir() + "/Library/Application Support");
-        } else if (OS.getWin()) {
+        } else if (OS.win) {
             String appData = System.getenv("APPDATA");
             if (appData == null)
                 throw new RuntimeException("Could not determine APPDATA, plase set appropriate environment variable.");
