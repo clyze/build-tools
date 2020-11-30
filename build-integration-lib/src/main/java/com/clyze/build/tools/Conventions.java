@@ -16,6 +16,8 @@ public class Conventions {
     public static final String CONFIGURATIONS_FILE = "configurations.zip";
     /** The name of the sources archive to post. */
     public static final String SOURCES_FILE        = "sources.jar";
+    /** The name of the CodeQL archive to post. */
+    public static final String CODEQL_DB_FILE      = "codeql-db.zip";
     /** The name of the test code directory to use for gathering code. */
     public static final String TEST_CODE_DIR       = "test-code";
     /** The name of the code archive to post (for optimization). */

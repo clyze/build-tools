@@ -71,6 +71,8 @@ class Extension {
     String repackageOutput = null
     /** If true, print extra debug information. */
     boolean debug = false
+    /** The path to the CodeQL database directory. */
+    String codeqlDatabase = null
 
     Platform platform
 

@@ -1,5 +1,6 @@
 package com.clyze.build.tools.gradle
 
+import com.clyze.build.tools.Archiver
 import groovy.io.FileType
 import groovy.transform.CompileStatic
 import org.apache.http.HttpEntity
@@ -114,6 +115,16 @@ abstract class PostTask extends DefaultTask {
             }
             // Upload source metadata.
             addFileInput(project, ps, 'JCPLUGIN_METADATA', Conventions.METADATA_FILE)
+        }
+
+        if (ext.codeqlDatabase) {
+            File codeqlDB_dir = new File(ext.codeqlDatabase)
+            if (codeqlDB_dir.exists()) {
+                project.logger.info msg("Using CodeQL database in: ${ext.codeqlDatabase}")
+                Archiver.zipTree(codeqlDB_dir, new File(ext.scavengeOutputDir, Conventions.CODEQL_DB_FILE))
+                addFileInput(project, ps, 'CODEQL_DB', Conventions.CODEQL_DB_FILE)
+            } else
+                project.logger.error msg("ERROR: CodeQL database not found: ${ext.codeqlDatabase}")
         }
     }
 

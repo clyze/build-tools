@@ -195,6 +195,9 @@ clyze {
 * String _repackageOutput_: the filename to use when saving the output
   of the automated repackaging task (optional).
 
+* String _codeqlDatabase_: the path to the CodeQL database directory for
+  this project (optional)
+
 ### Android-specific options ###
 
 * String _subprojectName_: sub-project name (used when an `app`
