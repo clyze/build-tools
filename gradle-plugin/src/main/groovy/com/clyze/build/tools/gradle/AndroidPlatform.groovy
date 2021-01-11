@@ -9,7 +9,7 @@ import java.nio.file.StandardCopyOption
 import java.util.function.Function
 import org.apache.commons.io.FileUtils
 import com.clyze.build.tools.Conventions
-import org.clyze.utils.AARUtils
+import org.clyze.utils.ContainerUtils
 import org.clyze.utils.AndroidDepResolver
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -404,7 +404,7 @@ class AndroidPlatform extends Platform {
             tmpDirs = new HashSet<>()
             Set<String> cp = new HashSet<>()
             cp.addAll(scavengeJarsPre)
-            cp.addAll(AARUtils.toJars(scavengeDeps as List, true, tmpDirs))
+            cp.addAll(ContainerUtils.toJars(scavengeDeps as List, true, tmpDirs))
             cp.each {
                 if (!(new File(it)).exists())
                     project.logger.warn msg("WARNING: classpath entry to add does not exist: ${it}")

@@ -1,8 +1,8 @@
 package com.clyze.build.tools.gradle
 
-import groovy.transform.CompileStatic
 import com.clyze.build.tools.Conventions
-import org.clyze.utils.VersionInfo
+import groovy.transform.CompileStatic
+import org.clyze.utils.JHelper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -196,6 +196,6 @@ class RepackagePlugin implements Plugin<Project> {
      * @return a version identifier
      */
     static String getPluginVersion() {
-        return VersionInfo.getVersionInfo(RepackagePlugin.class)
+        return JHelper.getVersionInfo(RepackagePlugin.class)
     }
 }
