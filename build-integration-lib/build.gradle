@@ -35,6 +35,11 @@ compileJava {
     options.compilerArgs << '-Xlint:deprecation'
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 // Communicate jcplugin dependency to code, to be inserted as a
 // dependency on the target project.
 task writeMetadataDependecy() {
