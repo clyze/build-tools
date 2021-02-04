@@ -235,6 +235,10 @@ public final class Archiver {
                 String name = entry.getName();
                 if (name.equals(resourceDir) || !name.startsWith(resourceDir))
                     continue;
+                else if (name.contains("..")) {
+                    System.out.println("Ignoring entry that may escape to the filesystem: " + name);
+                    continue;
+                }
                 name = name.substring(resourceDir.length());
                 File outFile = new File(tmpDir, name);
                 copyZipEntryToFile(jar, entry, outFile);
