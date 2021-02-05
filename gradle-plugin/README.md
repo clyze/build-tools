@@ -179,8 +179,8 @@ clyze {
 
 * Map<String, Object> _options_: the Doop options to use (empty for R8).
 
-* boolean _cachePost_: cache the data before posting the analysis to
-  the server, so that it can be later replayed.
+* String _cachePostDir_: path to write the data before posting the
+  analysis to the server, so that it can be later replayed.
 
 * String _convertUTF8Dir_: a directory of sources that must be
   converted to UTF-8. This parameter is supported for plain Java code.
