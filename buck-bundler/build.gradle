@@ -8,11 +8,7 @@ targetCompatibility = "1.8"
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "https://dl.bintray.com/gfour/plast-lab" }
-    maven { url "https://dl.bintray.com/clyze/clients" }
-    if (project.hasProperty('artifactory_contextUrl')) {
-        maven { url "${artifactory_contextUrl}/plast-public" }
-    }
+    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
 }
 
 configurations {

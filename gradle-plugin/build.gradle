@@ -4,7 +4,6 @@ plugins {
     id 'maven-publish'
     id 'net.researchgate.release' version '2.6.0'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
-    id "com.jfrog.bintray" version "1.8.4"
 }
 
 sourceCompatibility = "1.8"
@@ -13,12 +12,7 @@ targetCompatibility = "1.8"
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "https://dl.bintray.com/gfour/plast-lab" }
-    maven { url "https://dl.bintray.com/clyze/clients" }
-    // Experimental repositories for custom dependencies.
-    if (project.hasProperty('artifactory_contextUrl')) {
-        maven { url "${artifactory_contextUrl}/plast-public" }
-    }
+    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
 }
 
 configurations.all {
@@ -156,31 +150,4 @@ project.afterEvaluate {
     checkForLocalDependencies(':gradle-plugin', 'runtime')
     checkForLocalDependencies(':build-integration-lib', 'runtime')
     checkForLocalDependencies(':build-integration-lib', 'jcplugin')
-}
-
-// Upload to bintray with:
-//   ./gradlew clean :gradle-plugin:build :gradle-plugin:bintrayUpload --info
-// Needs properties: bintray_clyze_user, bintray_clyze_key.
-if (project.hasProperty('bintray_clyze_user') && project.hasProperty('bintray_clyze_key')) {
-    if (bintray_clyze_user != 'clyze')
-	throw new RuntimeException("Unsupported bintray user: ${bintray_clyze_user}")
-    bintray {
-        user = bintray_clyze_user
-        key = bintray_clyze_key
-        publications = ['mavenJava']
-        configurations = ['archives']
-        pkg {
-            repo = 'plugins'
-            name = 'gradle-plugin'
-            desc = 'Clyze Gradle plugin'
-            licenses = ['MIT']
-            labels = ['java', 'groovy']
-            vcsUrl = 'https://bitbucket.org/yanniss/build-tools'
-            version {
-                name = project.version
-                released = new Date()
-                vcsTag = project.version
-            }
-        }
-    }
 }
