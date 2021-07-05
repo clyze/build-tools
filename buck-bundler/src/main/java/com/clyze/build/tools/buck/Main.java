@@ -337,7 +337,6 @@ public class Main {
             println("Posting build to the server...");
 
         List<Message> messages = new LinkedList<>();
-        boolean android = conf.opts.profile.toUpperCase().contains("ANDROID");
         (new Poster(conf.opts, null, new File(Conventions.CLUE_BUILD_DIR)))
             .post(ps, messages, true);
         showMessages(messages);

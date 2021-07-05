@@ -1,7 +1,6 @@
 package com.clyze.build.tools.gradle
 
 import groovy.transform.CompileStatic
-import com.clyze.build.tools.Conventions
 import com.clyze.client.web.PostOptions
 import org.gradle.api.Project
 import org.gradle.util.ConfigureUtil
@@ -38,7 +37,7 @@ class Extension {
     /** Dry mode, for sample build creation. */
     boolean dry = false
     boolean ignoreConfigurations = false
-    String profile
+    List<String> stacks
     String ruleFile
     /** Subproject name (Android-only). */
     String subprojectName
@@ -149,11 +148,10 @@ class Extension {
         opts.port = this.port
         opts.username = this.username
         opts.password = this.password
-        opts.profile = this.profile
+        opts.stacks = this.stacks
         opts.project = this.project
         opts.dry = this.dry
         opts.android = this.androidProject
-        opts.platform = this.androidProject ? Conventions.DEFAULT_ANDROID_PLATFORM : Conventions.DEFAULT_JAVA_PLATFORM
         opts.autoRepackaging = autoRepack
         return opts
     }

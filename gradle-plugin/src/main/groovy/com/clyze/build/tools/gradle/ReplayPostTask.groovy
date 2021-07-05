@@ -42,7 +42,7 @@ class ReplayPostTask extends PostTask {
         }
 
         List<Message> messages = ([] as List<Message>)
-        Helper.postCachedBuild(ext.createPostOptions(false), fromDir, "build", messages, true)
+        Helper.postCachedSnapshot(ext.createPostOptions(false), fromDir, "build", messages, true)
         messages.each { Platform.showMessage(project, it) }
     }
 }

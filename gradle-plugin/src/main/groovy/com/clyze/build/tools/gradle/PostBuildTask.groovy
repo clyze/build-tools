@@ -50,7 +50,7 @@ class PostBuildTask extends PostTask {
         */
         Extension ext = Extension.of(project)
         Platform p = ext.platform
-        PostState ps = new PostState(id:Conventions.BUILD_ID, profile:ext.profile)
+        PostState ps = new PostState(id:Conventions.BUILD_ID, stacks:ext.stacks)
         addBasicPostOptions(ext, ps, null)
 
         boolean submitInputs = false

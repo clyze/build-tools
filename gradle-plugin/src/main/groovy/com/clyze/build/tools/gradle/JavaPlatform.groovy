@@ -211,7 +211,7 @@ class JavaPlatform extends Platform {
 
     @Override
     protected String getDefaultProfile() {
-        return Conventions.DEFAULT_JAVA_PROFILE
+        return Conventions.JVM_STACK
     }
 
     @Override

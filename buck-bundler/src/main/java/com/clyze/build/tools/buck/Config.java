@@ -1,10 +1,9 @@
 package com.clyze.build.tools.buck;
 
+import com.clyze.build.tools.Settings;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import com.clyze.build.tools.Settings;
 import org.apache.commons.cli.*;
 import com.clyze.build.tools.Conventions;
 import com.clyze.client.web.PostOptions;
@@ -47,8 +46,7 @@ class Config {
         this.opts.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
         this.opts.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
         this.opts.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
-        this.opts.profile = optValOrDefault(cmd, "profile", Conventions.DEFAULT_ANDROID_PROFILE);
-        this.opts.platform = Conventions.DEFAULT_ANDROID_PLATFORM;
+        this.opts.stacks = new String[] { optValOrDefault(cmd, "stack", Conventions.ANDROID_STACK) };
         this.opts.dry = !cmd.hasOption("p");
     }
 
@@ -67,7 +65,7 @@ class Config {
         opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
         opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
         opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
-        opts.addOption(null, "profile", true, "The profile (default (Android): "+Conventions.DEFAULT_ANDROID_PROFILE+", other (Java): "+Conventions.DEFAULT_JAVA_PROFILE+").");
+        opts.addOption(null, "stack", true, "The stack (default (Android): "+Conventions.ANDROID_STACK+", other (Java): "+Conventions.JVM_STACK+").");
         opts.addOption(null, "trace", true, "The Buck trace file (default: "+DEFAULT_TRACE_FILE+").");
         opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
         opts.addOption(null, PROGUARD_BINARY_OPT, true, "The location of the proguard binary.");

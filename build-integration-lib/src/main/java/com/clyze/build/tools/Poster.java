@@ -54,8 +54,8 @@ public class Poster {
     throws ClientProtocolException{
         if (options.dry)
             System.err.println("WARNING: automated repackaging ignores dry option.");
-        Helper.repackageBuildForCI(options.host, options.port, options.username,
-                                   options.password, options.project, options.platform, ps, handler);
+        Helper.repackageSnapshotForCI(options.host, options.port, options.username,
+                options.password, options.project, options.stacks, ps, handler);
     }
 
 }

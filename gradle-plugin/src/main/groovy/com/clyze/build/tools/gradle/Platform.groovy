@@ -106,9 +106,9 @@ abstract class Platform {
                 ext.project = Conventions.DEFAULT_PROJECT
             }
         }
-        if (ext.profile == null) {
-            ext.profile = getDefaultProfile()
-            project.logger.debug msg("Missing property 'profile', assuming profile=${ext.profile}")
+        if (ext.stacks == null) {
+            ext.stacks = [getDefaultProfile()] as List<String>
+            project.logger.debug msg("Missing property 'profile', assuming profile=${ext.stacks}")
         }
         if (ext.ruleFile == null) {
             project.logger.debug msg("Missing property 'ruleFile', assuming ruleFile=${DEFAULT_RULES}")
