@@ -193,7 +193,8 @@ class AndroidPlatform extends Platform {
         // Find the location of the Android SDK.
         resolver.findSDK(project.rootDir.canonicalPath)
         // Don't resolve dependencies the user overrides.
-        resolver.ignoredArtifacts.addAll(repackageExt.replacedByExtraInputs ?: [])
+        if (repackageExt.replacedByExtraInputs)
+            resolver.ignoredArtifacts.addAll(repackageExt.replacedByExtraInputs)
 
         project.configurations.each { conf ->
             // println msg("Configuration: ${conf.name}")

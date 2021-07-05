@@ -5,7 +5,10 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
+    maven {
+        url "http://centauri.di.uoa.gr:8081/artifactory/plast-public"
+        allowInsecureProtocol true
+    }
 }
 
 sourceCompatibility = "1.8"
@@ -19,7 +22,7 @@ dependencies {
     api 'com.google.code.gson:gson:2.8.0'                          // Apache 2.0
     api 'org.zeroturnaround:zt-zip:1.13'                           // Apache 2.0
     compileOnly "org.codehaus.groovy:groovy:${groovyVersion}"
-    compile('com.clyze:clyze-client:4.2.0') {
+    api('com.clyze:clyze-client:4.2.0') {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
         exclude group: "org.codehaus.groovy", module: "groovy"
     }

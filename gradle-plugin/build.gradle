@@ -12,7 +12,10 @@ targetCompatibility = "1.8"
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
+    maven {
+        url "http://centauri.di.uoa.gr:8081/artifactory/plast-public"
+        allowInsecureProtocol true
+    }
 }
 
 configurations.all {
@@ -24,9 +27,9 @@ configurations.all {
 
 // Prevent inclusion of gradle-api into shadow JAR. (See:
 // https://imperceptiblethoughts.com/shadow/plugins/#special-handling-of-the-java-gradle-plugin-development-plugin)
-configurations.compile.dependencies.remove dependencies.gradleApi()
+configurations.implementation.dependencies.remove dependencies.gradleApi()
 // Similar exclusion of Groovy runtime (provided at Gradle runtime).
-configurations.compile.dependencies.remove dependencies.localGroovy()
+configurations.implementation.dependencies.remove dependencies.localGroovy()
 
 dependencies {
     // See: https://github.com/johnrengelman/shadow/issues/414
@@ -147,7 +150,7 @@ void checkForLocalDependencies(String projectName, String configurationName) {
 	.each { println "WARNING: '${projectName}' may be using mavenLocal(): ${it}" }
 }
 project.afterEvaluate {
-    checkForLocalDependencies(':gradle-plugin', 'runtime')
-    checkForLocalDependencies(':build-integration-lib', 'runtime')
+    checkForLocalDependencies(':gradle-plugin', 'runtimeClasspath')
+    checkForLocalDependencies(':build-integration-lib', 'runtimeClasspath')
     checkForLocalDependencies(':build-integration-lib', 'jcplugin')
 }

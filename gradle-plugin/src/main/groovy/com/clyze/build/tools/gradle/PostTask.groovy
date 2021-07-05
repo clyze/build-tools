@@ -218,7 +218,7 @@ abstract class PostTask extends DefaultTask {
                 return null
             }
 
-            AttachmentHandler<String> saveAttachment = new AttachmentHandler() {
+            AttachmentHandler<String> saveAttachment = new AttachmentHandler<String>() {
                 @Override
                 String handleAttachment(HttpEntity entity) {
                     out.withOutputStream { entity.writeTo(it) }
