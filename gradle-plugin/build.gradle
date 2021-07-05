@@ -3,7 +3,7 @@ plugins {
     id 'groovy'
     id 'maven-publish'
     id 'net.researchgate.release' version '2.6.0'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 sourceCompatibility = "1.8"
@@ -109,10 +109,14 @@ publishing {
 // The pom created when publishing the shadow JAR is wrong: it still contains
 // dependencies to be resolved (including the non-published shared library
 // subproject). Thus, we delete these dependencies here.
-shadowJar.doLast {
-    tasks.findAll { it instanceof org.gradle.api.publish.maven.tasks.AbstractPublishToMaven }.each {
-        it.publication.pom.withXml {
-            asNode().dependencies.dependency.each { it.parent().remove(it) }
+gradle.projectsEvaluated {
+    tasks.findAll { it instanceof org.gradle.api.publish.maven.tasks.GenerateMavenPom }.each { Task pomTask ->
+        println "Removing dependencies from pom.xml: ${pomTask.destination}"
+        pomTask.pom.withXml {
+            asNode().dependencies.dependency.each {
+                println "Removing dependency from pom.xml: ${it}"
+                it.parent().remove(it)
+            }
         }
     }
 }
