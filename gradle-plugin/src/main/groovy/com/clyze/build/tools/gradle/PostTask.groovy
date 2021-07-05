@@ -70,6 +70,7 @@ abstract class PostTask extends DefaultTask {
                                        String shrinkResources) {
         ps.addStringInput('PLUGIN_VERSION', RepackagePlugin.pluginVersion ?: '')
         ps.addStringInput('API_VERSION', Conventions.API_VERSION)
+        ps.stacks = ext.stacks
 
         if (ext.platform instanceof AndroidPlatform) {
             ps.addStringInput('ANDROID_COMPILE_SDK_VERSION', AndroidAPI.getCompileSdkVersion(project))
