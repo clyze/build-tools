@@ -25,7 +25,7 @@ public class Settings {
     }
 
     /**
-     * Builds the installation "home" directory.
+     * Returns the installation "home" directory.
      * @param root   the top level directory
      * @return       the installation "home" directory
      */
@@ -129,7 +129,7 @@ public class Settings {
     }
 
     /**
-     * Returns the port used by the installation for posting builds.
+     * Returns the port used by the installation for posting snapshots.
      *
      * @return a string representation of the port
      */

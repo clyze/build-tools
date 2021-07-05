@@ -8,8 +8,8 @@ import java.io.*;
 public class Conventions {
     /** Tool name. */
     public static final String TOOL_NAME           = "Clyze";
-    /** The directory where build contents are gethered for posting. */
-    public static final String CLUE_BUILD_DIR      = ".clue-build";
+    /** The directory where snapshot contents are gethered for posting. */
+    public static final String CLYZE_SNAPSHOT_DIR = ".clyze-snapshot";
     /** The name of the metadata archive to post. */
     public static final String METADATA_FILE       = "metadata.zip";
     /** The name of the configurations archive to post. */
@@ -35,15 +35,15 @@ public class Conventions {
     /** Default server project. */
     public static final String DEFAULT_PROJECT     = "project";
     /** Default server profile to use for posting Android code. */
-    public static final String ANDROID_STACK = "android";
+    public static final String ANDROID_STACK       = "android";
     /** Default server profile to use for posting Android code (automated repackaging). */
     public static final String DEFAULT_ANDROID_CLYZE_PROFILE = "clyzeAndroid";
     /** Default server profile to use for posting Java (non-Android) code. */
-    public static final String JVM_STACK = "jvm";
+    public static final String JVM_STACK           = "jvm";
     /** Default server profile to use for posting Java code (automated repackaging). */
     public static final String DEFAULT_JAVA_CLYZE_PROFILE = "clyzeJava";
-    /** Default build identifier. */
-    public static final String BUILD_ID = "build";
+    /** Default snapshot identifier. */
+    public static final String SNAPSHOT_ID         = "snapshot";
     /** Server API version. */
     public static final String API_VERSION         = "1.0";
     /** Disabling rules file name. */

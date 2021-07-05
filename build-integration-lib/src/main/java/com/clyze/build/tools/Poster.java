@@ -46,11 +46,11 @@ public class Poster {
     /**
      * Invokes the automated repackaging endpoint.
      *
-     * @param ps       the build representation
+     * @param ps       the snapshot representation
      * @param handler  a handler of the resulting file returned by the server
      * @throws ClientProtocolException  if the server encountered an error
      */
-    public void repackageBuildForCI(PostState ps, AttachmentHandler<String> handler)
+    public void repackageSnapshotForCI(PostState ps, AttachmentHandler<String> handler)
     throws ClientProtocolException{
         if (options.dry)
             System.err.println("WARNING: automated repackaging ignores dry option.");

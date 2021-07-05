@@ -17,8 +17,8 @@ import static RepackagePlugin.dependOn
 
 /**
  * The Java platform used: plain Java or Android. Each platform is
- * handled by a different gradle plugin ('java' vs. 'android'), so
- * different tasks exist and the Doop plugin must examine different
+ * handled by a different Gradle plugin (plain Java vs. Android), so
+ * different tasks exist and the Gradle plugin must examine different
  * metadata on each platform.
  */
 
@@ -141,7 +141,7 @@ abstract class Platform {
             project.logger.debug msg("Configuring metadata task")
             configureMetadataTask()
             project.logger.debug msg("Configuring bundling task (step 2)")
-            configureCreateBuildTask_step2()
+            configureCreateSnapshotTask_step2()
         } else
             project.logger.info msg("Note: sources will not be processed.")
     }
@@ -165,7 +165,7 @@ abstract class Platform {
         project.logger.info msg("Sources archive: ${sourcesName}")
         task.archiveFileName.set(sourcesName)
 
-        task.destinationDirectory.set(repackageExt.getBuildDir(project))
+        task.destinationDirectory.set(repackageExt.getSnapshotDir(project))
         task.description = 'Generates the sources JAR'
         task.group = Conventions.TOOL_NAME
         task.archiveClassifier.set('sources')
@@ -190,17 +190,17 @@ abstract class Platform {
         }
 
         task.archiveFileName.set(Conventions.METADATA_FILE)
-        File scavengeDir = repackageExt.getBuildDir(project)
+        File scavengeDir = repackageExt.getSnapshotDir(project)
         task.destinationDirectory.set(scavengeDir)
         File jsonOutput = new File(scavengeDir, "json")
         task.from jsonOutput
     }
 
-    private void configureCreateBuildTask_step2() {
-        Task createBuildTask = project.tasks.findByName(PTask.CREATE_BUILD.name)
-        dependOn(project, createBuildTask, PTask.JCPLUGIN_ZIP.name, 'metadata task', false)
+    private void configureCreateSnapshotTask_step2() {
+        Task createSnapshotTask = project.tasks.findByName(PTask.CREATE_SNAPSHOT.name)
+        dependOn(project, createSnapshotTask, PTask.JCPLUGIN_ZIP.name, 'metadata task', false)
         dependOn(project, project.tasks.findByName(PTask.JCPLUGIN_ZIP.name), codeTaskName(), 'core build task (metadata dependency)', false)
-        dependOn(project, createBuildTask, PTask.SOURCES_JAR.name, 'sources task', false)
+        dependOn(project, createSnapshotTask, PTask.SOURCES_JAR.name, 'sources task', false)
     }
 
     static void showMessage(Project project, Message m) {
@@ -219,7 +219,7 @@ abstract class Platform {
         // If not using an explicit metadata scavenge task, hook into the
         // compiler instead. If this is a run that throws away code (because
         // no archive task is called), skip this configuration.
-        def taskArch = project.gradle.startParameter.taskNames.find { it.endsWith(codeTaskName()) || it.endsWith(PTask.CREATE_BUILD.name) }
+        def taskArch = project.gradle.startParameter.taskNames.find { it.endsWith(codeTaskName()) || it.endsWith(PTask.CREATE_SNAPSHOT.name) }
         if (explicitScavengeTask() || !taskArch)
             return
 
@@ -257,7 +257,7 @@ abstract class Platform {
 
         compileTasks.each { task ->
             project.logger.info msg("Plugging metadata processor into task ${task.name}")
-            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getBuildDir(project), repackageExt.jcPluginOutput)
+            RepackagePlugin.addPluginCommandArgs(task, repackageExt.getSnapshotDir(project), repackageExt.jcPluginOutput)
         }
     }
 
@@ -282,7 +282,7 @@ abstract class Platform {
      * Disable rules by adding a "disabling configuration" with -dont* directives.
      */
     protected void activateSpecialConfiguration() {
-        sc = Conventions.getSpecialConfiguration(repackageExt.getBuildDir(project), true, true)
+        sc = Conventions.getSpecialConfiguration(repackageExt.getSnapshotDir(project), true, true)
         if (!sc)
             project.logger.warn(Conventions.COULD_NOT_DISABLE_RULES + ' No disabling configuration.')
         else
@@ -293,11 +293,11 @@ abstract class Platform {
 
     /**
      * Zips the configurations found in the plugin extension, to generate
-     * the configurations archive of the build.
+     * the configurations archive of the snapshot.
      */
     protected void zipConfigurations() {
         Extension ext = getRepackageExt()
-        File confZip = new File(ext.getBuildDir(project), Conventions.CONFIGURATIONS_FILE)
+        File confZip = new File(ext.getSnapshotDir(project), Conventions.CONFIGURATIONS_FILE)
         List<Message> messages = [] as List<Message>
         List<File> files = ext.configurationFiles?.collect { project.file(it) } ?: []
         Archiver.zipConfigurations(files, confZip, messages, project.rootDir.canonicalPath, sc?.file?.canonicalPath, sc?.outputRulesPath)
@@ -316,7 +316,7 @@ abstract class Platform {
 
     /**
      * Registers logic that should run after basic initialization. Used
-     * for example on Android builds, where basic build tasks creation
+     * for example on Android builds, where basic Gradle build tasks creation
      * is delayed and thus our plugin cannot discover these tasks early.
      * All such logic should be gathered here instead of separate
      * project.afterEvaluate() blocks, to avoid order-of-execution bugs.
@@ -384,14 +384,14 @@ abstract class Platform {
     abstract protected void injectConfiguration(File conf, String errorMessage);
 
     /**
-     * Returns the default profile used for posting builds.
+     * Returns the default profile used for posting snapshots.
      *
      * @return the profile name
      */
     abstract protected String getDefaultProfile();
 
     /**
-     * Returns the default profile used for repackaging builds from Gradle.
+     * Returns the default profile used for repackaging snapshots from Gradle.
      *
      * @return the profile name
      */

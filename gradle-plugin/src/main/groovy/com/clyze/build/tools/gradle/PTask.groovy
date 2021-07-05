@@ -10,14 +10,14 @@ enum PTask {
     SCAVENGE('scavenge'),
     JCPLUGIN_ZIP('jcpluginZip'),
     SOURCES_JAR('sourcesJar'),
-    POST_BUILD('postBuild'),
+    POST_SNAPSHOT('postSnapshot'),
     REPLAY_POST('replay'),
     /** The task that gathers all optimization directive configurations. */
     CONFIGURATIONS('configurations'),
     REPACKAGE('repackage'),
     REPACKAGE_TEST('repackageTest'),
-    /** The task that creates the build for posting. */
-    CREATE_BUILD('createBuild'),
+    /** The task that creates the snapshot for posting. */
+    CREATE_SNAPSHOT('createSnapshot'),
     /** Android-only: the name of the Gradle plugin task that will
      *  generate the code input for the server. */
     ANDROID_CODE_ARCHIVE('codeApk'),

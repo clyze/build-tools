@@ -58,7 +58,7 @@ class RepackagePlugin implements Plugin<Project> {
         }
 
         project.logger.debug msg("Configuring posting task")
-        configurePostBuildTask()
+        configurePostSnapshotTask()
         project.logger.debug msg("Configuring replay task")
         configureReplayPostTask()
         project.logger.debug msg("Configuring configuration-gathering task")
@@ -70,11 +70,11 @@ class RepackagePlugin implements Plugin<Project> {
         project.logger.debug msg("Configuring repackage-test task")
         configureRepackageTestTask()
         project.logger.debug msg("Configuring bundling task (step 1)")
-        configureCreateBuildTask_step1()
+        configureCreateSnapshotTask_step1()
 
         // If some tasks are invoked together, configure which runs first.
-        taskPrecedes(project, PTask.CREATE_BUILD, PTask.POST_BUILD)
-        taskPrecedes(project, PTask.CREATE_BUILD, PTask.REPACKAGE)
+        taskPrecedes(project, PTask.CREATE_SNAPSHOT, PTask.POST_SNAPSHOT)
+        taskPrecedes(project, PTask.CREATE_SNAPSHOT, PTask.REPACKAGE)
     }
 
     /**
@@ -97,7 +97,7 @@ class RepackagePlugin implements Plugin<Project> {
         ext.orgName = project.group
         ext.projectName = platform.getProjectName()
         ext.projectVersion = project.version?.toString()
-        ext.scavengeOutputDir = new File(project.rootDir, Conventions.CLUE_BUILD_DIR)
+        ext.scavengeOutputDir = new File(project.rootDir, Conventions.CLYZE_SNAPSHOT_DIR)
         ext.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 
@@ -113,7 +113,7 @@ class RepackagePlugin implements Plugin<Project> {
         String processorPath = platform.getClasspath()
         project.logger.info msg("Using processor path: ${processorPath}")
 
-        File dest = Extension.of(project).getBuildDir(project)
+        File dest = Extension.of(project).getSnapshotDir(project)
         addPluginCommandArgs(task, dest, true)
         task.destinationDir = new File(dest as File, "classes")
         task.options.annotationProcessorPath = project.files(processorPath)
@@ -135,9 +135,9 @@ class RepackagePlugin implements Plugin<Project> {
         task.options.compilerArgs += ['-Xplugin:TypeInfoPlugin ' + jsonOutput + " " + output]
     }
 
-    private void configurePostBuildTask() {
-        PostBuildTask task = project.tasks.create(PTask.POST_BUILD.name, PostBuildTask)
-        task.description = 'Posts the current project as a build'
+    private void configurePostSnapshotTask() {
+        PostSnapshotTask task = project.tasks.create(PTask.POST_SNAPSHOT.name, PostSnapshotTask)
+        task.description = 'Posts the current project as a snapshot'
         task.group = Conventions.TOOL_NAME
     }
 
@@ -149,7 +149,7 @@ class RepackagePlugin implements Plugin<Project> {
 
     private void configureRepackageTask(Platform platform) {
         RepackageTask repackage = project.tasks.create(PTask.REPACKAGE.name, RepackageTask)
-        repackage.description = 'Repackage the build output using a given set of rules'
+        repackage.description = 'Repackage the Gradle build output using a given set of rules'
         repackage.group = Conventions.TOOL_NAME
     }
 
@@ -160,12 +160,12 @@ class RepackagePlugin implements Plugin<Project> {
 
     private void configureRepackageTestTask() {
         TestRepackageTask repackage = project.tasks.create(PTask.REPACKAGE_TEST.name, TestRepackageTask)
-        repackage.description = 'Repackage the build output using a given set of rules and test it'
+        repackage.description = 'Repackage the Gradle build output using a given set of rules and test it'
         repackage.group = Conventions.TOOL_NAME
     }
 
-    private void configureCreateBuildTask_step1() {
-        CreateBuildTask task = project.tasks.create(PTask.CREATE_BUILD.name, CreateBuildTask)
+    private void configureCreateSnapshotTask_step1() {
+        CreateSnapshotTask task = project.tasks.create(PTask.CREATE_SNAPSHOT.name, CreateSnapshotTask)
         task.group = Conventions.TOOL_NAME
         dependOnCodeAndConfigurations(platform, task)
     }

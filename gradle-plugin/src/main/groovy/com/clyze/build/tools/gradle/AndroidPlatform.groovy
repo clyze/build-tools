@@ -23,7 +23,7 @@ import static com.clyze.build.tools.Conventions.msg
 import static org.clyze.utils.JHelper.throwRuntimeException
 
 /**
- * This class controls how the plugin adapts to Android build projects.
+ * This class controls how the plugin adapts to Android Gradle projects.
  */
 @CompileStatic
 class AndroidPlatform extends Platform {
@@ -367,9 +367,9 @@ class AndroidPlatform extends Platform {
     }
 
     /**
-     * Returns the build directory of the current subproject.
+     * Returns the Gradle build directory of the current subproject.
      *
-     * @return the build directory path
+     * @return the Gradle build directory path
      */
     String getAppBuildDir() {
         return "${project.rootDir}/${subprojectName}/build"
@@ -519,7 +519,7 @@ class AndroidPlatform extends Platform {
                 return
             }
             File codeArchive = new File(output)
-            File target = new File(repackageExt.getBuildDir(project), codeArchive.name)
+            File target = new File(repackageExt.getSnapshotDir(project), codeArchive.name)
             Files.copy(codeArchive.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
     }
@@ -789,7 +789,7 @@ class AndroidPlatform extends Platform {
             return true
         } else if (n.endsWith('.aar')) {
             // Ignore AAR artifacts, so that they are not posted when
-            // the user invokes the "post build" task globally.
+            // the user invokes the "post snapshot" task globally.
             project.logger.warn msg("WARNING: AAR artifact is currently ignored as a standalone artifact to post: ${filename}")
         }
         return false

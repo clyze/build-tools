@@ -41,7 +41,7 @@ class AndroidAPI {
 
     /**
      * Get the test configurations, so that they can be excluded from the
-     * build. Since testing only uses a build type, no flavor parameter is needed.
+     * snapshot. Since testing only uses a build type, no flavor parameter is needed.
      *
      * @param project    the current project
      * @param buildType  the build type used for testing
@@ -55,7 +55,7 @@ class AndroidAPI {
                     if (t instanceof File) {
                         ret.add(t)
                     } else if (t) {
-                        project.logger.warn msg("WARNING: testProguardFile ${t} could not be excluded from build.")
+                        project.logger.warn msg("WARNING: testProguardFile ${t} could not be excluded from snapshot.")
                     }
                 }
             }
@@ -215,8 +215,7 @@ class AndroidAPI {
     }
 
     /**
-     * Signs a file using a named signing configuration defined in the Gradle
-     * build file.
+     * Signs a file using a named signing configuration defined in the Gradle build file.
      *
      * @param project            the current project
      * @param signingConfigName  the name of the signing configuration

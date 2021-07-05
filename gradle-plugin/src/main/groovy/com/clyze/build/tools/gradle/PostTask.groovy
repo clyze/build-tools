@@ -24,7 +24,7 @@ import static com.clyze.build.tools.Conventions.msg
 abstract class PostTask extends DefaultTask {
 
     /**
-     * Helper method to add a file input from the local "build" directory.
+     * Helper method to add a file input from the local "snapshot" directory.
      *
      * @param project the current project
      * @param ps      the PostState to update
@@ -34,7 +34,7 @@ abstract class PostTask extends DefaultTask {
     protected static void addFileInput(Project project, PostState ps, String tag, String fName) {
         Extension ext = Extension.of(project)
         try {
-            File f = new File(ext.getBuildDir(project), fName)
+            File f = new File(ext.getSnapshotDir(project), fName)
             if (f.exists()) {
                 ps.addFileInput(tag, f.canonicalPath)
                 project.logger.info msg("Added local cached ${tag} item: ${f}")
@@ -58,13 +58,13 @@ abstract class PostTask extends DefaultTask {
     }
 
     /**
-     * Adds the basic options that are common in all builds posted.
+     * Adds the basic options that are common in all snapshots posted.
      *
      * @param ext              the plugin extension data structure
      * @param ps               the 'post state' object to fill in
      * @param shrinkResources  a flag to pass to the repackager to allow
      *                         shrinking of resources (if null, autodetect
-     *                         from current project build file)
+     *                         from current project Gradle build file)
      */
     protected void addBasicPostOptions(Extension ext, PostState ps,
                                        String shrinkResources) {
@@ -89,7 +89,7 @@ abstract class PostTask extends DefaultTask {
      * Adds the source (sources, metadata) and configurations inputs.
      *
      * @param ext   the plugin extension data structure
-     * @param ps    the build representation
+     * @param ps    the snapshot representation
      */
     protected void addSourcesDataAndConfigurations(Extension ext, PostState ps) {
         // Add the configurations archive.
@@ -106,7 +106,7 @@ abstract class PostTask extends DefaultTask {
                     ps.addFileInput("SOURCES_JAR", sources.canonicalPath)
                 }
             } else {
-                ext.getBuildDir(project).eachFile(FileType.FILES) { File f ->
+                ext.getSnapshotDir(project).eachFile(FileType.FILES) { File f ->
                     String n = f.name
                     if (n.endsWith(Conventions.SOURCES_FILE)) {
                         addFileInput(project, ps, 'SOURCES_JAR', n)
@@ -132,7 +132,7 @@ abstract class PostTask extends DefaultTask {
      * Add options needed for deep analysis.
      *
      * @param ext   the plugin extension data structure
-     * @param ps    the build representation
+     * @param ps    the snapshot representation
      */
     protected static void addDeepOptions(Extension ext, PostState ps) {
         // The heap snapshots are optional.
@@ -160,22 +160,22 @@ abstract class PostTask extends DefaultTask {
         // (such as ~/.gradle/daemon).
         if (cachePostDir && cachePostDir.canonicalPath != ext.cachePostDir)
             cachePostDir = project.rootProject.file(cachePostDir) as File
-        return new Poster(opts, cachePostDir, ext.getBuildDir(project))
+        return new Poster(opts, cachePostDir, ext.getSnapshotDir(project))
     }
 
     /**
-     * The actual method that posts a build and shows the generated messages.
+     * The actual method that posts a snapshot and shows the generated messages.
      *
-     * @param buildPostState   the PostState object representing the build
+     * @param snapshotPostState   the PostState object representing the build
      */
-    protected void postBuildPostState(PostState buildPostState) {
+    protected void postSnapshotPostState(PostState snapshotPostState) {
         Extension ext = Extension.of(project)
-        if (buildPostState) {
+        if (snapshotPostState) {
             List<Message> messages = [] as List<Message>
-            getPoster(project, false).post(buildPostState, messages, ext.debug)
+            getPoster(project, false).post(snapshotPostState, messages, ext.debug)
             messages.each { Platform.showMessage(project, it) }
         } else
-            project.logger.error msg("ERROR: could not post build.")
+            project.logger.error msg("ERROR: could not post snapshot.")
         ext.platform.cleanUp()
     }
 
@@ -215,7 +215,7 @@ abstract class PostTask extends DefaultTask {
             List<Message> messages = new LinkedList<>()
             if (!poster.isServerCapable(messages)) {
                 messages.each { Platform.showMessage(project, it) }
-                return
+                return null
             }
 
             AttachmentHandler<String> saveAttachment = new AttachmentHandler() {
@@ -225,7 +225,7 @@ abstract class PostTask extends DefaultTask {
                     return out.canonicalPath
                 }
             }
-            poster.repackageBuildForCI(ps, saveAttachment)
+            poster.repackageSnapshotForCI(ps, saveAttachment)
             return out
         } catch (HttpHostConnectException ignored) {
             project.logger.error msg("ERROR: cannot repackage build, is the server running?")

@@ -1,5 +1,6 @@
 package com.clyze.build.tools.gradle
 
+import com.clyze.build.tools.Conventions
 import groovy.transform.CompileStatic
 import com.clyze.client.Message
 import com.clyze.client.web.Helper
@@ -10,7 +11,7 @@ import org.gradle.api.tasks.options.Option
 import static com.clyze.build.tools.Conventions.msg
 
 /**
- * A task that replays the posting of a build.
+ * A task that replays the posting of a snapshot.
  */
 @CompileStatic
 class ReplayPostTask extends PostTask {
@@ -42,7 +43,7 @@ class ReplayPostTask extends PostTask {
         }
 
         List<Message> messages = ([] as List<Message>)
-        Helper.postCachedSnapshot(ext.createPostOptions(false), fromDir, "build", messages, true)
+        Helper.postCachedSnapshot(ext.createPostOptions(false), fromDir, Conventions.SNAPSHOT_ID, messages, true)
         messages.each { Platform.showMessage(project, it) }
     }
 }

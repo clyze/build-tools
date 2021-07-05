@@ -44,7 +44,7 @@ class TestRepackageTask extends PostTask {
         } else {
             project.logger.info msg("Test code directories: " + existingTestCodeDirs)
             println msg("Test code directories searched: " + codeDirs)
-            File testCodeBuildDir = new File(ext.getBuildDir(project), Conventions.TEST_CODE_DIR)
+            File testCodeBuildDir = new File(ext.getSnapshotDir(project), Conventions.TEST_CODE_DIR)
             if (!testCodeBuildDir.exists()) {
                 testCodeBuildDir.mkdirs()
             }

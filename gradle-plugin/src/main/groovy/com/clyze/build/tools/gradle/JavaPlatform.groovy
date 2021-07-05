@@ -124,7 +124,7 @@ class JavaPlatform extends Platform {
     void configureCodeTask() {}
 
     /**
-     * The Gradle task that generates the code input of the build.
+     * The Gradle task that generates the code input of the snapshot.
      * @return the name of the Gradle task
      */
     @Override

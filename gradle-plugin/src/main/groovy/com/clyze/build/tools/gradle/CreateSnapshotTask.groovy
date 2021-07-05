@@ -7,16 +7,16 @@ import org.gradle.api.tasks.TaskAction
 import static com.clyze.build.tools.Conventions.msg
 
 /**
- * A wrapper task over the build creation subtasks.
+ * A wrapper task over the snapshot creation subtasks.
  */
 @CompileStatic
-class CreateBuildTask extends DefaultTask {
+class CreateSnapshotTask extends DefaultTask {
 
     /**
      * The main task action.
      */
     @TaskAction
-    void postBuild() {
-        project.logger.info msg("Build created.")
+    void postSnapshot() {
+        project.logger.info msg("Snapshot created.")
     }
 }

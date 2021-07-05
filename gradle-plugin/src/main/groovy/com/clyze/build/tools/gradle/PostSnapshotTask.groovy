@@ -11,50 +11,37 @@ import org.gradle.api.tasks.TaskAction
 import static com.clyze.build.tools.Conventions.msg
 
 /**
- * The task that posts a build to the server.
+ * The task that posts a snapshot to the server.
  */
 @CompileStatic
-class PostBuildTask extends PostTask {
+class PostSnapshotTask extends PostTask {
 
     /**
      * The main task action.
      */
     @TaskAction
-    void postBuild() {
+    void postSnapshot() {
         try {
-            postBuildPostState(newBuildPostState())
+            postSnapshotPostState(newSnapshotPostState())
         } catch (ClientProtocolException ex) {
             project.logger.error msg("ERROR: " + ex.message)
         }
     }
 
     /**
-     * Generates a PostState representation of the current build (e.g., for
-     * preserving all the information required to replay a build post).
-     * @return the current build as a PostState object
+     * Generates a PostState representation of the current snapshot (e.g., for
+     * preserving all the information required to replay a snapshot post).
+     * @return the current snapshot as a PostState object
      */
-    private final PostState newBuildPostState() {
+    private final PostState newSnapshotPostState() {
 
-        /*         
-        These are the options for builds:
-        --app_regex <arg>        
-        --heapdls <files>
-        --inputs <files>
-        --jcplugin_metadata <file>
-        --libraries <files>
-        --main_class <arg>
-        --platform <arg>
-        --project_name <arg>
-        --sources_jar <file>
-        --tamiflex <file>
-        */
         Extension ext = Extension.of(project)
         Platform p = ext.platform
-        PostState ps = new PostState(id:Conventions.BUILD_ID, stacks:ext.stacks)
+        PostState ps = new PostState(id:Conventions.SNAPSHOT_ID, stacks:ext.stacks)
         addBasicPostOptions(ext, ps, null)
 
         boolean submitInputs = false
-        ext.getBuildDir(project).eachFile(FileType.FILES) { File f ->
+        ext.getSnapshotDir(project).eachFile(FileType.FILES) { File f ->
             String n = f.name
             if (p.isCodeArtifact(n) && !n.endsWith(Conventions.SOURCES_FILE)) {
                 addFileInput(project, ps, 'INPUTS', n)
@@ -70,7 +57,7 @@ class PostBuildTask extends PostTask {
         }
 
         if (!submitInputs) {
-            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${PTask.POST_BUILD.name}'.")
+            project.logger.error msg("ERROR: No code inputs submitted, aborting task '${PTask.POST_SNAPSHOT.name}'.")
             return null
         }
 

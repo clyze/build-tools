@@ -31,10 +31,10 @@ class Extension {
      * has failed or extra code. */
     List<String> extraInputs
     Map<String, Object> options
-    /** Directory to receive the serialized build before posting to the server. */
+    /** Directory to receive the serialized snapshot before posting to the server. */
     String cachePostDir = null
     String convertUTF8Dir
-    /** Dry mode, for sample build creation. */
+    /** Dry mode, for sample snapshot creation. */
     boolean dry = false
     boolean ignoreConfigurations = false
     List<String> stacks
@@ -50,8 +50,8 @@ class Extension {
     /** List of group-name pairs of artifacts that are resolved by
      *  extraInputs (and thus the resolver should ignore them). */
     List<List<String>> replacedByExtraInputs
-    /** If true, the build uses the generated .aab output, otherwise
-     *  the build uses the .apk output. */
+    /** If true, the snapshot uses the generated .aab output, otherwise
+     *  the snapshot uses the .apk output. */
     boolean aab = false
     /**
      * If true, the collected configurations are gathered via a
@@ -111,13 +111,13 @@ class Extension {
     }
 
     /**
-     * Returns the build directory (creating it if it does not already
+     * Returns the snapshot directory (creating it if it does not already
      * exist). Use this method before writing to this directory.
      *
      * @param project   the current project
      * @return          a File object representing the directory
      */
-    static File getBuildDir(Project project) {
+    static File getSnapshotDir(Project project) {
         // Create output directory.
         File scavengeDir = of(project).scavengeOutputDir
         if (!scavengeDir.exists()) {

@@ -75,13 +75,13 @@ public class Main {
 
         Collection<SourceFile> sourceFiles = Sources.getSources(conf.sourceDirs, conf.autodetectSources);
 
-        println("Using build directory: " + Conventions.CLUE_BUILD_DIR);
-        boolean mk = new File(Conventions.CLUE_BUILD_DIR).mkdirs();
-        logDebug("Directory " + Conventions.CLUE_BUILD_DIR + " created: " + mk);
+        println("Using snapshot directory: " + Conventions.CLYZE_SNAPSHOT_DIR);
+        boolean mk = new File(Conventions.CLYZE_SNAPSHOT_DIR).mkdirs();
+        logDebug("Directory " + Conventions.CLYZE_SNAPSHOT_DIR + " created: " + mk);
 
         String buildApk = gatherApk(codeFiles.get(0));
 
-        File sourcesJar = new File(Conventions.CLUE_BUILD_DIR, Conventions.SOURCES_FILE);
+        File sourcesJar = new File(Conventions.CLYZE_SNAPSHOT_DIR, Conventions.SOURCES_FILE);
         Collection<File> sourceJars = new HashSet<>();
         Sources.packSources(sourceFiles, sourcesJar);
         sourceJars.add(sourcesJar);
@@ -103,17 +103,17 @@ public class Main {
             ex.printStackTrace();
         }
 
-        postBuild(buildApk, sourceJars, bmc, conf);
+        postSnapshot(buildApk, sourceJars, bmc, conf);
     }
 
     /**
-     * Copies the code archive to the build directory.
+     * Copies the code archive to the snapshot directory.
      *
      * @param code the path to the code archive
-     * @return     the path of the code inside the build directory (null on failure)
+     * @return     the path of the code inside the snapshot directory (null on failure)
      */
     private static String gatherApk(String code) {
-        File target = new File(Conventions.CLUE_BUILD_DIR, new File(code).getName());
+        File target = new File(Conventions.CLYZE_SNAPSHOT_DIR, new File(code).getName());
         try {
             Files.copy(Paths.get(code), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return target.getCanonicalPath();
@@ -125,7 +125,7 @@ public class Main {
     }
 
     private static File getConfigurationsFile() {
-        return new File(Conventions.CLUE_BUILD_DIR, Conventions.CONFIGURATIONS_FILE);
+        return new File(Conventions.CLYZE_SNAPSHOT_DIR, Conventions.CONFIGURATIONS_FILE);
     }
 
     /**
@@ -155,7 +155,7 @@ public class Main {
             }
         }
 
-        String metadataFile = new File(Conventions.CLUE_BUILD_DIR, Conventions.METADATA_FILE).getCanonicalPath();
+        String metadataFile = new File(Conventions.CLYZE_SNAPSHOT_DIR, Conventions.METADATA_FILE).getCanonicalPath();
         println("Adding JSON metadata to file: " + metadataFile);
 
         try (FileOutputStream fos = new FileOutputStream(metadataFile);
@@ -310,10 +310,10 @@ public class Main {
         });
     }
 
-    private static void postBuild(String buildApk, Collection<File> sourceJars,
-                                  BuildMetadataConf bmc, Config conf) {
+    private static void postSnapshot(String buildApk, Collection<File> sourceJars,
+                                     BuildMetadataConf bmc, Config conf) {
         PostState ps = new PostState();
-        ps.setId(Conventions.BUILD_ID);
+        ps.setId(Conventions.SNAPSHOT_ID);
         ps.addStringInput("API_VERSION", Conventions.API_VERSION);
         ps.addFileInput("INPUTS", buildApk);
         if (sourceJars != null)
@@ -332,12 +332,12 @@ public class Main {
         ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
 
         if (conf.opts.dry)
-            println("Assembling build (dry mode)...");
+            println("Assembling snapshot (dry mode)...");
         else
-            println("Posting build to the server...");
+            println("Posting snapshot to the server...");
 
         List<Message> messages = new LinkedList<>();
-        (new Poster(conf.opts, null, new File(Conventions.CLUE_BUILD_DIR)))
+        (new Poster(conf.opts, null, new File(Conventions.CLYZE_SNAPSHOT_DIR)))
             .post(ps, messages, true);
         showMessages(messages);
     }
