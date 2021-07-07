@@ -21,7 +21,6 @@ class Extension {
     String orgName
     String projectName
     String projectVersion
-    String project
     File scavengeOutputDir
     /** The configration files to use. */
     List<String> configurationFiles
@@ -149,7 +148,7 @@ class Extension {
         opts.username = this.username
         opts.password = this.password
         opts.stacks = this.stacks
-        opts.project = this.project
+        opts.project = this.projectName
         opts.dry = this.dry
         opts.android = this.androidProject
         opts.autoRepackaging = autoRepack

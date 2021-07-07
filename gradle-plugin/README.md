@@ -152,8 +152,6 @@ clyze {
 
 * String _password_: the password to use to authenticate to the server.
 
-* String _project_: the project id to post builds and analyses to, in the form "userName/projectName". E.g., for testing, it is convenient to use the ```"$clue_user/scrap"``` as the value of this option.
-
 * String _orgName_: organization name of the artifact to post.
 
 * String _projectName_: project name of the artifact to post.
