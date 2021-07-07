@@ -44,14 +44,14 @@ class PostSnapshotTask extends PostTask {
         ext.getSnapshotDir(project).eachFile(FileType.FILES) { File f ->
             String n = f.name
             if (p.isCodeArtifact(n) && !n.endsWith(Conventions.SOURCES_FILE)) {
-                addFileInput(project, ps, 'INPUTS', n)
+                addFileInput(project, ps, Conventions.BINARY_INPUT_TAG, n)
                 submitInputs = true
             }
         }
 
         // Filter out empty inputs.
         p.inputFiles.findAll(Helper.checkFileEmpty).each {
-            ps.addFileInput("INPUTS", it)
+            ps.addFileInput(Conventions.BINARY_INPUT_TAG, it)
             project.logger.info msg("Added input: ${it}")
             submitInputs = true
         }
@@ -65,13 +65,13 @@ class PostSnapshotTask extends PostTask {
         def projectLibs = p.libraryFiles
         if (projectLibs) {
             projectLibs.findAll(Helper.checkFileEmpty).each {
-                ps.addFileInput("LIBRARIES", it)
+                ps.addFileInput(Conventions.LIBRARY_INPUT_TAG, it)
                 project.logger.info msg("Added library: ${it}")
             }
         }
 
         // The platform to use when analyzing the code.
-        ps.addStringInput("PLATFORM", ext.platform instanceof AndroidPlatform ? Conventions.getR8AndroidPlatform("25") : "java_8")
+        ps.addStringInput(Conventions.JVM_PLATFORM, ext.platform instanceof AndroidPlatform ? Conventions.getR8AndroidPlatform("25") : "java_8")
 
         project.logger.info msg("PostState object: ${ps.toJSON()}")
 

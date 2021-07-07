@@ -205,9 +205,9 @@ abstract class PostTask extends DefaultTask {
 
         PostState ps = new PostState()
         addBasicPostOptions(ext, ps, shrinkResources)
-        ps.addFileInput("INPUTS", codeArchive)
+        ps.addFileInput(Conventions.BINARY_INPUT_TAG, codeArchive)
         ps.addFileInput("CLUE_FILE", ruleFile.canonicalPath)
-        ps.addStringInput("PLATFORM", ext.platform.defaultAutomatedRepackagingProfile)
+        ps.addStringInput(Conventions.JVM_PLATFORM, ext.platform.defaultAutomatedRepackagingProfile)
 
         File out = File.createTempFile(repackBaseName, repackExtension)
 

@@ -315,7 +315,7 @@ public class Main {
         PostState ps = new PostState();
         ps.setId(Conventions.SNAPSHOT_ID);
         ps.addStringInput("API_VERSION", Conventions.API_VERSION);
-        ps.addFileInput("INPUTS", buildApk);
+        ps.addFileInput(Conventions.BINARY_INPUT_TAG, buildApk);
         if (sourceJars != null)
             sourceJars.forEach (sj -> addSourceJar(ps, sj));
         if (bmc != null) {
@@ -329,7 +329,7 @@ public class Main {
 
         // Set default platform, in case the server cannot determine
         // the platform from the submitted code.
-        ps.addStringInput("PLATFORM", Conventions.getR8AndroidPlatform("25"));
+        ps.addStringInput(Conventions.JVM_PLATFORM, Conventions.getR8AndroidPlatform("25"));
 
         if (conf.opts.dry)
             println("Assembling snapshot (dry mode)...");

@@ -16,6 +16,14 @@ public class Conventions {
     public static final String CONFIGURATIONS_FILE = "configurations.zip";
     /** The name of the sources archive to post. */
     public static final String SOURCES_FILE        = "sources.jar";
+    /** The tag of "application" binary inputs expected by the server. */
+    public static final String BINARY_INPUT_TAG    = "app";
+    /** The tag of "library" binary inputs expected by the server. */
+    public static final String LIBRARY_INPUT_TAG   = "lib";
+    /** The tag of source inputs expected by the server. */
+    public static final String SOURCE_INPUT_TAG    = "src";
+    /** The JVM platform option expected by the server. */
+    public static final String JVM_PLATFORM        = "jvm_platform";
     /** The name of the CodeQL archive to post. */
     public static final String CODEQL_DB_FILE      = "codeql-db.zip";
     /** The name of the test code directory to use for gathering code. */
