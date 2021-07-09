@@ -127,7 +127,10 @@ abstract class Platform {
     void configureSourceTasks() {
         Extension ext = getRepackageExt()
         if (ext.sources) {
-            configureCompileHook()
+            if (ext.useJavacPlugin) {
+                project.logger.debug msg("Configuring compile hook")
+                configureCompileHook()
+            }
             project.logger.debug msg("Configuring sources task")
             configureSourceJarTask()
             project.logger.debug msg("Configuring metadata task")

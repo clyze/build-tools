@@ -24,6 +24,11 @@ class Extension {
     String password
     /** The project name where the snapshot will be posted. */
     String projectName
+    /**
+     * If true, the javac plugin is used to process sources
+     * and post source metadata. Disabled by default.
+     */
+    boolean useJavacPlugin = false
     File scavengeOutputDir
     /** The configuration files to post. */
     List<String> configurationFiles
