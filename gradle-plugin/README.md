@@ -152,11 +152,7 @@ clyze {
 
 * String _password_: the password to use to authenticate to the server.
 
-* String _orgName_: organization name of the artifact to post.
-
 * String _projectName_: project name of the artifact to post.
-
-* String _projectVersion_: project version of the artifact to post.
 
 * List _configurationFiles_: a list of paths to configuration files
   (such as .pro files). On Android, these are optional and will be

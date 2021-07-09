@@ -14,16 +14,20 @@ import static com.clyze.build.tools.Conventions.msg
 class Extension {
     static final String SECTION_NAME = 'clyze'
 
+    /** The server host name. */
     String host
+    /** The server port. */
     int port
+    /** The username to use for authentication. */
     String username
+    /** The password to use for authentication. */
     String password
-    String orgName
+    /** The project name where the snapshot will be posted. */
     String projectName
-    String projectVersion
     File scavengeOutputDir
-    /** The configration files to use. */
+    /** The configuration files to post. */
     List<String> configurationFiles
+    /** The HPROF files to post. */
     List<String> hprofs
     /** Extra inputs, as a list of paths relative to the project root
      *  directory. Can be used to add dependency JARs whose resolutions
@@ -35,8 +39,11 @@ class Extension {
     String convertUTF8Dir
     /** Dry mode, for sample snapshot creation. */
     boolean dry = false
+    /** If true, skip posting of configurations. */
     boolean ignoreConfigurations = false
+    /** The project stacks to use (if creating a new project). */
     List<String> stacks
+    /** The rule file to use for automated repackaging. */
     String ruleFile
     /** Subproject name (Android-only). */
     String subprojectName
