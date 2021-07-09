@@ -1,6 +1,7 @@
 package com.clyze.build.tools.gradle
 
 import com.clyze.build.tools.Archiver
+import com.clyze.client.Printer
 import groovy.io.FileType
 import groovy.transform.CompileStatic
 import org.apache.http.HttpEntity
@@ -8,7 +9,6 @@ import org.apache.http.client.ClientProtocolException
 import org.apache.http.conn.HttpHostConnectException
 import com.clyze.build.tools.Conventions
 import com.clyze.build.tools.Poster
-import com.clyze.client.Message
 import com.clyze.client.web.PostOptions
 import com.clyze.client.web.PostState
 import com.clyze.client.web.api.AttachmentHandler
@@ -154,9 +154,7 @@ abstract class PostTask extends DefaultTask {
     protected void postSnapshotPostState(PostState snapshotPostState) {
         Extension ext = Extension.of(project)
         if (snapshotPostState) {
-            List<Message> messages = [] as List<Message>
-            getPoster(project, false).post(snapshotPostState, messages, ext.debug)
-            messages.each { Platform.showMessage(project, it) }
+            getPoster(project, false).post(snapshotPostState, ext.platform.printer, ext.debug)
         } else
             project.logger.error msg("ERROR: could not post snapshot.")
         ext.platform.cleanUp()
@@ -195,9 +193,8 @@ abstract class PostTask extends DefaultTask {
 
         try {
             Poster poster = getPoster(project, true)
-            List<Message> messages = new LinkedList<>()
-            if (!poster.isServerCapable(messages)) {
-                messages.each { Platform.showMessage(project, it) }
+            Printer printer = ext.platform.printer
+            if (!poster.isServerCapable(printer)) {
                 return null
             }
 
@@ -208,7 +205,7 @@ abstract class PostTask extends DefaultTask {
                     return out.canonicalPath
                 }
             }
-            poster.repackageSnapshotForCI(ps, saveAttachment)
+            poster.repackageSnapshotForCI(ps, saveAttachment, printer)
             return out
         } catch (HttpHostConnectException ignored) {
             project.logger.error msg("ERROR: cannot repackage build, is the server running?")

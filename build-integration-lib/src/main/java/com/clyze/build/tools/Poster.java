@@ -1,8 +1,7 @@
 package com.clyze.build.tools;
 
 import java.io.*;
-import java.util.List;
-import com.clyze.client.Message;
+import com.clyze.client.Printer;
 import com.clyze.client.web.Helper;
 import com.clyze.client.web.PostOptions;
 import com.clyze.client.web.PostState;
@@ -26,21 +25,21 @@ public class Poster {
         this.metadataDir = metadataDir;
     }
 
-    public void post(PostState ps, List<Message> messages, boolean debug) {
-        Helper.post(ps, options, messages, cachePostDir, metadataDir, debug);
+    public void post(PostState ps, Printer printer, boolean debug) {
+        Helper.post(ps, options, cachePostDir, metadataDir, printer, debug);
     }
 
     /**
      * Test server capabilities.
      *
-     * @param messages  a list of messages to contain resulting errors/warnings
+     * @param printer   receiver of messages to display
      * @return          true if the server is compatible, false otherwise (see
      *                  messages for reason)
      * @throws HttpHostConnectException if the server did not respond
      */
-    public boolean isServerCapable(List<Message> messages)
+    public boolean isServerCapable(Printer printer)
         throws HttpHostConnectException {
-        return Helper.isServerCapable(options, messages);
+        return Helper.isServerCapable(options, printer);
     }
 
     /**
@@ -48,14 +47,16 @@ public class Poster {
      *
      * @param ps       the snapshot representation
      * @param handler  a handler of the resulting file returned by the server
+     * @param printer  receiver of messages to display
      * @throws ClientProtocolException  if the server encountered an error
      */
-    public void repackageSnapshotForCI(PostState ps, AttachmentHandler<String> handler)
+    public void repackageSnapshotForCI(PostState ps, AttachmentHandler<String> handler,
+                                       Printer printer)
     throws ClientProtocolException{
         if (options.dry)
-            System.err.println("WARNING: automated repackaging ignores dry option.");
+            printer.warn("WARNING: automated repackaging ignores dry option.");
         Helper.repackageSnapshotForCI(options.host, options.port, options.username,
-                options.password, options.project, ps, handler);
+                options.password, options.project, ps, handler, printer);
     }
 
 }

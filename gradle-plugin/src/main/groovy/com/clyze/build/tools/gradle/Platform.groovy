@@ -1,11 +1,11 @@
 package com.clyze.build.tools.gradle
 
+import com.clyze.client.Printer
 import groovy.transform.CompileStatic
 import com.clyze.build.tools.Archiver
 import com.clyze.build.tools.Conventions
 import com.clyze.build.tools.JcPlugin
 import com.clyze.build.tools.Settings
-import com.clyze.client.Message
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
@@ -198,13 +198,42 @@ abstract class Platform {
         dependOn(project, createSnapshotTask, PTask.SOURCES_JAR.name, 'sources task', false)
     }
 
-    static void showMessage(Project project, Message m) {
-        if (m.isWarning())
-            project.logger.warn msg(m.text)
-        else if (m.isDebug())
-            project.logger.debug msg(m.text)
-        else
-            println msg(m.text)
+    static class LogPrinter implements Printer {
+        Project project
+
+        LogPrinter(Project project) {
+            this.project = project
+        }
+
+        @Override
+        void error(String message) {
+            project.logger.error msg(message)
+        }
+
+        @Override
+        void warn(String message) {
+            project.logger.warn msg(message)
+        }
+
+        @Override
+        void debug(String message) {
+            project.logger.debug msg(message)
+        }
+
+        @Override
+        void info(String message) {
+            project.logger.info msg(message)
+        }
+
+        @Override
+        void always(String message) {
+            System.out.println(msg(message))
+            System.out.flush()
+        }
+    }
+
+    Printer getPrinter() {
+        return new LogPrinter(project)
     }
 
     /**
@@ -293,11 +322,8 @@ abstract class Platform {
     protected void zipConfigurations() {
         Extension ext = getRepackageExt()
         File confZip = new File(ext.getSnapshotDir(project), Conventions.CONFIGURATIONS_FILE)
-        List<Message> messages = [] as List<Message>
         List<File> files = ext.configurationFiles?.collect { project.file(it) } ?: []
-        Archiver.zipConfigurations(files, confZip, messages, project.rootDir.canonicalPath, sc?.file?.canonicalPath, sc?.outputRulesPath)
-        if (messages.size() > 0)
-            messages.each { showMessage(project, it) }
+        Archiver.zipConfigurations(files, confZip, printer, project.rootDir.canonicalPath, sc?.file?.canonicalPath, sc?.outputRulesPath)
         project.logger.info msg("Configurations written to: ${confZip.canonicalPath}")
     }
 

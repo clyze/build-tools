@@ -11,7 +11,7 @@ import java.security.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.*;
-import com.clyze.client.Message;
+import com.clyze.client.Printer;
 import org.zeroturnaround.zip.*;
 
 import static com.clyze.build.tools.Conventions.msg;
@@ -111,12 +111,12 @@ public final class Archiver {
      * If the file given contains unsupported directives, create a copy without them.
      *
      * @param conf     the configuration file containing the directives
-     * @param messages a list of messages to populate
+     * @param printer  receiver of messages to display
      * @return         the original file (if no unsupported directives were found) or a
      *                 new file without the offending directives
      * @throws         IOException if the new file could not be written
      */
-    private static File deleteUnsupportedDirectives(File conf, List<Message> messages) throws IOException {
+    private static File deleteUnsupportedDirectives(File conf, Printer printer) throws IOException {
         boolean allSupported = true;
         LinkedList<String> lines = new LinkedList<>();
         try (BufferedReader txtReader = new BufferedReader(new FileReader(conf))) {
@@ -125,7 +125,7 @@ public final class Archiver {
                 boolean supportedLine = true;
                 for (String d : UNSUPPORTED_DIRECTIVES) {
                     if (line.contains(d)) {
-                        Message.warn(messages, "WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive: " + line);
+                        printer.warn("WARNING: file " + conf.getCanonicalPath() + " contains unsupported directive: " + line);
                         allSupported = false;
                         supportedLine = false;
                     }
@@ -150,21 +150,23 @@ public final class Archiver {
      *
      * @param configurationFiles  the input configuration files
      * @param confZip             the output file
-     * @param messages            a list of messages to populate
+     * @param printer             receiver of messages to display
      * @param projectDir          the path of the project
      * @param disablingConfPath   the path of the disabling configuration
      * @param printConfigPath     a file (path) containing all configuration for sanity check
      *
      * @throws                    IOException if unsupported directives could not be filtered out
      */
-    public static void zipConfigurations(List<File> configurationFiles, File confZip, List<Message> messages, String projectDir, String disablingConfPath, String printConfigPath) throws IOException {
+    public static void zipConfigurations(List<File> configurationFiles, File confZip,
+                                         Printer printer, String projectDir,
+                                         String disablingConfPath, String printConfigPath) throws IOException {
         final String SEP = File.separator;
         final String GRADLE_CACHE = ".gradle" + SEP + "caches" + SEP + "transforms";
         Set<String> entryNamesProcessed = new HashSet<>();
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(confZip))) {
             for (File conf : configurationFiles) {
                 if (!conf.exists()) {
-                    Message.debug(messages, "WARNING: file does not exist: " + conf);
+                    printer.debug("WARNING: file does not exist: " + conf);
                     continue;
                 }
                 String path = conf.getCanonicalPath();
@@ -185,13 +187,13 @@ public final class Archiver {
                     entryName = stripRootPrefix(path);
                 // Avoid duplicate entry names by keeping the first one.
                 if (entryNamesProcessed.contains(entryName)) {
-                    Message.warn(messages, "WARNING: duplicate configuration entry: " + entryName);
+                    printer.warn("WARNING: duplicate configuration entry: " + entryName);
                     continue;
                 } else
                     entryNamesProcessed.add(entryName);
                 out.putNextEntry(new ZipEntry(entryName));
                 if (FILTER_UNSUPPORTED_DIRECTIVES)
-                    conf = deleteUnsupportedDirectives(conf, messages);
+                    conf = deleteUnsupportedDirectives(conf, printer);
                 byte[] data = Files.readAllBytes(conf.toPath());
                 out.write(data, 0, data.length);
                 out.closeEntry();
@@ -199,7 +201,7 @@ public final class Archiver {
         }
 
         if (printConfigPath != null) {
-            checkConfigurationsArchive(confZip, new File(printConfigPath), disablingConfPath, messages);
+            checkConfigurationsArchive(confZip, new File(printConfigPath), disablingConfPath, printer);
         }
     }
 
@@ -276,18 +278,17 @@ public final class Archiver {
      * @param confZip            the configurations archive
      * @param printConfigFile    the file containing the reference configuration
      * @param disablingConfPath  the path to the "disabling configuration" (or null)
-     * @param messages           a list to be populated with messages (instead
-     *                           of writing to the console)
+     * @param printer            receiver of messages to display
      */
     public static void checkConfigurationsArchive(File confZip, File printConfigFile,
                                                   String disablingConfPath,
-                                                  List<Message> messages) {
+                                                  Printer printer) {
         if (!printConfigFile.exists()) {
-            Message.warn(messages, "Cannot check configuration completeness, file missing: " + printConfigFile);
+            printer.warn("Cannot check configuration completeness, file missing: " + printConfigFile);
             return;
         }
         try {
-            Message.debug(messages, "Checking configuration completeness...");
+            printer.debug("Checking configuration completeness...");
             ZipFile zipFile = new ZipFile(confZip);
             List<String> rules = new LinkedList<>();
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -307,13 +308,13 @@ public final class Archiver {
             for (String r : rules) {
                 int idx = totalRules.indexOf(r);
                 if (idx < 0)
-                    Message.warn(messages, "Included rules not found in total configuration: " + r);
+                    printer.warn("Included rules not found in total configuration: " + r);
                 else
                     totalRules = totalRules.substring(0, idx) + totalRules.substring(idx + r.length());
             }
             String diff = totalRules.trim();
             if (diff.length() != 0)
-                Message.warn(messages, "Configurations check, rules not uploaded: '" + diff + "'");
+                printer.warn("Configurations check, rules not uploaded: '" + diff + "'");
         } catch (Throwable t) {
             t.printStackTrace();
         }

@@ -4,6 +4,7 @@ import com.clyze.build.tools.Archiver;
 import com.clyze.build.tools.Conventions;
 import com.clyze.build.tools.JcPlugin;
 import com.clyze.build.tools.Poster;
+import com.clyze.client.Printer;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,7 +28,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.tools.ant.types.Commandline;
-import com.clyze.client.Message;
 import com.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 
@@ -295,20 +295,37 @@ public class Main {
      * @throws IOException        on packaging error
      */
     private static void zipConfigurations(List<File> entries, File configurationsFile) throws IOException {
-        List<Message> messages = new LinkedList<>();
         String projectDir = (new File(".")).getCanonicalPath();
-        Archiver.zipConfigurations(entries, configurationsFile, messages, projectDir, null, null);
-        showMessages(messages);
+        Archiver.zipConfigurations(entries, configurationsFile, consolePrinter, projectDir, null, null);
     }
 
-    private static void showMessages(List<Message> messages) {
-        messages.forEach((Message m) -> {
-                if (m.isPrint())
-                    System.out.println(m.text);
-                else
-                    Util.logError(m.text);
-        });
-    }
+    static Printer consolePrinter = new Printer() {
+
+        @Override
+        public void error(String message) {
+            Util.logError(message);
+        }
+
+        @Override
+        public void warn(String message) {
+            Util.logError(message);
+        }
+
+        @Override
+        public void debug(String message) {
+            Util.logDebug(message);
+        }
+
+        @Override
+        public void info(String message) {
+            System.out.println(message);
+        }
+
+        @Override
+        public void always(String message) {
+            System.out.println(message);
+        }
+    };
 
     private static void postSnapshot(String buildApk, Collection<File> sourceJars,
                                      BuildMetadataConf bmc, Config conf) {
@@ -336,10 +353,8 @@ public class Main {
         else
             println("Posting snapshot to the server...");
 
-        List<Message> messages = new LinkedList<>();
         (new Poster(conf.opts, null, new File(Conventions.CLYZE_SNAPSHOT_DIR)))
-            .post(ps, messages, true);
-        showMessages(messages);
+            .post(ps, consolePrinter, true);
     }
 
     private static void addSourceJar(PostState ps, File sourceJar) {

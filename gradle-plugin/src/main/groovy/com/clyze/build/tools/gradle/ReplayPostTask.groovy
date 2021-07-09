@@ -2,7 +2,6 @@ package com.clyze.build.tools.gradle
 
 import com.clyze.build.tools.Conventions
 import groovy.transform.CompileStatic
-import com.clyze.client.Message
 import com.clyze.client.web.Helper
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.InputDirectory
@@ -42,8 +41,6 @@ class ReplayPostTask extends PostTask {
             ext.cachePostDir = null
         }
 
-        List<Message> messages = ([] as List<Message>)
-        Helper.postCachedSnapshot(ext.createPostOptions(false), fromDir, Conventions.SNAPSHOT_ID, messages, true)
-        messages.each { Platform.showMessage(project, it) }
+        Helper.postCachedSnapshot(ext.createPostOptions(false), fromDir, Conventions.SNAPSHOT_ID, ext.platform.printer, true)
     }
 }
