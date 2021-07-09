@@ -3,6 +3,7 @@ package com.clyze.build.tools.buck;
 import com.clyze.build.tools.Settings;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.apache.commons.cli.*;
 import com.clyze.build.tools.Conventions;
@@ -36,9 +37,9 @@ class Config {
         this.traceFile = optValOrDefault(cmd, "trace", DEFAULT_TRACE_FILE);
         this.javacPluginPath = optValOrDefault(cmd, "j", null);
         this.proguard = optValOrDefault(cmd, PROGUARD_BINARY_OPT, "/proguard.jar");
-        this.sourceDirs = optVals(cmd, "s");
-        this.codeFiles = optVals(cmd, "c");
-        this.configurations = optVals(cmd, "configuration");
+        this.sourceDirs = optValsOrDefault(cmd, "s", null);
+        this.codeFiles = optValsOrDefault(cmd, "c", null);
+        this.configurations = optValsOrDefault(cmd, "configuration", null);
 
         // Set post options.
         this.opts.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
@@ -46,7 +47,7 @@ class Config {
         this.opts.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
         this.opts.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
         this.opts.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
-        this.opts.stacks = new String[] { optValOrDefault(cmd, "stack", Conventions.ANDROID_STACK) };
+        this.opts.stacks = optValsOrDefault(cmd, "stack", Collections.singletonList(Conventions.ANDROID_STACK));
         this.opts.dry = !cmd.hasOption("p");
     }
 
@@ -78,8 +79,8 @@ class Config {
         return cmd.hasOption(id) ? cmd.getOptionValue(id) : defaultValue;
     }
 
-    private static List<String> optVals(CommandLine cmd, String id) {
-        return cmd.hasOption(id) ? Arrays.asList(cmd.getOptionValues(id)) : null;
+    private static List<String> optValsOrDefault(CommandLine cmd, String id, List<String> defaultVal) {
+        return cmd.hasOption(id) ? Arrays.asList(cmd.getOptionValues(id)) : defaultVal;
     }
 
     static void showUsage() {
