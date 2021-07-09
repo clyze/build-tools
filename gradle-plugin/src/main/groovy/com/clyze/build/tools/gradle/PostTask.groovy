@@ -45,18 +45,6 @@ abstract class PostTask extends DefaultTask {
         }
     }
 
-    protected static void addFileInputFromExtensionOption(PostState ps, Extension ext, String inputId, String optionId) {
-        if (ext.options.containsKey(optionId)) {
-            ps.addFileInput(inputId, ext.options[(optionId)] as String)
-        }
-    }
-
-    protected static void addStringInputFromExtensionOption(PostState ps, Extension ext, String inputId, String optionId) {
-        if (ext.options.containsKey(optionId)) {
-            ps.addStringInput(inputId, ext.options[(optionId)] as String)
-        }
-    }
-
     /**
      * Adds the basic options that are common in all snapshots posted.
      *
@@ -138,12 +126,6 @@ abstract class PostTask extends DefaultTask {
     protected static void addDeepOptions(Extension ext, PostState ps) {
         // The heap snapshots are optional.
         ext.hprofs?.collect { ps.addFileInput("HEAPDLS", it) }
-        // The main class of the program. Usually empty on Android code.
-        addStringInputFromExtensionOption(ps, ext, "MAIN_CLASS", "main_class")
-        // Tamiflex file.
-        addFileInputFromExtensionOption(ps, ext, "TAMIFLEX", "tamiflex")
-        // The aplication regex.
-        addStringInputFromExtensionOption(ps, ext, "APP_REGEX", "app_regex")
     }
 
     /**

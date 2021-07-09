@@ -96,7 +96,6 @@ class RepackagePlugin implements Plugin<Project> {
         Extension ext = Extension.of(project)
         ext.projectName = platform.getProjectName()
         ext.scavengeOutputDir = new File(project.rootDir, Conventions.CLYZE_SNAPSHOT_DIR)
-        ext.options = [ 'analysis': 'context-insensitive' ] as Map
     }
 
     private void configureScavengeTask() {

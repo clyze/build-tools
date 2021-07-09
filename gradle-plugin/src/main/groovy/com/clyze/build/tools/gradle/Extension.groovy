@@ -38,7 +38,6 @@ class Extension {
      *  directory. Can be used to add dependency JARs whose resolutions
      * has failed or extra code. */
     List<String> extraInputs
-    Map<String, Object> options
     /** Directory to receive the serialized snapshot before posting to the server. */
     String cachePostDir = null
     String convertUTF8Dir
@@ -85,10 +84,6 @@ class Extension {
     String codeqlDatabase = null
 
     Platform platform
-
-    def options(Closure cl) {
-        ConfigureUtil.configure(cl, options)
-    }
 
     List<String> getExtraInputFiles(File rootDir) {
         if (extraInputs == null) {
