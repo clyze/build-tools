@@ -210,7 +210,7 @@ class JavaPlatform extends Platform {
     }
 
     @Override
-    protected String getDefaultProfile() {
+    protected String getDefaultStack() {
         return Conventions.JVM_STACK
     }
 

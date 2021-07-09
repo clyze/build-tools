@@ -42,11 +42,11 @@ public class Conventions {
     public static final String DEFAULT_PASSWORD    = "user123";
     /** Default server project. */
     public static final String DEFAULT_PROJECT     = "project";
-    /** Default server profile to use for posting Android code. */
+    /** Default server stack to use for posting Android code. */
     public static final String ANDROID_STACK       = "android";
     /** Default server profile to use for posting Android code (automated repackaging). */
     public static final String DEFAULT_ANDROID_CLYZE_PROFILE = "clyzeAndroid";
-    /** Default server profile to use for posting Java (non-Android) code. */
+    /** Default server stack to use for posting Java (non-Android) code. */
     public static final String JVM_STACK           = "jvm";
     /** Default server profile to use for posting Java code (automated repackaging). */
     public static final String DEFAULT_JAVA_CLYZE_PROFILE = "clyzeJava";

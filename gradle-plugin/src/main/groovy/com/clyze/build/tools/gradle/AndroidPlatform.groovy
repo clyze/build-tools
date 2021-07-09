@@ -797,7 +797,7 @@ class AndroidPlatform extends Platform {
     }
 
     @Override
-    protected String getDefaultProfile() {
+    protected String getDefaultStack() {
         return Conventions.ANDROID_STACK
     }
 

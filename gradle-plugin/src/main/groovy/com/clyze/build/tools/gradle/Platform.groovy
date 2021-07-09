@@ -99,8 +99,8 @@ abstract class Platform {
             ext.password = Conventions.DEFAULT_PASSWORD
         }
         if (ext.stacks == null) {
-            ext.stacks = [getDefaultProfile()] as List<String>
-            project.logger.debug msg("Missing property 'profile', assuming profile=${ext.stacks}")
+            ext.stacks = [getDefaultStack()] as List<String>
+            project.logger.debug msg("Missing property 'stacks', assuming stacks=${ext.stacks}")
         }
         if (ext.ruleFile == null) {
             project.logger.debug msg("Missing property 'ruleFile', assuming ruleFile=${DEFAULT_RULES}")
@@ -376,16 +376,16 @@ abstract class Platform {
     abstract protected void injectConfiguration(File conf, String errorMessage);
 
     /**
-     * Returns the default profile used for posting snapshots.
+     * Returns the default stack used for posting snapshots.
      *
-     * @return the profile name
+     * @return the stack name
      */
-    abstract protected String getDefaultProfile();
+    abstract protected String getDefaultStack();
 
     /**
-     * Returns the default profile used for repackaging snapshots from Gradle.
+     * Returns the default stack used for repackaging snapshots from Gradle.
      *
-     * @return the profile name
+     * @return the stack name
      */
     abstract protected String getDefaultAutomatedRepackagingProfile();
 }
