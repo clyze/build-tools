@@ -58,6 +58,8 @@ public class Conventions {
     public static final String DISABLING_RULES     = "disabling-rules.txt";
     /** Output configuration file name. */
     public static final String OUTPUT_RULES        = "output-configuration.txt";
+    /** The tag of the Clyze configuration file. */
+    public static final String CLYZE_RULES_TAG     = "CLYZE_CONFIG";
 
     /** Warning when conifguration rules could not be disabled. */
     public static final String COULD_NOT_DISABLE_RULES = msg("WARNING: could not disable configuration rules, generated app code may not be suitable for analysis.");
