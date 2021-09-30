@@ -1,4 +1,4 @@
-package com.clyze.build.tools.buck;
+package com.clyze.build.tools.cli.buck;
 
 import java.io.File;
 import org.zeroturnaround.zip.FileSource;

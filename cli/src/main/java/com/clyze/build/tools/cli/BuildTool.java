@@ -1,5 +1,6 @@
 package com.clyze.build.tools.cli;
 
+import com.clyze.build.tools.cli.buck.Buck;
 import com.clyze.build.tools.cli.gradle.Gradle;
 import com.clyze.client.web.PostState;
 
@@ -10,9 +11,13 @@ import java.util.List;
 abstract public class BuildTool {
 
     protected final File currentDir;
+    protected final Config config;
+    protected final boolean debug;
 
-    protected BuildTool(File currentDir) {
+    protected BuildTool(File currentDir, Config config) {
         this.currentDir = currentDir;
+        this.config = config;
+        this.debug = config.isDebug();
     }
 
     static File getCurrentDir() {
@@ -29,11 +34,11 @@ abstract public class BuildTool {
         if ((new File(currentDir, "build.gradle")).exists())
             return new Gradle(currentDir, config);
         else if ((new File(currentDir, "pom.xml")).exists())
-            return new Maven(currentDir);
+            return new Maven(currentDir, config);
         else if ((new File(currentDir, "build.xml")).exists())
-            return new Ant(currentDir);
+            return new Ant(currentDir, config);
         else if ((new File(currentDir, "BUCK")).exists())
-            return new Buck(currentDir);
+            return new Buck(currentDir, config);
         return null;
     }
 
@@ -44,13 +49,13 @@ abstract public class BuildTool {
     static BuildTool get(String name, Config config) {
         switch (name) {
             case "ant":
-                return new Ant(getCurrentDir());
+                return new Ant(getCurrentDir(), config);
             case "buck":
-                return new Buck(getCurrentDir());
+                return new Buck(getCurrentDir(), config);
             case "gradle":
                 return new Gradle(getCurrentDir(), config);
             case "maven":
-                return new Maven(getCurrentDir());
+                return new Maven(getCurrentDir(), config);
             default:
                 throw new RuntimeException("ERROR: unknown build tool: " + name);
         }
@@ -62,7 +67,6 @@ abstract public class BuildTool {
     /**
      * Called to generate the PostState object to post to the server.
      * @param config   the configuration to use
-     * @return         the object containing all snapshot state
      */
-    public abstract PostState generatePostState(Config config);
+    public abstract void populatePostState(PostState ps, Config config);
 }

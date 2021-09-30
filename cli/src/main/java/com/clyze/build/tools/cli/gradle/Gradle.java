@@ -13,11 +13,8 @@ import java.util.*;
 
 public class Gradle extends BuildTool {
 
-    private final boolean debug;
-
     public Gradle(File currentDir, Config config) {
-        super(currentDir);
-        this.debug = config.isDebug();
+        super(currentDir, config);
     }
 
     @Override
@@ -25,24 +22,7 @@ public class Gradle extends BuildTool {
         return "gradle";
     }
 
-    @Override
-    public PostState generatePostState(Config config) {
-        PostState ps = new PostState();
-        ps.setId(Conventions.SNAPSHOT_ID);
-
-        List<String> stacks = config.getPostOptions().stacks;
-        ps.setStacks(stacks);
-        System.out.println("Stacks: " + stacks);
-        String platform = config.getPlatform();
-        if (stacks.contains(Conventions.JVM_STACK)) {
-            System.out.println("Assuming JVM stack.");
-            ps.addStringInput(Conventions.JVM_PLATFORM, platform != null ? platform : Config.DEFAULT_JAVA_PLATFORM);
-        } else if (stacks.contains(Conventions.ANDROID_STACK)) {
-            System.out.println("Assuming Android stack.");
-            ps.addStringInput(Conventions.ANDROID_PLATFORM, platform != null ? platform : Config.DEFAULT_ANDROID_PLATFORM);
-        } else
-            System.err.println("WARNING: unsupported stacks: " + stacks);
-
+    public void populatePostState(PostState ps, Config config) {
         try {
             File buildLibs = Paths.get(currentDir.getCanonicalPath(), "build", "libs").toFile();
             if (buildLibs.exists()) {
@@ -75,8 +55,6 @@ public class Gradle extends BuildTool {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return ps;
     }
 
     private void resolveDependencies(Config config, PostState ps) throws IOException {

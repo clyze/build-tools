@@ -1,59 +1,44 @@
-package com.clyze.build.tools.buck;
+package com.clyze.build.tools.cli.buck;
 
 import com.clyze.build.tools.Archiver;
 import com.clyze.build.tools.Conventions;
 import com.clyze.build.tools.JcPlugin;
-import com.clyze.build.tools.Poster;
+import com.clyze.build.tools.cli.BuildTool;
+import com.clyze.build.tools.cli.Config;
+import com.clyze.build.tools.cli.Util;
 import com.clyze.client.Printer;
+import com.clyze.client.web.PostState;
 import com.google.gson.Gson;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+import org.apache.tools.ant.types.Commandline;
+import org.clyze.utils.JHelper;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.tools.ant.types.Commandline;
-import com.clyze.client.web.PostState;
-import org.clyze.utils.JHelper;
+import static com.clyze.build.tools.cli.Util.*;
 
-import static com.clyze.build.tools.buck.Util.*;
-
-public class Main {
-
+public class Buck extends BuildTool {
     private static List<String> cachedJcpluginClasspath = null;
 
-    public static void main(String[] args) {
+    public Buck(File currentDir, Config config) {
+        super(currentDir, config);
+    }
 
-        Config conf;
-        try {
-            conf = new Config(args);
-        } catch (Exception ex) {
-            System.err.println("Error: " + ex.getMessage());
-            Config.showUsage();
-            return;
-        }
+    @Override
+    public String getName() {
+        return "buck";
+    }
 
-        if (conf.help) {
-            Config.showUsage();
-            return;
-        }
-
-        List<String> codeFiles = conf.codeFiles;
+    @Override
+    public void populatePostState(PostState ps, Config config) {
+        List<String> codeFiles = config.getCodeFiles();
         if (codeFiles != null && codeFiles.size() > 0) {
             println("Code files: " + codeFiles);
             if (codeFiles.size() > 1) {
@@ -62,10 +47,10 @@ public class Main {
             }
         } else {
             logError("Error: No code was given.");
-            Config.showUsage();
+            config.printUsage();
             return;
         }
-        String javacPluginPath = conf.javacPluginPath;
+        String javacPluginPath = config.getJavacPluginPath();
         if (javacPluginPath != null)
             println("Using javac plugin in path: " + javacPluginPath);
         else {
@@ -73,7 +58,7 @@ public class Main {
             println("Using javac plugin artifact: " + javacPlugin);
         }
 
-        Collection<SourceFile> sourceFiles = Sources.getSources(conf.sourceDirs, conf.autodetectSources);
+        Collection<SourceFile> sourceFiles = Sources.getSources(config.getSourceDirs(), config.isAutodetectSources());
 
         println("Using snapshot directory: " + Conventions.CLYZE_SNAPSHOT_DIR);
         boolean mk = new File(Conventions.CLYZE_SNAPSHOT_DIR).mkdirs();
@@ -88,14 +73,15 @@ public class Main {
 
         BuildMetadataConf bmc = null;
         try {
-            boolean explicitConf = conf.configurations != null && conf.configurations.size() > 0;
+            List<String> configurations = config.getConfigurations();
+            boolean explicitConf = configurations != null && configurations.size() > 0;
             // If explicit configuration is provided, disable rule autodetection.
-            String proguard = explicitConf ? null : conf.proguard;
-            bmc = gatherMetadataAndConfigurations(conf.traceFile, conf.jsonDir, proguard);
+            String proguard = explicitConf ? null : config.getProguard();
+            bmc = gatherMetadataAndConfigurations(config.getTraceFile(), config.getJsonDir(), proguard);
             if (explicitConf) {
-                logError("Using provided configuration: " + conf.configurations);
+                logError("Using provided configuration: " + configurations);
                 List<File> entries = new LinkedList<>();
-                conf.configurations.forEach(c -> entries.add(new File(c)));
+                configurations.forEach(c -> entries.add(new File(c)));
                 zipConfigurations(entries, getConfigurationsFile());
             }
         } catch (IOException ex) {
@@ -103,7 +89,20 @@ public class Main {
             ex.printStackTrace();
         }
 
-        postSnapshot(buildApk, sourceJars, bmc, conf);
+        ps.addFileInput(Conventions.BINARY_INPUT_TAG, buildApk);
+        sourceJars.forEach (sj -> addSourceJar(ps, sj));
+        if (bmc != null) {
+            ps.addFileInput("JCPLUGIN_METADATA", bmc.metadata);
+            try {
+                ps.addFileInput("PG_ZIP", bmc.configuration.getCanonicalPath());
+            } catch (IOException ex) {
+                logError("Error: could not add configurations file: " + bmc.configuration);
+            }
+        }
+
+        // Set default platform, in case the server cannot determine
+        // the platform from the submitted code.
+        ps.addStringInput(Conventions.JVM_PLATFORM, Conventions.getR8AndroidPlatform("25"));
     }
 
     /**
@@ -149,7 +148,7 @@ public class Main {
                     if (desc.contains("javac "))
                         processJavacInvocation(jsonDir, desc);
                     else if (proguard != null && desc.contains("java ") &&
-                             desc.contains("-jar") && desc.contains(proguard))
+                            desc.contains("-jar") && desc.contains(proguard))
                         processProguardInvocation(desc, configurationsFile);
                 }
             }
@@ -327,36 +326,6 @@ public class Main {
         }
     };
 
-    private static void postSnapshot(String buildApk, Collection<File> sourceJars,
-                                     BuildMetadataConf bmc, Config conf) {
-        PostState ps = new PostState();
-        ps.setId(Conventions.SNAPSHOT_ID);
-        ps.addStringInput("API_VERSION", Conventions.API_VERSION);
-        ps.addFileInput(Conventions.BINARY_INPUT_TAG, buildApk);
-        if (sourceJars != null)
-            sourceJars.forEach (sj -> addSourceJar(ps, sj));
-        if (bmc != null) {
-            ps.addFileInput("JCPLUGIN_METADATA", bmc.metadata);
-            try {
-                ps.addFileInput("PG_ZIP", bmc.configuration.getCanonicalPath());
-            } catch (IOException ex) {
-                logError("Error: could not add configurations file: " + bmc.configuration);
-            }
-        }
-
-        // Set default platform, in case the server cannot determine
-        // the platform from the submitted code.
-        ps.addStringInput(Conventions.JVM_PLATFORM, Conventions.getR8AndroidPlatform("25"));
-
-        if (conf.opts.dry)
-            println("Assembling snapshot (dry mode)...");
-        else
-            println("Posting snapshot to the server...");
-
-        (new Poster(conf.opts, null, new File(Conventions.CLYZE_SNAPSHOT_DIR)))
-            .post(ps, consolePrinter, true);
-    }
-
     private static void addSourceJar(PostState ps, File sourceJar) {
         try {
             ps.addFileInput("SOURCES_JAR", sourceJar.getCanonicalPath());
@@ -365,13 +334,4 @@ public class Main {
         }
     }
 
-}
-
-class BuildMetadataConf {
-    final String metadata;
-    final File configuration;
-    BuildMetadataConf(String metadata, File configuration) {
-        this.metadata = metadata;
-        this.configuration = configuration;
-    }
 }

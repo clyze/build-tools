@@ -1,4 +1,4 @@
-package com.clyze.build.tools.buck;
+package com.clyze.build.tools.cli.buck;
 
 import java.nio.file.*;
 import java.io.*;
@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
+import com.clyze.build.tools.cli.Config;
+import com.clyze.build.tools.cli.Util;
 import org.apache.commons.io.FileUtils;
 import org.zeroturnaround.zip.*;
 
@@ -26,7 +29,7 @@ class Sources {
         if (sourceDirs == null) {
             String nsErr = "WARNING: No sources were explicitly given.";
             if (!autodetectSources)
-                nsErr += " Consider using option: --" + Config.AUTODETECT_SOURCES_OPT;
+                nsErr += " Consider using option: --" + Config.OPT_AUTODETECT_SOURCES;
             Util.logError(nsErr);
         } else {
             Util.println("Source directories:");

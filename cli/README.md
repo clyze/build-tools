@@ -1,22 +1,44 @@
-# Buck bundler #
+# Clyze CLI #
 
-The Buck bundler tool handles projects that use the [Buck](https://github.com/facebook/buck/) build system.
+The Clyze CLI tool handles build integration with Gradle/Buck projects.
 
 ## Setup ##
 
-* To install the tool in directory "build/install/buck-bundler", run:
+* To install the tool in directory "build/install/cli", run:
 
 ```
-./gradlew :buck-bundler:installDist
+../gradlew installDist
 ```
 
 * Add the install directory to your path:
 
 ```
-export PATH=$PATH:/path/to/build/install/buck-bundler/bin
+export PATH=$PATH:/path/to/build/install/cli/bin
 ```
 
-## Use ##
+## Use with Gradle ##
+
+Step 1. Build your project (preferably without shrinking/obfuscation).
+
+Step 2. Post a code snapshot with the following command:
+
+```
+cli
+```
+
+If the CLI fails to detect that this is a Gradle project, issue:
+
+```
+cli -b gradle
+```
+
+To set a custom server:
+
+```
+cli --host my.server.com --port 8090
+```
+
+## Use with Buck (Android) ##
 
 Step 1. Build your project without shrinking/obfuscation. The easiest
 way to do it is to add these lines to one of your .pro files used in
@@ -40,7 +62,7 @@ following command to post the code with its configuration and its
 sources (assumed to be in "android/java"):
 
 ```
-buck-bundler --apk path/to/generated/app.apk --configuration path/to/configuration.txt --source-dir android/java
+cli --apk path/to/generated/app.apk --configuration path/to/configuration.txt --source-dir android/java
 ```
 
 ### Example: bucksamples ###
@@ -54,15 +76,5 @@ the Android app and post it (with processed sources) to the server.
 git clone https://github.com/fbsamples/bucksamples.git
 cd bucksamples/cross-platform-scale-2015-demo
 buck clean ; buck build demo_app_android
-buck-bundler --apk buck-out/gen/android/demo-app.apk --source-dir "android/java" --source-dir "buck-out/bin/android/__demo-app#generate_rdot_java_rdotjava_src__" --port 8010
-```
-
-### Advanced ###
-
-The bundler works by inspecting the trace of commands issued in a full
-build of the project. To see the command line arguments of the
-bundler, issue:
-
-```
-buck-bundler --help
+cli --apk buck-out/gen/android/demo-app.apk --source-dir "android/java" --source-dir "buck-out/bin/android/__demo-app#generate_rdot_java_rdotjava_src__" --port 8010
 ```

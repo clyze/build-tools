@@ -4,8 +4,8 @@ import com.clyze.client.web.PostState;
 import java.io.File;
 
 public class Ant extends BuildTool {
-    public Ant(File currentDir) {
-        super(currentDir);
+    public Ant(File currentDir, Config config) {
+        super(currentDir, config);
     }
 
     @Override
@@ -14,7 +14,7 @@ public class Ant extends BuildTool {
     }
 
     @Override
-    public PostState generatePostState(Config config) {
+    public void populatePostState(PostState ps, Config config) {
         throw new UnsupportedOperationException("Ant post state is not yet supported.");
     }
 }

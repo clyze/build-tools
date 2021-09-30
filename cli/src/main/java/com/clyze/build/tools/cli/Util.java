@@ -1,8 +1,8 @@
-package com.clyze.build.tools.buck;
+package com.clyze.build.tools.cli;
 
 import com.clyze.build.tools.Conventions;
 
-class Util {
+public class Util {
     // Set to true for extra debug messages.
     private static final boolean debug = false;
 
@@ -11,11 +11,11 @@ class Util {
             System.err.println(Conventions.msg(s));
     }
 
-    static void println(String s) {
+    public static void println(String s) {
         System.out.println(Conventions.msg(s));
     }
 
-    static void logError(String s) {
+    public static void logError(String s) {
         System.err.println(Conventions.msg(s));
     }
 }

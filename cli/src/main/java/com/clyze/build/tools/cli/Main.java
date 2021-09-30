@@ -1,12 +1,15 @@
 package com.clyze.build.tools.cli;
 
+import com.clyze.build.tools.Conventions;
 import com.clyze.client.ConsolePrinter;
 import com.clyze.client.web.Helper;
 import com.clyze.client.web.PostOptions;
 import com.clyze.client.web.PostState;
+import java.io.File;
+import java.util.List;
 import org.apache.commons.cli.*;
 
-import java.io.File;
+import static com.clyze.build.tools.cli.Util.println;
 
 public class Main {
 
@@ -27,13 +30,36 @@ public class Main {
                 return;
             }
             System.out.println("Assuming build tool: " + buildTool.getName());
-            PostState ps = buildTool.generatePostState(config);
             PostOptions postOptions = config.postOptions;
             if (postOptions.dry)
-                System.out.println("Dry mode enabled.");
+                println("Assembling snapshot (dry mode)...");
+            else
+                println("Posting snapshot to the server...");
+            PostState ps = createPostState(buildTool, config);
             Helper.post(ps, postOptions, new File("cache"), null, new ConsolePrinter(debug), debug);
         } catch (ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    private static PostState createPostState(BuildTool buildTool, Config config) {
+        PostState ps = new PostState();
+        ps.setId(Conventions.SNAPSHOT_ID);
+        ps.addStringInput("API_VERSION", Conventions.API_VERSION);
+
+        List<String> stacks = config.getPostOptions().stacks;
+        ps.setStacks(stacks);
+        System.out.println("Stacks: " + stacks);
+        String platform = config.getPlatform();
+        if (stacks.contains(Conventions.JVM_STACK)) {
+            System.out.println("Assuming JVM stack.");
+            ps.addStringInput(Conventions.JVM_PLATFORM, platform != null ? platform : Config.DEFAULT_JAVA_PLATFORM);
+        } else if (stacks.contains(Conventions.ANDROID_STACK)) {
+            System.out.println("Assuming Android stack.");
+            ps.addStringInput(Conventions.ANDROID_PLATFORM, platform != null ? platform : Config.DEFAULT_ANDROID_PLATFORM);
+        } else
+            System.err.println("WARNING: unsupported stacks: " + stacks);
+        buildTool.populatePostState(ps, config);
+        return ps;
     }
 }

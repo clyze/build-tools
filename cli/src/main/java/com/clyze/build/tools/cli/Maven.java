@@ -4,8 +4,8 @@ import com.clyze.client.web.PostState;
 import java.io.File;
 
 public class Maven extends BuildTool {
-    public Maven(File currentDir) {
-        super(currentDir);
+    public Maven(File currentDir, Config config) {
+        super(currentDir, config);
     }
 
     @Override
@@ -14,7 +14,7 @@ public class Maven extends BuildTool {
     }
 
     @Override
-    public PostState generatePostState(Config config) {
+    public void populatePostState(PostState ps, Config config) {
         throw new UnsupportedOperationException("Maven post state is not yet supported.");
     }
 }

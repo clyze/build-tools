@@ -37,8 +37,35 @@ public class Config {
     final String javacPluginPath;
     final List<String> codeFiles;
     final Collection<String> sourceDirs;
+
+    public Collection<String> getSourceDirs() {
+        return sourceDirs;
+    }
+
+    public List<String> getConfigurations() {
+        return configurations;
+    }
+
     final List<String> configurations;
+
+    public String getJsonDir() {
+        return jsonDir;
+    }
+
+    public String getTraceFile() {
+        return traceFile;
+    }
+
+    public String getProguard() {
+        return proguard;
+    }
+
     final String proguard;
+
+    public boolean isAutodetectSources() {
+        return autodetectSources;
+    }
+
     final boolean autodetectSources;
     final Options options;
     final PostOptions postOptions = new PostOptions();
@@ -78,22 +105,43 @@ public class Config {
         String SOURCE_DIR_S = "s";
         String SOURCE_DIR_L = "source-dir";
 
-        opts.addOption("c", "code", true, "An application code file to include (e.g., a file in APK format).");
+        Option codeOpt = new Option("c", "code", true, "An application code file to include (e.g., a file in APK format).");
+        codeOpt.setArgName("CODE_FILE");
+        opts.addOption(codeOpt);
+
+        Option configOpt = new Option(null, "configuration", true, "(Buck) The configuration file(s) to use. If not specified, the trace file will be read to autodetect configuration (via option --"+ OPT_PROGUARD_BINARY +").");
+        configOpt.setArgName("CONFIG_FILE");
+        opts.addOption(configOpt);
+
+        Option hostOpt = new Option(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
+        hostOpt.setArgName("HOST");
+        opts.addOption(hostOpt);
+
+        Option portOpt = new Option(null, "port", true, "The server port (default: "+getDefaultPort()+").");
+        portOpt.setArgName("PORT");
+        opts.addOption(portOpt);
+
+        Option jsonDirOpt = new Option(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
+        jsonDirOpt.setArgName("DIR");
+        opts.addOption(jsonDirOpt);
+
+        Option sourceDirOpt = new Option(SOURCE_DIR_S, SOURCE_DIR_L, true, "Add source directory to process.");
+        sourceDirOpt.setArgName("DIR");
+        opts.addOption(sourceDirOpt);
+
+        Option projectOpt = new Option(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
+        projectOpt.setArgName("NAME");
+        opts.addOption(projectOpt);
+
         opts.addOption("j", "jcplugin", true, "The path to the javac plugin to use for Java sources.");
-        opts.addOption(SOURCE_DIR_S, SOURCE_DIR_L, true, "Add source directory to bundle.");
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
-        opts.addOption(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
-        opts.addOption(null, "port", true, "The server port (default: "+getDefaultPort()+").");
         opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
         opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
-        opts.addOption(null, "project", true, "The project (default: "+Conventions.DEFAULT_PROJECT+").");
         opts.addOption(null, OPT_STACK, true, "The stack (default: " + DEFAULT_STACK + ", valid values: ["+Conventions.ANDROID_STACK+", "+Conventions.JVM_STACK+"].");
         opts.addOption(null, "trace", true, "(Buck) The Buck trace file (default: "+ BUCK_DEFAULT_TRACE_FILE +").");
-        opts.addOption(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
         opts.addOption(null, OPT_PROGUARD_BINARY, true, "(Buck) The location of the proguard binary.");
-        opts.addOption(null, "configuration", true, "(Buck) The configuration file(s) to use. If not specified, the trace file will be read to autodetect configuration (via option '"+ OPT_PROGUARD_BINARY +"').");
-        opts.addOption(null, OPT_AUTODETECT_SOURCES, false, "Attempt to automatically detect source directories. Companion to options '" + SOURCE_DIR_S + "' and '" + SOURCE_DIR_L + "'.");
+        opts.addOption(null, OPT_AUTODETECT_SOURCES, false, "Attempt to automatically detect source directories. Companion to option --" + SOURCE_DIR_L + ".");
         opts.addOption(new Option(null, "debug", false, "Enable debug mode."));
         opts.addOption(new Option(null, OPT_DRY, false, "Enable dry mode."));
         opts.addOption(new Option(null, OPT_DEP_SOURCES, false, "Include sources from dependencies."));
@@ -148,5 +196,13 @@ public class Config {
 
     public boolean isDebug() {
         return this.debug;
+    }
+
+    public List<String> getCodeFiles() {
+        return this.codeFiles;
+    }
+
+    public String getJavacPluginPath() {
+        return this.javacPluginPath;
     }
 }
