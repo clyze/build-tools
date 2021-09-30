@@ -34,7 +34,6 @@ public class Config {
     final String platform;
     final String jsonDir;
     final String traceFile;
-    final String javacPluginPath;
     final List<String> codeFiles;
     final Collection<String> sourceDirs;
 
@@ -83,7 +82,6 @@ public class Config {
         this.autodetectSources = cmd.hasOption(OPT_AUTODETECT_SOURCES);
         this.jsonDir = optValOrDefault(cmd, "json-dir", DEFAULT_JSON_DIR);
         this.traceFile = optValOrDefault(cmd, "trace", BUCK_DEFAULT_TRACE_FILE);
-        this.javacPluginPath = optValOrDefault(cmd, "j", null);
         this.proguard = optValOrDefault(cmd, OPT_PROGUARD_BINARY, "/proguard.jar");
         this.sourceDirs = optValsOrDefault(cmd, "s", null);
         this.codeFiles = optValsOrDefault(cmd, "c", null);
@@ -133,7 +131,6 @@ public class Config {
         projectOpt.setArgName("NAME");
         opts.addOption(projectOpt);
 
-        opts.addOption("j", "jcplugin", true, "The path to the javac plugin to use for Java sources.");
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
         opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
@@ -200,9 +197,5 @@ public class Config {
 
     public List<String> getCodeFiles() {
         return this.codeFiles;
-    }
-
-    public String getJavacPluginPath() {
-        return this.javacPluginPath;
     }
 }

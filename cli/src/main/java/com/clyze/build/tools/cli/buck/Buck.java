@@ -2,16 +2,12 @@ package com.clyze.build.tools.cli.buck;
 
 import com.clyze.build.tools.Archiver;
 import com.clyze.build.tools.Conventions;
-import com.clyze.build.tools.JcPlugin;
 import com.clyze.build.tools.cli.BuildTool;
 import com.clyze.build.tools.cli.Config;
 import com.clyze.build.tools.cli.Util;
 import com.clyze.client.Printer;
 import com.clyze.client.web.PostState;
 import com.google.gson.Gson;
-import org.apache.tools.ant.types.Commandline;
-import org.clyze.utils.JHelper;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +21,6 @@ import java.util.zip.ZipOutputStream;
 import static com.clyze.build.tools.cli.Util.*;
 
 public class Buck extends BuildTool {
-    private static List<String> cachedJcpluginClasspath = null;
 
     public Buck(File currentDir, Config config) {
         super(currentDir, config);
@@ -49,13 +44,6 @@ public class Buck extends BuildTool {
             logError("Error: No code was given.");
             config.printUsage();
             return;
-        }
-        String javacPluginPath = config.getJavacPluginPath();
-        if (javacPluginPath != null)
-            println("Using javac plugin in path: " + javacPluginPath);
-        else {
-            String javacPlugin = JcPlugin.getJcPluginArtifact();
-            println("Using javac plugin artifact: " + javacPlugin);
         }
 
         Collection<SourceFile> sourceFiles = Sources.getSources(config.getSourceDirs(), config.isAutodetectSources());
@@ -145,9 +133,7 @@ public class Buck extends BuildTool {
                 @SuppressWarnings("unchecked") Object descEntry = ((Map<String, Object>)argsEntry).get("description");
                 if (descEntry != null) {
                     String desc = descEntry.toString();
-                    if (desc.contains("javac "))
-                        processJavacInvocation(jsonDir, desc);
-                    else if (proguard != null && desc.contains("java ") &&
+                    if (proguard != null && desc.contains("java ") &&
                             desc.contains("-jar") && desc.contains(proguard))
                         processProguardInvocation(desc, configurationsFile);
                 }
@@ -173,71 +159,6 @@ public class Buck extends BuildTool {
         }
 
         return new BuildMetadataConf(metadataFile, configurationsFile);
-    }
-
-    private static String[] insertSpace(String[] src, int pos, int extraElems) {
-        String[] ret = new String[src.length + extraElems];
-        System.arraycopy(src, 0, ret, 0, pos);
-        System.arraycopy(src, pos, ret, pos + extraElems, src.length - pos);
-        return ret;
-    }
-
-    private static void processJavacInvocation(String jsonDir, String desc) {
-        // Read classpath from contents of bundled jcplugin dir.
-        if (cachedJcpluginClasspath == null)
-            cachedJcpluginClasspath = JcPlugin.getJcPluginClasspath();
-        // If no metadata plugin was found, skip javac rerun but allow for the
-        // rest of the operations to continue.
-        if (cachedJcpluginClasspath == null) {
-            logError("Internal error: no javac plugin found -- continuing without source metadata");
-            return;
-        }
-
-        StringBuilder newEntries = new StringBuilder();
-        for (int i = 0; i < cachedJcpluginClasspath.size(); i++) {
-            String jar = cachedJcpluginClasspath.get(i);
-            if (i == 0)
-                newEntries.append(jar);
-            else
-                newEntries.append(":").append(jar);
-        }
-
-        // Convert string command (plus javac plugin) to array.
-        String plugin = "-Xplugin:TypeInfoPlugin " + jsonDir;
-        String[] args = Commandline.translateCommandline(desc + " '" + plugin + "'");
-        if (!args[0].endsWith("javac")) {
-            logError("Warning: command line does not look like a javac invocation: " + desc);
-        }
-
-        int processorpathIdx = -1;
-        int idx = 0;
-        while (idx < args.length) {
-            if (args[idx].equals("-processorpath")) {
-                processorpathIdx = idx + 1;
-                idx += 2;
-            } else
-                idx += 1;
-        }
-        String jcCP = newEntries.toString();
-        if (processorpathIdx != -1)
-            args[processorpathIdx] += ":" + jcCP;
-        else {
-            int pos = 1;
-            int extraElems = 2;
-            final String PP_FLAG = "-processorpath";
-            String[] argsWithJcCP = insertSpace(args, pos, extraElems);
-            argsWithJcCP[pos] = PP_FLAG;
-            argsWithJcCP[pos + 1] = jcCP;
-            args = argsWithJcCP;
-        }
-
-        String newCmd = Arrays.asList(args).toString();
-        println("Changed command: " + newCmd);
-        try {
-            JHelper.runWithOutput(args, "JC", null);
-        } catch (Exception ex) {
-            println("Command failed: " + newCmd);
-        }
     }
 
     /**
