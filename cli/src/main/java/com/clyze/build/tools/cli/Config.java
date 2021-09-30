@@ -29,6 +29,7 @@ public class Config {
     private static final String OPT_DEP_SOURCES = "include-dep-sources";
     private static final String OPT_USERNAME = "user";
     private static final String OPT_TOKEN = "token";
+    private static final String OPT_CACHE_DIR = "cache-dir";
 
     final boolean help;
     final boolean debug;
@@ -39,6 +40,13 @@ public class Config {
     final String traceFile;
     final List<String> codeFiles;
     final Collection<String> sourceDirs;
+    final String cacheDir;
+
+    public File getCacheDir() {
+        if (cacheDir != null)
+            return new File(cacheDir);
+        return null;
+    }
 
     public Collection<String> getSourceDirs() {
         return sourceDirs;
@@ -89,6 +97,7 @@ public class Config {
         this.sourceDirs = optValsOrDefault(cmd, "s", null);
         this.codeFiles = optValsOrDefault(cmd, "c", null);
         this.configurations = optValsOrDefault(cmd, "configuration", null);
+        this.cacheDir = optValOrDefault(cmd, OPT_CACHE_DIR, null);
 
         // Set post options.
         this.postOptions.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
@@ -149,6 +158,10 @@ public class Config {
         Option tokenOpt = new Option(null, OPT_TOKEN, true, "The authentication token (default: "+Conventions.DEFAULT_PASSWORD+").");
         tokenOpt.setArgName("TOKEN");
         opts.addOption(tokenOpt);
+
+        Option cacheOpt = new Option(null, OPT_CACHE_DIR, true, "A directory to use for caching the snapshot before sending it to the server.");
+        cacheOpt.setArgName("DIR");
+        opts.addOption(cacheOpt);
 
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");

@@ -36,7 +36,7 @@ public class Main {
             else
                 println("Posting snapshot to the server...");
             PostState ps = createPostState(buildTool, config);
-            Helper.post(ps, postOptions, new File("cache"), null, new ConsolePrinter(debug), debug);
+            Helper.post(ps, postOptions, config.getCacheDir(), null, new ConsolePrinter(debug), debug);
         } catch (ParseException e) {
             e.printStackTrace();
         }
