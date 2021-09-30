@@ -1,0 +1,41 @@
+plugins {
+    id 'application'
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "http://centauri.di.uoa.gr:8081/artifactory/plast-public" }
+}
+
+dependencies {
+    implementation 'commons-cli:commons-cli:1.4'      // Apache 2.0
+
+    implementation project(":build-integration-lib")
+    implementation "org.codehaus.groovy:groovy:${groovyVersion}"
+}
+
+String mainClass = 'com.clyze.build.tools.cli.Main'
+
+application {
+    mainClassName = mainClass
+}
+
+compileJava {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+task fatjar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': mainClass,
+                   'Implementation-Version': project.version
+    }
+    archiveBaseName.set(project.name + '-all')
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}

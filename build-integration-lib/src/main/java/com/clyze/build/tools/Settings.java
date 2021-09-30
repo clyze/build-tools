@@ -15,7 +15,7 @@ public class Settings {
      * Finds the home directory of the user.
      * @return   the home path
      */
-    private static String getUserHomeDir() {
+    public static String getUserHomeDir() {
         String homeDir = System.getProperty("user.home");
         if (homeDir == null)
             homeDir = System.getenv("HOME");

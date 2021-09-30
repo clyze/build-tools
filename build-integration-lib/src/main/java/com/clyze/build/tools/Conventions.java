@@ -24,6 +24,8 @@ public class Conventions {
     public static final String SOURCE_INPUT_TAG    = "src";
     /** The JVM platform option expected by the server. */
     public static final String JVM_PLATFORM        = "jvm_platform";
+    /** The Android platform option expected by the server. */
+    public static final String ANDROID_PLATFORM    = "android_platform";
     /** The name of the CodeQL archive to post. */
     public static final String CODEQL_DB_FILE      = "codeql-db.zip";
     /** The name of the test code directory to use for gathering code. */
