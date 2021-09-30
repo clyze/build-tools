@@ -11,12 +11,10 @@ import java.util.List;
 abstract public class BuildTool {
 
     protected final File currentDir;
-    protected final Config config;
     protected final boolean debug;
 
     protected BuildTool(File currentDir, Config config) {
         this.currentDir = currentDir;
-        this.config = config;
         this.debug = config.isDebug();
     }
 

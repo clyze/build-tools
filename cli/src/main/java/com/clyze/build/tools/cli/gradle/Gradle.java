@@ -9,7 +9,6 @@ import com.clyze.client.web.PostState;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.*;
 
 public class Gradle extends BuildTool {
 
@@ -57,7 +56,7 @@ public class Gradle extends BuildTool {
         }
     }
 
-    private void resolveDependencies(Config config, PostState ps) throws IOException {
+    private void resolveDependencies(Config config, PostState ps) {
         String userHomeDir = Settings.getUserHomeDir();
         if (userHomeDir == null) {
             System.out.println("WARNING: no user home directory found, cannot resolve dependencies.");

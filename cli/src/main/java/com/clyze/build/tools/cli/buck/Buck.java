@@ -219,7 +219,7 @@ public class Buck extends BuildTool {
         Archiver.zipConfigurations(entries, configurationsFile, consolePrinter, projectDir, null, null);
     }
 
-    static Printer consolePrinter = new Printer() {
+    static final Printer consolePrinter = new Printer() {
 
         @Override
         public void error(String message) {

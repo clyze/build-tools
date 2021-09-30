@@ -1,6 +1,7 @@
 package com.clyze.build.tools.cli;
 
 import com.clyze.build.tools.Settings;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +27,8 @@ public class Config {
     private static final String OPT_DRY = "dry";
     private static final String OPT_BASE_PATH = "server-base-path";
     private static final String OPT_DEP_SOURCES = "include-dep-sources";
+    private static final String OPT_USERNAME = "user";
+    private static final String OPT_TOKEN = "token";
 
     final boolean help;
     final boolean debug;
@@ -91,8 +94,8 @@ public class Config {
         this.postOptions.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
         this.postOptions.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
         this.postOptions.basePath = optValOrDefault(cmd, OPT_BASE_PATH, DEFAULT_BASE_PATH);
-        this.postOptions.username = optValOrDefault(cmd, "username", Conventions.DEFAULT_USERNAME);
-        this.postOptions.password = optValOrDefault(cmd, "password", Conventions.DEFAULT_PASSWORD);
+        this.postOptions.username = optValOrDefault(cmd, OPT_USERNAME, Conventions.DEFAULT_USERNAME);
+        this.postOptions.password = optValOrDefault(cmd, OPT_TOKEN, Conventions.DEFAULT_PASSWORD);
         this.postOptions.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
         this.postOptions.stacks = optValsOrDefault(cmd, OPT_STACK, Collections.singletonList(DEFAULT_STACK));
         this.postOptions.dry = cmd.hasOption(OPT_DRY);
@@ -104,11 +107,11 @@ public class Config {
         String SOURCE_DIR_L = "source-dir";
 
         Option codeOpt = new Option("c", "code", true, "An application code file to include (e.g., a file in APK format).");
-        codeOpt.setArgName("CODE_FILE");
+        codeOpt.setArgName("FILE");
         opts.addOption(codeOpt);
 
         Option configOpt = new Option(null, "configuration", true, "(Buck) The configuration file(s) to use. If not specified, the trace file will be read to autodetect configuration (via option --"+ OPT_PROGUARD_BINARY +").");
-        configOpt.setArgName("CONFIG_FILE");
+        configOpt.setArgName("FILE");
         opts.addOption(configOpt);
 
         Option hostOpt = new Option(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
@@ -131,12 +134,24 @@ public class Config {
         projectOpt.setArgName("NAME");
         opts.addOption(projectOpt);
 
+        Option stackOpt = new Option(null, OPT_STACK, true, "The stack (default: " + DEFAULT_STACK + ", valid values: ["+Conventions.ANDROID_STACK+", "+Conventions.JVM_STACK+"].");
+        stackOpt.setArgName("STACK");
+        opts.addOption(stackOpt);
+
+        Option traceOpt = new Option(null, "trace", true, "(Buck) The Buck trace file (default: "+ BUCK_DEFAULT_TRACE_FILE +").");
+        traceOpt.setArgName("FILE");
+        opts.addOption(traceOpt);
+
+        Option userOpt = new Option(null, OPT_USERNAME, true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
+        userOpt.setArgName("USERNAME");
+        opts.addOption(userOpt);
+
+        Option tokenOpt = new Option(null, OPT_TOKEN, true, "The authentication token (default: "+Conventions.DEFAULT_PASSWORD+").");
+        tokenOpt.setArgName("TOKEN");
+        opts.addOption(tokenOpt);
+
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
-        opts.addOption(null, "username", true, "The username (default: "+Conventions.DEFAULT_USERNAME+").");
-        opts.addOption(null, "password", true, "The username (default: "+Conventions.DEFAULT_PASSWORD+").");
-        opts.addOption(null, OPT_STACK, true, "The stack (default: " + DEFAULT_STACK + ", valid values: ["+Conventions.ANDROID_STACK+", "+Conventions.JVM_STACK+"].");
-        opts.addOption(null, "trace", true, "(Buck) The Buck trace file (default: "+ BUCK_DEFAULT_TRACE_FILE +").");
         opts.addOption(null, OPT_PROGUARD_BINARY, true, "(Buck) The location of the proguard binary.");
         opts.addOption(null, OPT_AUTODETECT_SOURCES, false, "Attempt to automatically detect source directories. Companion to option --" + SOURCE_DIR_L + ".");
         opts.addOption(new Option(null, "debug", false, "Enable debug mode."));
