@@ -166,7 +166,7 @@ public class Config {
         opts.addOption("p", "post", false, "Posts the bundle to the server.");
         opts.addOption("h", "help", false, "Show this help text.");
         opts.addOption(null, OPT_PROGUARD_BINARY, true, "(Buck) The location of the proguard binary.");
-        opts.addOption(null, OPT_AUTODETECT_SOURCES, false, "Attempt to automatically detect source directories. Companion to option --" + SOURCE_DIR_L + ".");
+        opts.addOption(null, OPT_AUTODETECT_SOURCES, false, "(Buck) Attempt to automatically detect source directories. Companion to option --" + SOURCE_DIR_L + ".");
         opts.addOption(new Option(null, "debug", false, "Enable debug mode."));
         opts.addOption(new Option(null, OPT_DRY, false, "Enable dry mode."));
         opts.addOption(new Option(null, OPT_DEP_SOURCES, false, "Include sources from dependencies."));
