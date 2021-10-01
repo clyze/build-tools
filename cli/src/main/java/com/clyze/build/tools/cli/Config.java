@@ -10,10 +10,17 @@ import org.apache.commons.cli.*;
 import com.clyze.build.tools.Conventions;
 import com.clyze.client.web.PostOptions;
 
+/**
+ * This class represents configuration settings (either from defaults or from
+ * command-line options).
+ */
 public class Config {
     private static final String DEFAULT_STACK = Conventions.JVM_STACK;
+    /** The default Java platform needed by the server for deep analysis. */
     public static final String DEFAULT_JAVA_PLATFORM = "java_8";
+    /** The default Android platform needed by the server for deep analysis. */
     public static final String DEFAULT_ANDROID_PLATFORM = "android_25_fulljars";
+    /** The default server base path. */
     public static final String DEFAULT_BASE_PATH = "/clue";
 
     private static final String BUCK_DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
@@ -42,6 +49,10 @@ public class Config {
     final Collection<String> sourceDirs;
     final String cacheDir;
 
+    /**
+     * Returns the directory where the created snapshot will be cached.
+     * @return   the directory (or null when no directory set)
+     */
     public File getCacheDir() {
         if (cacheDir != null)
             return new File(cacheDir);

@@ -5,7 +5,6 @@ import com.clyze.client.ConsolePrinter;
 import com.clyze.client.web.Helper;
 import com.clyze.client.web.PostOptions;
 import com.clyze.client.web.PostState;
-import java.io.File;
 import java.util.List;
 import org.apache.commons.cli.*;
 

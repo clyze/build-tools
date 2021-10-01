@@ -13,6 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * A representation of aspects of the current Gradle project, needed for
+ * constructing a snapshot to post to the server.
+ */
 public class GradleProject {
     public static final String DEP_PROJECT_PREFIX = "project ";
     public static final String ROOT_PROJECT = "<ROOT>";

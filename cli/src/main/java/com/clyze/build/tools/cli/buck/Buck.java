@@ -20,6 +20,9 @@ import java.util.zip.ZipOutputStream;
 
 import static com.clyze.build.tools.cli.Util.*;
 
+/**
+ * Integration with the Buck build system.
+ */
 public class Buck extends BuildTool {
 
     public Buck(File currentDir, Config config) {

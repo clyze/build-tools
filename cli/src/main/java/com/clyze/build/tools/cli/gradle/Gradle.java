@@ -1,7 +1,5 @@
 package com.clyze.build.tools.cli.gradle;
 
-import com.clyze.build.tools.Archiver;
-import com.clyze.build.tools.Conventions;
 import com.clyze.build.tools.Settings;
 import com.clyze.build.tools.cli.BuildTool;
 import com.clyze.build.tools.cli.Config;
@@ -10,6 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * Integration with the Gradle build system.
+ */
 public class Gradle extends BuildTool {
 
     public Gradle(File currentDir, Config config) {
@@ -23,34 +24,10 @@ public class Gradle extends BuildTool {
 
     public void populatePostState(PostState ps, Config config) {
         try {
-            File buildLibs = Paths.get(currentDir.getCanonicalPath(), "build", "libs").toFile();
-            if (buildLibs.exists()) {
-                File[] files = buildLibs.listFiles();
-                if (files != null)
-                    for (File file : files) {
-                        String name = file.getName();
-                        if (name.startsWith(currentDir.getName()) && name.endsWith(".jar")) {
-                            String jarFile = file.getCanonicalPath();
-                            if (debug)
-                                System.out.println("Found code file: " + jarFile);
-                            ps.addFileInput(Conventions.BINARY_INPUT_TAG, jarFile);
-                        }
-                    }
-            }
-
+            gatherCodeJarFromDir(ps, Paths.get(currentDir.getCanonicalPath(), "build", "libs").toFile());
             resolveDependencies(config, ps);
-
-            boolean mk = new File(Conventions.CLYZE_SNAPSHOT_DIR).mkdirs();
-            if (mk)
-                System.err.println("Directory " + Conventions.CLYZE_SNAPSHOT_DIR + " created.");
-            else
-                System.err.println("Directory " + Conventions.CLYZE_SNAPSHOT_DIR + " already exists.");
-
-            File srcDir = new File(currentDir, "src");
-            File srcArchive = new File(Conventions.CLYZE_SNAPSHOT_DIR, "sources.zip");
-            Archiver.zipTree(srcDir, srcArchive);
-            System.out.println("Created source archive: " + srcArchive);
-            ps.addFileInput(Conventions.SOURCE_INPUT_TAG, srcArchive.getCanonicalPath());
+            createSnapshotDir();
+            gatherMavenStyleSources(ps);
         } catch (IOException e) {
             e.printStackTrace();
         }
