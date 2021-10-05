@@ -147,9 +147,18 @@ abstract class Platform {
         if (existing == null) {
             task = project.tasks.create(PTask.SOURCES_JAR.name, Jar)
         } else if (existing instanceof Jar) {
-            // Heuristic to handle repeated configuration by Gradle.
-            project.logger.info msg("Reusing existing task ${PTask.SOURCES_JAR.name}")
-            task = existing as Jar
+            String GRADLE_SOURCES_JAR_TASK = 'sourcesJar'
+            List<String> taskNames = project.gradle.startParameter.taskNames
+            // Corner case: if the user tries to run the original Gradle task together with
+            // the Clyze tasks (which modify that task), show a warning.
+            if (taskNames.contains(GRADLE_SOURCES_JAR_TASK) && GRADLE_SOURCES_JAR_TASK == PTask.SOURCES_JAR.name && PTask.nonSourceTaskMatches(taskNames)) {
+                project.logger.warn msg("WARNING: running Clyze Gradle tasks together with task '${GRADLE_SOURCES_JAR_TASK}' is not supported.")
+                return
+            } else {
+                // Heuristic to handle repeated configuration by Gradle.
+                project.logger.info msg("Reusing existing task ${PTask.SOURCES_JAR.name}")
+                task = existing as Jar
+            }
         } else {
             project.logger.warn msg("WARNING: Non-JAR task ${PTask.SOURCES_JAR.name} exists, cannot configure ${Conventions.TOOL_NAME} plugin.")
             return

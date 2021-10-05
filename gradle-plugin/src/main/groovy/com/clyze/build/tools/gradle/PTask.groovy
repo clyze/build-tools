@@ -27,4 +27,9 @@ enum PTask {
     PTask(String name) {
         this.name = name
     }
+
+    static boolean nonSourceTaskMatches(List<String> tasks) {
+        Collection<String> names = values().findAll { it != SOURCES_JAR }.collect { it -> it.name }
+        return tasks.find { String name -> names.contains(name) } != null
+    }
 }
