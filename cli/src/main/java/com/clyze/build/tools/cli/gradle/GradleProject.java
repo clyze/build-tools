@@ -3,6 +3,7 @@ package com.clyze.build.tools.cli.gradle;
 import com.clyze.build.tools.Archiver;
 import com.clyze.build.tools.Conventions;
 import com.clyze.build.tools.cli.Config;
+import com.clyze.build.tools.cli.maven.MavenDependencyResolver;
 import com.clyze.client.web.PostState;
 import org.clyze.utils.JHelper;
 import org.clyze.utils.OS;
@@ -32,7 +33,7 @@ public class GradleProject {
     private final File currentDir;
     private final boolean debug;
     private final PostState ps;
-    private final Map<String, String> dependencyPaths = new HashMap<>();
+    private final MavenDependencyResolver mavenDependencyResolver;
 
     public GradleProject(File currentDir, Config config, String userHomeDir, PostState ps) {
         this.userHomeDir = userHomeDir;
@@ -40,6 +41,7 @@ public class GradleProject {
         this.currentDir = currentDir;
         this.debug = config.isDebug();
         this.ps = ps;
+        this.mavenDependencyResolver = new MavenDependencyResolver(config);
     }
 
     /**
@@ -126,7 +128,7 @@ public class GradleProject {
                     if (dependency.startsWith(DEP_PROJECT_PREFIX))
                         resolveProjectDependency(dependency.substring(DEP_PROJECT_PREFIX.length()));
                     else
-                        resolveExternalDependency(dependencyPaths, dependency.trim());
+                        resolveExternalDependency(dependency.trim());
                     dependencies.add(dependency);
                 }
                 break;
@@ -135,7 +137,7 @@ public class GradleProject {
         }
     }
 
-    private void resolveExternalDependency(Map<String, String> dependencyPaths, String dependency) {
+    private void resolveExternalDependency(String dependency) {
         if (debug)
             System.out.println("Processing dependency: " + dependency);
         if (dependencies.contains(dependency)) {
@@ -149,29 +151,9 @@ public class GradleProject {
             return;
         }
         String[] parts = dependency.split(":");
-        if (parts.length == 3) {
-            String prefix = parts[1] + "-" + parts[2];
-            String jarKey = prefix + ".jar";
-            if (debug)
-                System.out.println("Searching for: " + jarKey);
-            String depPath = dependencyPaths.get(jarKey);
-            if (depPath != null) {
-                if (debug)
-                    System.out.println("Adding dependency: " + depPath);
-                ps.addFileInput(Conventions.LIBRARY_INPUT_TAG, depPath);
-                if (config.includesDepSources()) {
-                    String depSources = dependencyPaths.get(prefix + "-sources.jar");
-                    if (debug)
-                        System.out.println("Adding dependency source: " + depSources);
-                    ps.addFileInput(Conventions.SOURCE_INPUT_TAG, depSources);
-                }
-            } else if (dependencyPaths.get(prefix + ".pom") != null) {
-                if (debug)
-                    // Ignore .pom-only dependencies (e.g. Bill-Of-Materials dependencies).
-                    System.out.println("Ignoring dependency without code but with .pom: " + dependency);
-            } else
-                System.out.println("WARNING: cannot resolve dependency: " + Arrays.toString(parts));
-        } else
+        if (parts.length == 3)
+            mavenDependencyResolver.resolveDependency(ps, parts[0], parts[1], parts[2]);
+        else
             System.out.println("WARNING: cannot handle dependency: " + dependency);
     }
 
@@ -231,42 +213,14 @@ public class GradleProject {
 
     private void initDependencyPaths() {
         if (OS.linux || OS.macOS) {
-            indexLocalRepository(dependencyPaths, Paths.get(userHomeDir, ".gradle", "caches"));
-            indexLocalRepository(dependencyPaths, Paths.get(userHomeDir, ".m2", "repository"));
+            mavenDependencyResolver.indexMavenLocal(userHomeDir);
+            mavenDependencyResolver.indexLocalRepository(Paths.get(userHomeDir, ".gradle", "caches"));
         } else if (OS.win) {
             System.out.println("ERROR: dependency resolution on Windows is not yet supported.");
             return;
         }
         if (debug)
-            System.out.println("Dependency paths: " + dependencyPaths.size());
+            System.out.println("Dependency paths: " + mavenDependencyResolver.getDependencyPaths().size());
     }
 
-    private void indexLocalRepository(Map<String, String> dependencyPaths, Path dir) {
-        if (!dir.toFile().exists()) {
-            if (debug)
-                System.out.println("Ignoring non-existent path: " + dir);
-            return;
-        }
-
-        String[] cmd = new String[]{"find", dir.toString()};
-        if (debug)
-            System.out.println(Arrays.toString(cmd));
-        try {
-            JHelper.runWithOutput(cmd, null, ((String line) -> {
-                int lastSep = line.lastIndexOf(File.separator);
-                if ((line.endsWith(".jar") || line.endsWith(".pom")) && lastSep >= 0) {
-                    String depFile = line.substring(lastSep + 1);
-                    if (debug)
-                        System.out.println("Registering: " + depFile + " -> " + line);
-                    dependencyPaths.put(depFile, line);
-                }
-                else if (debug)
-                    System.out.println("Ignoring: " + line);
-
-            }));
-        } catch (IOException ex) {
-            if (debug)
-                ex.printStackTrace();
-        }
-    }
 }

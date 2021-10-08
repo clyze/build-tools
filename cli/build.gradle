@@ -13,7 +13,8 @@ repositories {
 
 dependencies {
     implementation 'commons-cli:commons-cli:1.4'      // Apache 2.0
-    implementation 'org.apache.ant:ant:1.10.7'        // Apache 2.0
+    implementation 'org.apache.ant:ant:1.10.11'        // Apache 2.0
+    implementation 'org.apache.maven:maven-model:3.8.3' // Apache 2.0
 
     implementation project(":build-integration-lib")
     implementation "org.codehaus.groovy:groovy:${groovyVersion}"
