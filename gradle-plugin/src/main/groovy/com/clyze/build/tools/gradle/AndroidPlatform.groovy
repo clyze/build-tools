@@ -525,7 +525,7 @@ class AndroidPlatform extends Platform {
         }
     }
 
-    void noAabFound(File aabDir) {
+    private void throwNoAabFound(File aabDir) {
         String aabError = "ERROR: no .aab files found in ${aabDir.canonicalPath}"
         project.logger.error msg(aabError)
         throw new RuntimeException(aabError)
@@ -539,11 +539,12 @@ class AndroidPlatform extends Platform {
             File aabDir = Paths.get(appBuildDir, 'outputs', 'bundle', getFlavorAndBuildType()).toFile()
             File[] aabDirFiles = aabDir.listFiles()
             if (!aabDirFiles || aabDirFiles.length == 0)
-                noAabFound(aabDir)
+                throwNoAabFound(aabDir)
             int aabIdx = aabDirFiles.findIndexOf {it.name.toLowerCase().endsWith('.aab') }
             if (aabIdx == -1)
-                noAabFound(aabDir)
-            outputs = [aabDirFiles[aabIdx].canonicalPath]
+                throwNoAabFound(aabDir)
+            else
+                outputs = [aabDirFiles[aabIdx].canonicalPath]
         } else
             outputs = AndroidAPI.getOutputs(project, repackageExt.buildType, repackageExt.flavor)
         project.logger.info msg("Found code outputs: ${outputs}")
@@ -651,7 +652,14 @@ class AndroidPlatform extends Platform {
         project.logger.info msg("Using non-library outputs from task ${outputsTask}")
         List<String> ars = AndroidAPI.getOutputs(project, project.tasks.findByName(outputsTask))
         project.logger.info msg("Calculated non-library outputs: ${ars}")
+        throwIfInputHasExtension(ars, repackageExt.aab ? '.apk' : '.aab')
         return ars
+    }
+
+    private void throwIfInputHasExtension(Collection<String> ars, String ext) {
+        String inputWithExt = ars.find { it.endsWith(ext) }
+        if (inputWithExt != null)
+            throwRuntimeException(msg("Plugin option aab=${repackageExt.aab} but ${ext} input found: ${inputWithExt}"))
     }
 
     /**
