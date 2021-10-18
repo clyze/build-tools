@@ -22,15 +22,11 @@ public class Gradle extends BuildTool {
         return "gradle";
     }
 
-    public void populatePostState(PostState ps, Config config) {
-        try {
-            gatherCodeJarFromDir(ps, Paths.get(currentDir.getCanonicalPath(), "build", "libs").toFile());
-            resolveDependencies(config, ps);
-            createSnapshotDir();
-            gatherMavenStyleSources(ps);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public void populatePostState(PostState ps, Config config) throws IOException {
+        gatherCodeJarFromDir(ps, Paths.get(currentDir.getCanonicalPath(), "build", "libs").toFile(), false);
+        resolveDependencies(config, ps);
+        gatherSourcesFromSrcDir(ps);
     }
 
     private void resolveDependencies(Config config, PostState ps) {

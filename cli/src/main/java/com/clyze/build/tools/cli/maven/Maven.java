@@ -1,7 +1,5 @@
 package com.clyze.build.tools.cli.maven;
 
-import com.clyze.build.tools.Archiver;
-import com.clyze.build.tools.Conventions;
 import com.clyze.build.tools.Settings;
 import com.clyze.build.tools.cli.BuildTool;
 import com.clyze.build.tools.cli.Config;
@@ -34,35 +32,20 @@ public class Maven extends BuildTool {
     }
 
     @Override
-    public void populatePostState(PostState ps, Config config) {
-        createSnapshotDir();
-        try {
-            if (debug)
-                System.out.println("Looking for code...");
-            String currentDirPath = currentDir.getCanonicalPath();
-            boolean jar = gatherCodeJarFromDir(ps, new File(currentDirPath, "target"));
-            if (!jar) {
-                if (debug)
-                    System.out.println("No .jar found, looking for .class files...");
-                File targetClassesDir = Paths.get(currentDirPath, "target", "classes").toFile();
-                if (targetClassesDir.exists() && targetClassesDir.isDirectory()) {
-                    File classesJar = getTmpJarFile("classes");
-                    Archiver.zipTree(targetClassesDir, classesJar);
-                    ps.addFileInput(Conventions.BINARY_INPUT_TAG, classesJar.getCanonicalPath());
-                }
-            }
+    public void populatePostState(PostState ps, Config config) throws IOException {
+        if (debug)
+            System.out.println("Looking for code...");
+        String currentDirPath = currentDir.getCanonicalPath();
+        gatherCodeFromTargetDir(ps, currentDirPath, false);
 
-            if (debug)
-                System.out.println("Gathering dependencies...");
-            resolveDependencies(ps);
+        if (debug)
+            System.out.println("Gathering dependencies...");
+        resolveDependencies(ps);
 
-            if (debug)
-                System.out.println("Looking for sources...");
-            gatherMavenStyleSources(ps);
-            gatherGeneratedSources(ps, currentDirPath);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        if (debug)
+            System.out.println("Looking for sources...");
+        gatherSourcesFromSrcDir(ps);
+        gatherGeneratedSourcesFromTarget(ps, currentDirPath);
     }
 
     private void processPom(String tag, File pom, Consumer<Model> proc) throws IOException {
@@ -124,15 +107,9 @@ public class Maven extends BuildTool {
         }));
     }
 
-    private void gatherGeneratedSources(PostState ps, String currentDirPath) throws IOException {
+    private void gatherGeneratedSourcesFromTarget(PostState ps, String currentDirPath) throws IOException {
         File generatedSourcesDir = Paths.get(currentDirPath, "target", "generated-sources").toFile();
         gatherSources(ps, generatedSourcesDir, getTmpJarFile("generated-sources"));
-    }
-
-    private File getTmpJarFile(String pre) throws IOException {
-        File f = File.createTempFile(pre, ".jar");
-        f.deleteOnExit();
-        return f;
     }
 
     private void resolveDependencies(PostState ps) throws IOException {

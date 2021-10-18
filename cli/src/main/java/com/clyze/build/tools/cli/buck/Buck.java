@@ -35,7 +35,7 @@ public class Buck extends BuildTool {
     }
 
     @Override
-    public void populatePostState(PostState ps, Config config) {
+    public void populatePostState(PostState ps, Config config) throws IOException {
         List<String> codeFiles = config.getCodeFiles();
         if (codeFiles != null && codeFiles.size() > 0) {
             println("Code files: " + codeFiles);
@@ -88,6 +88,7 @@ public class Buck extends BuildTool {
                 ps.addFileInput("PG_ZIP", bmc.configuration.getCanonicalPath());
             } catch (IOException ex) {
                 logError("Error: could not add configurations file: " + bmc.configuration);
+                throw ex;
             }
         }
 

@@ -2,12 +2,14 @@ package com.clyze.build.tools.cli;
 
 import com.clyze.build.tools.Archiver;
 import com.clyze.build.tools.Conventions;
+import com.clyze.build.tools.cli.ant.Ant;
 import com.clyze.build.tools.cli.buck.Buck;
 import com.clyze.build.tools.cli.gradle.Gradle;
 import com.clyze.build.tools.cli.maven.Maven;
 import com.clyze.client.web.PostState;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,8 +76,9 @@ abstract public class BuildTool {
      * Called to generate the PostState object to post to the server.
      * @param ps       the object to populate
      * @param config   the configuration to use
+     * @throws IOException on filesystem access error
      */
-    public abstract void populatePostState(PostState ps, Config config);
+    public abstract void populatePostState(PostState ps, Config config) throws IOException;
 
     protected void createSnapshotDir() {
         boolean mk = new File(Conventions.CLYZE_SNAPSHOT_DIR).mkdirs();
@@ -85,7 +88,7 @@ abstract public class BuildTool {
             System.err.println("Directory " + Conventions.CLYZE_SNAPSHOT_DIR + " already exists.");
     }
 
-    protected void gatherMavenStyleSources(PostState ps) throws IOException {
+    protected void gatherSourcesFromSrcDir(PostState ps) throws IOException {
         File srcDir = new File(currentDir, "src");
         File srcArchive = new File(Conventions.CLYZE_SNAPSHOT_DIR, "sources.zip");
         gatherSources(ps, srcDir, srcArchive);
@@ -99,14 +102,18 @@ abstract public class BuildTool {
         }
     }
 
-    protected boolean gatherCodeJarFromDir(PostState ps, File buildLibs) throws IOException {
+    protected boolean gatherCodeJarFromDir(PostState ps, File binJarDir, boolean ignoreProjectName) throws IOException {
         boolean foundFiles = false;
-        if (buildLibs.exists()) {
-            File[] files = buildLibs.listFiles();
+        if (binJarDir.exists()) {
+            if (debug)
+                System.out.println("Processing directory: " + binJarDir);
+            File[] files = binJarDir.listFiles();
             if (files != null)
                 for (File file : files) {
                     String name = file.getName();
-                    if (name.startsWith(currentDir.getName()) && name.endsWith(".jar")) {
+                    if (debug)
+                        System.out.println("Processing file: " + file);
+                    if ((ignoreProjectName || name.startsWith(currentDir.getName()))&& name.endsWith(".jar")) {
                         String jarFile = file.getCanonicalPath();
                         if (debug)
                             System.out.println("Found code file: " + jarFile);
@@ -114,7 +121,29 @@ abstract public class BuildTool {
                         foundFiles = true;
                     }
                 }
-        }
+        } else if (debug)
+            System.out.println("Ignoring: " + binJarDir);
         return foundFiles;
+    }
+
+    protected void gatherCodeFromTargetDir(PostState ps, String currentDirPath, boolean ignoreProjectName) throws IOException {
+        boolean jar = gatherCodeJarFromDir(ps, new File(currentDirPath, "target"), ignoreProjectName);
+        if (!jar) {
+            if (debug)
+                System.out.println("No .jar found, looking for .class files...");
+            File targetClassesDir = Paths.get(currentDirPath, "target", "classes").toFile();
+            if (targetClassesDir.exists() && targetClassesDir.isDirectory()) {
+                File classesJar = getTmpJarFile("classes");
+                Archiver.zipTree(targetClassesDir, classesJar);
+                ps.addFileInput(Conventions.BINARY_INPUT_TAG, classesJar.getCanonicalPath());
+            }
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected File getTmpJarFile(String pre) throws IOException {
+        File f = File.createTempFile(pre, ".jar");
+        f.deleteOnExit();
+        return f;
     }
 }

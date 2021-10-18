@@ -1,6 +1,6 @@
 # Clyze CLI #
 
-The Clyze CLI tool handles build integration with Maven/Gradle/Buck projects.
+The Clyze CLI tool handles build integration with Maven/Gradle/Buck/Ant projects.
 
 ## Setup ##
 
@@ -16,7 +16,7 @@ The Clyze CLI tool handles build integration with Maven/Gradle/Buck projects.
 export PATH=$PATH:/path/to/build/install/cli/bin
 ```
 
-## Use with Maven/Gradle ##
+## Use with Maven/Gradle/Ant ##
 
 Step 1. Build your project (preferably without shrinking/obfuscation).
 
@@ -29,7 +29,7 @@ cli
 If the CLI fails to detect that this is a Maven/Gradle project, issue:
 
 ```
-cli -b maven    # or cli -b gradle
+cli -b maven    # or cli -b gradle / cli -b ant
 ```
 
 To set a custom server:

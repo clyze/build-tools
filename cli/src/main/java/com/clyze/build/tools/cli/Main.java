@@ -5,6 +5,7 @@ import com.clyze.client.ConsolePrinter;
 import com.clyze.client.web.Helper;
 import com.clyze.client.web.PostOptions;
 import com.clyze.client.web.PostState;
+import java.io.IOException;
 import java.util.List;
 import org.apache.commons.cli.*;
 
@@ -58,7 +59,12 @@ public class Main {
             ps.addStringInput(Conventions.ANDROID_PLATFORM, platform != null ? platform : Config.DEFAULT_ANDROID_PLATFORM);
         } else
             System.err.println("WARNING: unsupported stacks: " + stacks);
-        buildTool.populatePostState(ps, config);
+        buildTool.createSnapshotDir();
+        try {
+            buildTool.populatePostState(ps, config);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         return ps;
     }
 }
