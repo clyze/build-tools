@@ -40,8 +40,6 @@ public class Conventions {
     public static final String DEFAULT_PORT        = "8001";
     /** Default (server) user. */
     public static final String DEFAULT_USERNAME    = "user";
-    /** Default (server) user password. */
-    public static final String DEFAULT_PASSWORD    = "user123";
     /** Default server project. */
     public static final String DEFAULT_PROJECT     = "project";
     /** Default server stack to use for posting Android code. */

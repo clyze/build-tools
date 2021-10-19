@@ -56,7 +56,7 @@ public class Poster {
         if (options.dry)
             printer.warn("WARNING: automated repackaging ignores dry option.");
         Helper.repackageSnapshotForCI(options.getHostPrefix(), options.username,
-                options.password, options.project, ps, handler, printer);
+                options.authToken, options.project, ps, handler, printer);
     }
 
 }

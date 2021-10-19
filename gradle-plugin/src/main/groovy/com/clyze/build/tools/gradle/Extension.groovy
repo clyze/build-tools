@@ -1,9 +1,9 @@
 package com.clyze.build.tools.gradle
 
+import com.clyze.client.web.AuthToken
 import groovy.transform.CompileStatic
 import com.clyze.client.web.PostOptions
 import org.gradle.api.Project
-import org.gradle.util.ConfigureUtil
 
 import static com.clyze.build.tools.Conventions.msg
 
@@ -18,10 +18,12 @@ class Extension {
     String host
     /** The server port. */
     int port
+    /** The server base path. */
+    String basePath = ""
     /** The username to use for authentication. */
     String username
-    /** The password to use for authentication. */
-    String password
+    /** The API key to use for authentication. */
+    String apiKey
     /** The project name where the snapshot will be posted. */
     String projectName
     /**
@@ -152,8 +154,9 @@ class Extension {
         PostOptions opts = new PostOptions()
         opts.host = this.host
         opts.port = this.port
+        opts.basePath = this.basePath
         opts.username = this.username
-        opts.password = this.password
+        opts.authToken = new AuthToken(this.username, this.apiKey)
         opts.stacks = this.stacks
         opts.project = this.projectName
         opts.dry = this.dry

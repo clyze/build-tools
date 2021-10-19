@@ -95,9 +95,6 @@ abstract class Platform {
         if (ext.username == null) {
             ext.username = Conventions.DEFAULT_USERNAME
         }
-        if (ext.password == null) {
-            ext.password = Conventions.DEFAULT_PASSWORD
-        }
         if (ext.stacks == null) {
             ext.stacks = [getDefaultStack()] as List<String>
             project.logger.debug msg("Missing property 'stacks', assuming stacks=${ext.stacks}")

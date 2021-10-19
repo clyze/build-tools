@@ -1,5 +1,8 @@
 package com.clyze.build.tools.cli;
 
+import com.clyze.client.web.AuthToken;
+import com.clyze.client.web.PostOptions;
+import com.clyze.build.tools.Conventions;
 import com.clyze.build.tools.Settings;
 import java.io.File;
 import java.util.Arrays;
@@ -7,8 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.cli.*;
-import com.clyze.build.tools.Conventions;
-import com.clyze.client.web.PostOptions;
 
 /**
  * This class represents configuration settings (either from defaults or from
@@ -35,7 +36,7 @@ public class Config {
     private static final String OPT_BASE_PATH = "server-base-path";
     private static final String OPT_DEP_SOURCES = "include-dep-sources";
     private static final String OPT_USERNAME = "user";
-    private static final String OPT_TOKEN = "token";
+    private static final String OPT_TOKEN = "api-key";
     private static final String OPT_CACHE_DIR = "cache-dir";
 
     final boolean help;
@@ -113,9 +114,11 @@ public class Config {
         // Set post options.
         this.postOptions.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
         this.postOptions.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
-        this.postOptions.basePath = optValOrDefault(cmd, OPT_BASE_PATH, DEFAULT_BASE_PATH);
-        this.postOptions.username = optValOrDefault(cmd, OPT_USERNAME, Conventions.DEFAULT_USERNAME);
-        this.postOptions.password = optValOrDefault(cmd, OPT_TOKEN, Conventions.DEFAULT_PASSWORD);
+        this.postOptions.basePath = optValOrDefault(cmd, OPT_BASE_PATH, "");
+        String username = optValOrDefault(cmd, OPT_USERNAME, Conventions.DEFAULT_USERNAME);
+        String password = optValOrDefault(cmd, OPT_TOKEN, null);
+        this.postOptions.username = username;
+        this.postOptions.authToken = new AuthToken(username, password);
         this.postOptions.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
         this.postOptions.stacks = optValsOrDefault(cmd, OPT_STACK, Collections.singletonList(DEFAULT_STACK));
         this.postOptions.dry = cmd.hasOption(OPT_DRY);
@@ -166,7 +169,7 @@ public class Config {
         userOpt.setArgName("USERNAME");
         opts.addOption(userOpt);
 
-        Option tokenOpt = new Option(null, OPT_TOKEN, true, "The authentication token (default: "+Conventions.DEFAULT_PASSWORD+").");
+        Option tokenOpt = new Option(null, OPT_TOKEN, true, "The API key to use for authentication.");
         tokenOpt.setArgName("TOKEN");
         opts.addOption(tokenOpt);
 
