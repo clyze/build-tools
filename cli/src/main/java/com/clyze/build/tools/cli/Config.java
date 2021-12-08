@@ -40,6 +40,7 @@ public class Config {
     private static final String OPT_USERNAME = "user";
     private static final String OPT_TOKEN = "api-key";
     private static final String OPT_CACHE_DIR = "cache-dir";
+    private static final String OPT_DIR = "dir";
 
     final boolean help;
     final boolean debug;
@@ -51,6 +52,7 @@ public class Config {
     final List<String> codeFiles;
     final Collection<String> sourceDirs;
     final String cacheDir;
+    final String currentDir;
 
     /**
      * Returns the directory where the created snapshot will be cached.
@@ -124,6 +126,7 @@ public class Config {
         this.postOptions.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
         this.postOptions.stacks = optValsOrDefault(cmd, OPT_STACK, Collections.singletonList(DEFAULT_STACK));
         this.postOptions.dry = cmd.hasOption(OPT_DRY);
+        this.currentDir = optValOrDefault(cmd, OPT_DIR, null);
     }
 
     private static Options createOptions() {
@@ -198,6 +201,10 @@ public class Config {
         Option platformOpt = new Option("p", OPT_PLATFORM, true, "The Java platform to use. Valid values: java_8, java_11. Default: " + DEFAULT_JAVA_PLATFORM);
         platformOpt.setArgName("PLATFORM");
         opts.addOption(platformOpt);
+
+        Option dirOpt = new Option("d", OPT_DIR, true, "The project root directory. Default is current directory.");
+        dirOpt.setArgName("DIR");
+        opts.addOption(dirOpt);
 
         return opts;
     }

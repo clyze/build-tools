@@ -36,7 +36,7 @@ abstract public class BuildTool {
     }
 
     static BuildTool detect(Config config) {
-        File currentDir = getCurrentDir();
+        File currentDir = config.currentDir != null ? new File(config.currentDir) : getCurrentDir();
         if (!currentDir.exists())
             throw new RuntimeException("ERROR: current directory is invalid: " + currentDir);
         if ((new File(currentDir, "build.gradle")).exists())
