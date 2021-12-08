@@ -38,6 +38,8 @@ public class Conventions {
     public static final String DEFAULT_HOST        = "localhost";
     /** Default server port. */
     public static final String DEFAULT_PORT        = "8001";
+    /** Default server base path. */
+    public static final String DEFAULT_BASE_PATH   = "";
     /** Default (server) user. */
     public static final String DEFAULT_USERNAME    = "user";
     /** Default server project. */

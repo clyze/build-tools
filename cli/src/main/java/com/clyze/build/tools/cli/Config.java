@@ -33,6 +33,8 @@ public class Config {
     private static final String OPT_PLATFORM = "platform";
     private static final String OPT_STACK = "stack";
     private static final String OPT_DRY = "dry";
+    private static final String OPT_HOST = "host";
+    private static final String OPT_PORT = "port";
     private static final String OPT_BASE_PATH = "server-base-path";
     private static final String OPT_DEP_SOURCES = "include-dep-sources";
     private static final String OPT_USERNAME = "user";
@@ -112,9 +114,9 @@ public class Config {
         this.cacheDir = optValOrDefault(cmd, OPT_CACHE_DIR, null);
 
         // Set post options.
-        this.postOptions.host = optValOrDefault(cmd, "host", Conventions.DEFAULT_HOST);
-        this.postOptions.port = Integer.parseInt(optValOrDefault(cmd, "port", getDefaultPort()));
-        this.postOptions.basePath = optValOrDefault(cmd, OPT_BASE_PATH, "");
+        this.postOptions.host = optValOrDefault(cmd, OPT_HOST, Conventions.DEFAULT_HOST);
+        this.postOptions.port = Integer.parseInt(optValOrDefault(cmd, OPT_PORT, getDefaultPort()));
+        this.postOptions.basePath = optValOrDefault(cmd, OPT_BASE_PATH, DEFAULT_BASE_PATH);
         String username = optValOrDefault(cmd, OPT_USERNAME, Conventions.DEFAULT_USERNAME);
         String password = optValOrDefault(cmd, OPT_TOKEN, null);
         this.postOptions.username = username;
@@ -137,13 +139,17 @@ public class Config {
         configOpt.setArgName("FILE");
         opts.addOption(configOpt);
 
-        Option hostOpt = new Option(null, "host", true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
+        Option hostOpt = new Option(null, OPT_HOST, true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
         hostOpt.setArgName("HOST");
         opts.addOption(hostOpt);
 
-        Option portOpt = new Option(null, "port", true, "The server port (default: "+getDefaultPort()+").");
+        Option portOpt = new Option(null, OPT_PORT, true, "The server port (default: "+getDefaultPort()+").");
         portOpt.setArgName("PORT");
         opts.addOption(portOpt);
+
+        Option serverBaseOpt = new Option(null, OPT_BASE_PATH, true, "The server host (default: '"+Conventions.DEFAULT_BASE_PATH+"').");
+        serverBaseOpt.setArgName("BASE");
+        opts.addOption(serverBaseOpt);
 
         Option jsonDirOpt = new Option(null, "json-dir", true, "The JSON metadata output directory (default: "+DEFAULT_JSON_DIR+").");
         jsonDirOpt.setArgName("DIR");
