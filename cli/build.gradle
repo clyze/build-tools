@@ -1,5 +1,7 @@
 plugins {
     id 'application'
+    id 'java-library'
+    id 'maven-publish'
 }
 
 sourceCompatibility = "1.8"
@@ -32,13 +34,41 @@ compileJava {
     options.compilerArgs << '-Xlint:deprecation'
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
 task fatjar(type: Jar) {
     manifest {
         attributes 'Main-Class': mainClass,
                    'Implementation-Version': project.version
     }
     archiveBaseName.set(project.name + '-all')
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+/**
+ * Checks for dependencies that may come from mavenLocal and can harm
+ * build reproducibility (e.g. for releases).
+ */
+project.afterEvaluate {
+    configurations.default
+            .collect { it.canonicalPath }
+            .findAll { it.contains('.m2') }
+            .each { println "WARNING: build may be using mavenLocal(): ${it}" }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifacts = [fatjar, sourcesJar, javadocJar]
+        }
+    }
 }
