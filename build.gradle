@@ -13,3 +13,4 @@ subprojects {
 task doc() {}
 doc.dependsOn ":gradle-plugin:groovydoc"
 doc.dependsOn ":build-integration-lib:javadoc"
+doc.dependsOn ":intellij-plugin:dokkaJavadoc"
