@@ -1,0 +1,25 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>com.clyze.intellijplugin</id>
+    <name>Clyze</name>
+    <vendor>clyze</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.clyze.intellijplugin.services.MyApplicationService"/>
+        <projectService serviceImplementation="com.clyze.intellijplugin.services.MyProjectService"/>
+        <toolWindow factoryClass="com.clyze.intellijplugin.ui.MyToolWindowFactory" id="Clyze"/>
+    </extensions>
+
+    <applicationListeners>
+        <listener class="com.clyze.intellijplugin.listeners.MyProjectManagerListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </applicationListeners>
+
+    <actions>
+        <action id="LookupLineAction" class="com.clyze.intellijplugin.actions.LookupLineAction" text="Look Up Line With Clyze" description="Look up the results in a source code line.">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+    </actions>
+</idea-plugin>
