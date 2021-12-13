@@ -16,6 +16,8 @@ plugins {
     id("org.jetbrains.qodana") version "0.1.13"
     // Kotlin documentation support
     id("org.jetbrains.dokka") version "1.6.0"
+    // For debugging task dependencies (task "tiTree")
+    // id("org.barfuin.gradle.taskinfo") version "1.3.1"
 }
 
 group = properties("pluginGroup")
@@ -121,12 +123,13 @@ tasks {
 }
 
 tasks.register<Copy>("resolveCli") {
+    dependsOn(":cli:distZip")
     from(file("../cli/build/distributions/cli-4.0.69.zip"))
     into(file("src/main/resources"))
 }
 
 tasks {
-    build {
+    processResources {
         dependsOn("resolveCli")
     }
 }
