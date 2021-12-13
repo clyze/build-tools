@@ -1,6 +1,6 @@
 package com.clyze.intellijplugin.ui
 
-import com.clyze.intellijplugin.services.MyProjectService
+import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.clyze.intellijplugin.ui.Helper.CLYZE_CONFIG
 import com.intellij.openapi.ui.ComboBox
 import java.awt.GridLayout
@@ -14,7 +14,7 @@ class AnalysisPanel(private val profile : Map<*, *>) {
      * Create the UI (dialog) for the given analysis profile.
      * @param projectService    the service object of the current project
      */
-    fun showUI(projectService : MyProjectService) {
+    fun showUI(projectService : ClyzeProjectService) {
         val analysisName = profile["displayName"]
 
         val optionsPanel = JPanel()

@@ -1,7 +1,7 @@
 package com.clyze.intellijplugin.ui
 
 import com.clyze.client.web.api.Remote
-import com.clyze.intellijplugin.services.MyProjectService
+import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.intellij.openapi.application.ApplicationManager
 import javax.swing.JFrame
 import javax.swing.JOptionPane
@@ -17,7 +17,7 @@ object Helper {
      * Helper function to connect to the server (async) and
      * show an error dialog on failure.
      */
-    fun performServerAction(projectService: MyProjectService, action: (Remote) -> Unit) {
+    fun performServerAction(projectService: ClyzeProjectService, action: (Remote) -> Unit) {
         ApplicationManager.getApplication().invokeLater {
             try {
                 action(projectService.getRemote())

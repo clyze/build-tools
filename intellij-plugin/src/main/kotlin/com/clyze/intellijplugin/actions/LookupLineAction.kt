@@ -1,6 +1,6 @@
 package com.clyze.intellijplugin.actions
 
-import com.clyze.intellijplugin.services.MyProjectService
+import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.clyze.intellijplugin.ui.Helper
 import com.clyze.intellijplugin.ui.LineResult
 import com.clyze.intellijplugin.ui.MyToolWindowFactory
@@ -34,9 +34,9 @@ class LookupLineAction : AnAction() {
         val canonicalPath = file.containingDirectory.virtualFile.canonicalPath
         val commonPrefix = getCommonPrefix(project.projectFilePath, canonicalPath)
         val codeFile = canonicalPath?.substring(commonPrefix.length + "/src/".length) + "/" + file.name
-        println("code file: " + codeFile)
+        println("code file: $codeFile")
 
-        val projectService = project.getService(MyProjectService::class.java)
+        val projectService = project.getService(ClyzeProjectService::class.java)
         val config = projectService.config
         Helper.performServerAction(projectService) { remote ->
             val symbols = remote.getSymbols(
@@ -47,7 +47,7 @@ class LookupLineAction : AnAction() {
                 codeFile,
                 (caretModel.logicalPosition.line + 1).toString()
             )
-            println("symbols: " + symbols)
+            println("symbols: $symbols")
 
             val tableTriple = projectService.lineResults
             if (tableTriple == null) {
@@ -63,7 +63,7 @@ class LookupLineAction : AnAction() {
                 if (symbolId is String && type is String && desc is String)
                     lineResults.add(LineResult(symbolId, type, desc))
                 else
-                    println("Bad line result data: " + it)
+                    println("Bad line result data: $it")
             }
             tableModel.update(table, lineResults)
             tabFocus()

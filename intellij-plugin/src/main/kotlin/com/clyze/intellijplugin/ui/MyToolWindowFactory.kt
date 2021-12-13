@@ -1,7 +1,7 @@
 package com.clyze.intellijplugin.ui
 
 import com.clyze.intellijplugin.Poster
-import com.clyze.intellijplugin.services.MyProjectService
+import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.clyze.intellijplugin.state.AnalysisRun
 import com.clyze.intellijplugin.ui.Helper.CLYZE_CONFIG
 import com.clyze.intellijplugin.ui.Helper.performServerAction
@@ -151,7 +151,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         mainPanel.add(actionsPanel)
 
         val contentManager = toolWindow.contentManager
-        val projectService = project.getService(MyProjectService::class.java)
+        val projectService = project.getService(ClyzeProjectService::class.java)
         val config = projectService.config
 
         // Update project-specific configurations.

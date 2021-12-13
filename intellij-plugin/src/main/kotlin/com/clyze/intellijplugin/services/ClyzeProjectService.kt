@@ -4,14 +4,14 @@ import com.clyze.client.web.api.Remote
 import com.intellij.openapi.project.Project
 import com.clyze.intellijplugin.MyBundle
 import com.clyze.intellijplugin.state.AnalysisRun
-import com.clyze.intellijplugin.ui.Config
+import com.clyze.intellijplugin.state.Config
 import com.clyze.intellijplugin.ui.LineResultsTableModel
 import com.intellij.ui.table.JBTable
 
 /**
  * This service holds the plugin state for a specific open project.
  */
-class MyProjectService(project: Project) {
+class ClyzeProjectService(project: Project) {
     val config = Config(null, null, null, null, null, null, null)
     var lineResults : Triple<JBTable, LineResultsTableModel, () -> Unit>? = null
     /** Map analysis run to analysis profile. */

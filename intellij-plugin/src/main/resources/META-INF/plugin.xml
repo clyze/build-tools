@@ -7,8 +7,8 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.clyze.intellijplugin.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.clyze.intellijplugin.services.MyProjectService"/>
+        <applicationService serviceImplementation="com.clyze.intellijplugin.services.ClyzeApplicationService"/>
+        <projectService serviceImplementation="com.clyze.intellijplugin.services.ClyzeProjectService"/>
         <toolWindow factoryClass="com.clyze.intellijplugin.ui.MyToolWindowFactory" id="Clyze"/>
     </extensions>
 
