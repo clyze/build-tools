@@ -405,7 +405,7 @@ class AndroidPlatform extends Platform {
             tmpDirs = new HashSet<>()
             Set<String> cp = new HashSet<>()
             cp.addAll(scavengeJarsPre)
-            cp.addAll(ContainerUtils.toJars(scavengeDeps as List, true, tmpDirs))
+            cp.addAll(ContainerUtils.toJars(scavengeDeps as List, true, [], tmpDirs))
             cp.each {
                 if (!(new File(it)).exists())
                     project.logger.warn msg("WARNING: classpath entry to add does not exist: ${it}")
