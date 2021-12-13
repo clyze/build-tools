@@ -1,6 +1,6 @@
 package com.clyze.intellijplugin
 
-import com.clyze.intellijplugin.ui.Config
+import com.clyze.intellijplugin.state.Config
 import com.intellij.openapi.project.Project
 import net.lingala.zip4j.ZipFile
 import org.apache.commons.lang.SystemUtils

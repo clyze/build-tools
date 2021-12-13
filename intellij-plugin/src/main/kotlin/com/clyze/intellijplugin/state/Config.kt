@@ -1,4 +1,4 @@
-package com.clyze.intellijplugin.ui
+package com.clyze.intellijplugin.state
 
 import com.clyze.client.web.AuthToken
 import com.clyze.client.web.api.Remote
@@ -10,7 +10,7 @@ class Config(var host : String?, var port : String?, var basePath : String?,
              var user : String?, var token : String?, var projectName : String?,
              var snapshotName : String?) {
     private fun getRemotePath() : String {
-        return host + ":" + port + basePath
+        return "$host:$port$basePath"
     }
 
     fun getRemote() : Remote {
