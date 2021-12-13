@@ -5,6 +5,10 @@ import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.table.TableModel
 
+/**
+ * The model responsible for displaying the analysis results of
+ * a given source line as a table.
+ */
 class LineResultsTableModel(
     private val lineResultsData : MutableList<LineResult>,
     private val listeners : MutableList<TableModelListener> = ArrayList()) : TableModel {

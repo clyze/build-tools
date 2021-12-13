@@ -7,6 +7,7 @@ import org.jetbrains.annotations.PropertyKey
 @NonNls
 private const val BUNDLE = "messages.MyBundle"
 
+/** The plugin localized strings bundle. */
 object MyBundle : DynamicBundle(BUNDLE) {
 
     @Suppress("SpreadOperator")
