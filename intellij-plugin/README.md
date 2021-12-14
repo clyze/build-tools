@@ -1,7 +1,7 @@
 # clyze-intellij-plugin
 
 <!-- Plugin description -->
-This plugin integrates the Clyze Analysis Workbench with IntelliJ IDEA.
+This plugin integrates the Clyze Analysis Workbench with IDEs based on the IntelliJ Platform.
 <!-- Plugin description end -->
 
 ## Installation
