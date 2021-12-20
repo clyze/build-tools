@@ -38,6 +38,12 @@ To set a custom server:
 cli --host my.server.com --port 8090
 ```
 
+To set a custom server with a base path prefix:
+
+```
+cli --host my.server.com --port 8090 --server-base-path /path
+```
+
 ## Use with Buck (Android) ##
 
 Step 1. Build your project without shrinking/obfuscation. The easiest
