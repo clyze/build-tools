@@ -32,7 +32,7 @@ repositories {
 
 dependencies {
     implementation("net.lingala.zip4j:zip4j:2.9.1")
-    implementation("com.clyze:clyze-client:4.2.0")
+    implementation("com.clyze:clyze-client:4.2.1")
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin

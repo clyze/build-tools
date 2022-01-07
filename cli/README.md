@@ -35,13 +35,13 @@ cli -b maven    # or cli -b gradle / cli -b ant
 To set a custom server:
 
 ```
-cli --host my.server.com --port 8090
+cli --server my.server.com:8090
 ```
 
 To set a custom server with a base path prefix:
 
 ```
-cli --host my.server.com --port 8090 --server-base-path /path
+cli --server my.server.com:8090/path
 ```
 
 ## Use with Buck (Android) ##

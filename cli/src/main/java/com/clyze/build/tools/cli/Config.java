@@ -21,8 +21,6 @@ public class Config {
     public static final String DEFAULT_JAVA_PLATFORM = "java_8";
     /** The default Android platform needed by the server for deep analysis. */
     public static final String DEFAULT_ANDROID_PLATFORM = "android_25_fulljars";
-    /** The default server base path. */
-    public static final String DEFAULT_BASE_PATH = "/clue";
 
     private static final String BUCK_DEFAULT_TRACE_FILE = "buck-out/log/build.trace";
     private static final String DEFAULT_JSON_DIR = "json";
@@ -33,7 +31,7 @@ public class Config {
     private static final String OPT_PLATFORM = "platform";
     private static final String OPT_STACK = "stack";
     private static final String OPT_DRY = "dry";
-    private static final String OPT_HOST = "host";
+    private static final String OPT_SERVER = "server";
     private static final String OPT_PORT = "port";
     private static final String OPT_BASE_PATH = "server-base-path";
     private static final String OPT_DEP_SOURCES = "include-dep-sources";
@@ -116,13 +114,10 @@ public class Config {
         this.cacheDir = optValOrDefault(cmd, OPT_CACHE_DIR, null);
 
         // Set post options.
-        this.postOptions.host = optValOrDefault(cmd, OPT_HOST, Conventions.DEFAULT_HOST);
-        this.postOptions.port = Integer.parseInt(optValOrDefault(cmd, OPT_PORT, getDefaultPort()));
-        this.postOptions.basePath = optValOrDefault(cmd, OPT_BASE_PATH, DEFAULT_BASE_PATH);
+        this.postOptions.host = optValOrDefault(cmd, OPT_SERVER, Conventions.DEFAULT_HOST);
         String username = optValOrDefault(cmd, OPT_USERNAME, Conventions.DEFAULT_USERNAME);
-        String password = optValOrDefault(cmd, OPT_TOKEN, null);
-        this.postOptions.username = username;
-        this.postOptions.authToken = new AuthToken(username, password);
+        this.postOptions.owner = username;
+        this.postOptions.authToken = new AuthToken(username, optValOrDefault(cmd, OPT_TOKEN, null));
         this.postOptions.project = optValOrDefault(cmd, "project", Conventions.DEFAULT_PROJECT);
         this.postOptions.stacks = optValsOrDefault(cmd, OPT_STACK, Collections.singletonList(DEFAULT_STACK));
         this.postOptions.dry = cmd.hasOption(OPT_DRY);
@@ -142,7 +137,7 @@ public class Config {
         configOpt.setArgName("FILE");
         opts.addOption(configOpt);
 
-        Option hostOpt = new Option(null, OPT_HOST, true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
+        Option hostOpt = new Option(null, OPT_SERVER, true, "The server host (default: "+Conventions.DEFAULT_HOST+").");
         hostOpt.setArgName("HOST");
         opts.addOption(hostOpt);
 

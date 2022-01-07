@@ -187,11 +187,11 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         fun syncServer() {
             val user = config.user
             val token = config.token
-            val remotePath = config.remotePath
-            if (user == null || user == "") {
+            val remotePath = config.server
+            if (user == "") {
                 reportError("No user found, open Project Settings to diagnose.")
                 return
-            } else if (token == null || token == "") {
+            } else if (token == "") {
                 reportError("No API key / password found, open Project Settings to diagnose.")
                 return
             } else if (remotePath == "") {
@@ -307,7 +307,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             val projectName = getSelectedProject()
             projectService.setProjectName(projectName)
             if (projectName != null) {
-                val user = config.user ?: return@addActionListener
+                val user = config.user
                 performServerAction(projectService) { remote ->
                     val projectInfo = remote.listSnapshots(user, projectName)
                     println(projectInfo)
@@ -329,9 +329,15 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             val snapshotName = getSelectedSnapshot()
             projectService.setSnapshot(snapshotName)
             if (projectName != null && snapshotName != null) {
-                val user = config.user ?: return@addActionListener
+                val user = config.user
                 performServerAction(projectService) { remote ->
-                    val analysisInfo = remote.getConfiguration(user, projectName, snapshotName, CLYZE_CONFIG)
+                    val analysisInfo: Map<String, Any?>?
+                    try {
+                        analysisInfo = remote.getConfiguration(user, projectName, snapshotName, CLYZE_CONFIG)
+                    } catch (ex : Exception) {
+                        println("WARNING: no snapshots found in project $projectName.")
+                        return@performServerAction
+                    }
                     println("Analysis information: $analysisInfo")
                     analyses.removeAllItems()
                     if (analysisInfo is Map<*, *>) {

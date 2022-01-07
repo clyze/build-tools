@@ -23,7 +23,7 @@ dependencies {
     api 'com.google.code.gson:gson:2.8.8'                          // Apache 2.0
     api 'org.zeroturnaround:zt-zip:1.14'                           // Apache 2.0
     compileOnly "org.codehaus.groovy:groovy:${groovyVersion}"
-    api('com.clyze:clyze-client:4.2.0') {
+    api("com.clyze:clyze-client:4.2.1") {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
         exclude group: "org.codehaus.groovy", module: "groovy"
     }

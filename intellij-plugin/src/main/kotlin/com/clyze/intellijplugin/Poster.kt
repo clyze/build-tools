@@ -34,9 +34,7 @@ class Poster {
         val cmd = listOf(
             cli,
             "--dir", project.basePath,
-            "--host", config.host,
-            "--port", config.port,
-            "--server-base-path", config.basePath,
+            "--server", config.server,
             "--user", config.user,
             "--api-key", config.token,
             "--project", project.name

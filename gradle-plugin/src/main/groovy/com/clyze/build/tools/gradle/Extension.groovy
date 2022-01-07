@@ -153,9 +153,7 @@ class Extension {
     PostOptions createPostOptions(boolean autoRepack) {
         PostOptions opts = new PostOptions()
         opts.host = this.host
-        opts.port = this.port
-        opts.basePath = this.basePath
-        opts.username = this.username
+        opts.owner = this.username
         opts.authToken = new AuthToken(this.username, this.apiKey)
         opts.stacks = this.stacks
         opts.project = this.projectName
