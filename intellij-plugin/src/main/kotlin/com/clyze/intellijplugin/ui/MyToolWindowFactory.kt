@@ -232,8 +232,17 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             val snapshotName = getSelectedSnapshot()
             val analysisName = analyses.item
             val output = dataset.item
-            if (projectName == null || snapshotName == null || analysisName == null || output == null) {
-                println("Null project/snapshot/analysis/output!")
+            if (projectName == null) {
+                println("Null project!")
+                return
+            } else if (snapshotName == null) {
+                println("Null snapshot!")
+                return
+            } else if (analysisName == null) {
+                println("Null analysis!")
+                return
+            } else if (output == null) {
+                println("Null output!")
                 return
             }
             val analysisId = getAnalysisInfo(projectName, snapshotName, analysisName) { projectService.analysisIds }
