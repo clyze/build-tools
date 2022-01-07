@@ -1,10 +1,10 @@
 package com.clyze.intellijplugin.actions
 
 import com.clyze.intellijplugin.services.ClyzeProjectService
-import com.clyze.intellijplugin.ui.Helper
+import com.clyze.intellijplugin.Helper
+import com.clyze.intellijplugin.Helper.CLYZE_CONFIG
 import com.clyze.intellijplugin.ui.LineResult
 import com.clyze.intellijplugin.ui.MyToolWindowFactory
-import com.clyze.intellijplugin.ui.Helper.CLYZE_CONFIG
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys

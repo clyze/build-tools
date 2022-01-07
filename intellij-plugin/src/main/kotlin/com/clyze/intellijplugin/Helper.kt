@@ -1,4 +1,4 @@
-package com.clyze.intellijplugin.ui
+package com.clyze.intellijplugin
 
 import com.clyze.client.web.api.Remote
 import com.clyze.intellijplugin.services.ClyzeProjectService

@@ -1,10 +1,11 @@
 package com.clyze.intellijplugin.ui
 
+import com.clyze.intellijplugin.Helper.CLYZE_CONFIG
+import com.clyze.intellijplugin.Helper.performServerAction
 import com.clyze.intellijplugin.Poster
 import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.clyze.intellijplugin.state.AnalysisRun
-import com.clyze.intellijplugin.ui.Helper.CLYZE_CONFIG
-import com.clyze.intellijplugin.ui.Helper.performServerAction
+import com.clyze.intellijplugin.ui.UIHelper.setMaximumHeight
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -17,8 +18,6 @@ import com.jetbrains.rd.util.first
 import java.awt.*
 import java.net.URI
 import javax.swing.*
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.table.DefaultTableModel
 
 /**
@@ -40,32 +39,20 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                         proc(res)
                 }
         }
-    }
 
-    private fun setMaximumHeight(jc : JComponent, height : Int) {
-        jc.maximumSize = Dimension(jc.maximumSize.width, height)
+        fun reportError(msg :String) {
+            JOptionPane.showMessageDialog(
+                JFrame(),
+                msg,
+                "Server error",
+                JOptionPane.ERROR_MESSAGE)
+        }
     }
 
     private fun updateWithSorted(component : ComboBox<String>, items : MutableList<String>) {
         component.removeAllItems()
         items.sort()
         items.forEach { component.addItem(it) }
-    }
-
-    private fun setInputModelUpdater(input : JTextField, setter : (t : String) -> Unit) {
-        input.document.addDocumentListener(object : DocumentListener {
-            override fun insertUpdate(p0: DocumentEvent?) {
-                setter(input.text)
-            }
-
-            override fun removeUpdate(p0: DocumentEvent?) {
-                setter(input.text)
-            }
-
-            override fun changedUpdate(p0: DocumentEvent?) {
-                setter(input.text)
-            }
-        })
     }
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -77,30 +64,9 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         connectionPanel.layout = BoxLayout(connectionPanel, BoxLayout.PAGE_AXIS)
         val connectionForm = JPanel()
         connectionForm.layout = GridLayout(5, 2)
-        // Host
-        connectionForm.add(JLabel("Host:"))
-        val hostInput = JTextField("localhost")
-        connectionForm.add(hostInput)
-        // Port
-        connectionForm.add(JLabel("Port:"))
-        val portInput = JTextField("8020")
-        connectionForm.add(portInput)
-        // Base path
-        connectionForm.add(JLabel("Base path:"))
-        val basePathInput = JTextField("/clue")
-        connectionForm.add(basePathInput)
-        // User
-        connectionForm.add(JLabel("User:"))
-        val authUserInput = JTextField("user000")
-        connectionForm.add(authUserInput)
-        connectionForm.add(JLabel("Token:"))
-        val authTokenInput = JTextField("ccc03dba18bcb2a5bd1a6e2f")
-        connectionForm.add(authTokenInput)
-        connectionPanel.add(connectionForm)
         val connectBtn = JButton("Sync With Server")
         connectionPanel.add(connectBtn)
-        setMaximumHeight(connectionPanel, 250)
-        mainPanel.add(connectionPanel)
+        mainPanel.add(connectBtn)
 
         val codePanel = JPanel()
         codePanel.border = BorderFactory.createTitledBorder("Code")
@@ -154,19 +120,9 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         val projectService = project.getService(ClyzeProjectService::class.java)
         val config = projectService.config
 
-        // Update project-specific configurations.
-        config.host = hostInput.text
-        config.port = portInput.text
-        config.basePath = basePathInput.text
-        config.user = authUserInput.text
-        config.token = authTokenInput.text
+        // Update project-specific configuration for default project/snapshot.
         config.projectName = projects.item
         config.snapshotName = snapshots.item
-        setInputModelUpdater(hostInput) { s -> config.host = s }
-        setInputModelUpdater(portInput) { s -> config.port = s }
-        setInputModelUpdater(basePathInput) { s -> config.basePath = s }
-        setInputModelUpdater(authUserInput) { s -> config.user = s }
-        setInputModelUpdater(authTokenInput) { s -> config.token = s }
 
         // Results pane
         val lineResultsPanel = JPanel()
@@ -218,7 +174,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                     if (name is String) {
                         analysisTypes.addItem(name)
                         val profile = it["id"]
-                        println("Project analysis profile: " + profile)
+                        println("Project analysis profile: $profile")
                         if (profile is String) {
                             projectService.analysisTypeProfiles[name] = profile
                             projectService.analysisProfileDescriptor[profile] = it
@@ -229,7 +185,19 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         }
 
         fun syncServer() {
-            val user = config.user ?: return
+            val user = config.user
+            val token = config.token
+            val remotePath = config.remotePath
+            if (user == null || user == "") {
+                reportError("No user found, open Project Settings to diagnose.")
+                return
+            } else if (token == null || token == "") {
+                reportError("No API key / password found, open Project Settings to diagnose.")
+                return
+            } else if (remotePath == "") {
+                reportError("No server configured, open Project Settings to diagnose.")
+                return
+            }
             performServerAction(projectService) { remote ->
                 val projectsResp = remote.listProjects(user)
                 println(projectsResp)
@@ -404,9 +372,9 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                 return@addActionListener
             }
             val profile = getAnalysisInfo(projectName, snapshotName, analysisName) { projectService.analysisProfiles }
-            println("Found analysis profile: " + profile)
+            println("Found analysis profile: $profile")
             val analysisInfo = projectService.analysisProfileDescriptor[profile]
-            println("Found analysis info: " + analysisInfo)
+            println("Found analysis info: $analysisInfo")
             val outputs = analysisInfo?.get("outputs")
             val datasetItems : MutableList<String> = ArrayList()
             if (outputs != null && outputs is List<*>) {
@@ -415,7 +383,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                     println("Processing: " + output.toString())
                     if (output is Map<*, *>) {
                         val outputId = output["id"]
-                        println("outputId: " + outputId)
+                        println("outputId: $outputId")
                         if (outputId != null && outputId is String) {
                             datasetItems.add(outputId)
                         }
@@ -473,18 +441,14 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
 
         mainPanel.focusTraversalPolicy = object : FocusTraversalPolicy() {
             val transitions : Map<Component, Component> = mapOf(
-                Pair(hostInput, portInput),
-                Pair(portInput, basePathInput),
-                Pair(basePathInput, authUserInput),
-                Pair(authUserInput, authTokenInput),
-                Pair(authTokenInput, connectBtn),
                 Pair(connectBtn, projects),
                 Pair(projects, snapshots),
                 Pair(snapshots, analyses),
                 Pair(analyses, gotoWebBtn),
                 Pair(gotoWebBtn, postBtn),
                 Pair(postBtn, postMethodCombo),
-                Pair(postMethodCombo, startAnalysisBtn)
+                Pair(postMethodCombo, startAnalysisBtn),
+                Pair(startAnalysisBtn, connectBtn)
             )
             val transitionsReverse = transitions.reverse()
 

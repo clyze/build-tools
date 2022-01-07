@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import com.clyze.intellijplugin.services.ClyzeProjectService
 
-internal class MyProjectManagerListener : ProjectManagerListener {
+internal class ClyzeProjectManagerListener : ProjectManagerListener {
 
     override fun projectOpened(project: Project) {
         project.service<ClyzeProjectService>()

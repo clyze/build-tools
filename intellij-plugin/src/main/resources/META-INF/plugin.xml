@@ -10,10 +10,13 @@
         <applicationService serviceImplementation="com.clyze.intellijplugin.services.ClyzeApplicationService"/>
         <projectService serviceImplementation="com.clyze.intellijplugin.services.ClyzeProjectService"/>
         <toolWindow factoryClass="com.clyze.intellijplugin.ui.MyToolWindowFactory" id="Clyze"/>
+        <projectConfigurable parentId="tools" instance="com.clyze.intellijplugin.state.ProjectSettingsConfigurable"
+                             id="com.clyze.intellijplugin.state.ProjectSettingsConfigurable" displayName="Clyze"
+                             nonDefaultProject="true"/>
     </extensions>
 
     <applicationListeners>
-        <listener class="com.clyze.intellijplugin.listeners.MyProjectManagerListener"
+        <listener class="com.clyze.intellijplugin.listeners.ClyzeProjectManagerListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 

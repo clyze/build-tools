@@ -1,7 +1,8 @@
 package com.clyze.intellijplugin.ui
 
+import com.clyze.intellijplugin.Helper
+import com.clyze.intellijplugin.Helper.CLYZE_CONFIG
 import com.clyze.intellijplugin.services.ClyzeProjectService
-import com.clyze.intellijplugin.ui.Helper.CLYZE_CONFIG
 import com.intellij.openapi.ui.ComboBox
 import java.awt.GridLayout
 import javax.swing.*
