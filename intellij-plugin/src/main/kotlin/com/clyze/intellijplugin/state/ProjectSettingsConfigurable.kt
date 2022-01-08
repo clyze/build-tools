@@ -76,9 +76,9 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
     override fun apply() {
         // Update configuration state.
         val config = getProjectConfig()
-        setFromTextField(serverInput) { s -> config.server = s }
-        setFromTextField(authUserInput) { s -> config.user = s }
-        setFromTextField(authTokenInput) { s -> config.token = s }
+        setFromTextField(serverInput) { s -> config.setServer(s) }
+        setFromTextField(authUserInput) { s -> config.setUser(s) }
+        setFromTextField(authTokenInput) { s -> config.setToken(s) }
         // Reset "modified" flag.
         this.modified = false
     }
@@ -99,8 +99,8 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
     override fun reset() {
         super.reset()
         val config = getProjectConfig()
-        serverInput?.text = config.server
-        authUserInput?.text = config.user
-        authTokenInput?.text = config.token
+        serverInput?.text = config.getServer()
+        authUserInput?.text = config.getUser()
+        authTokenInput?.text = config.getToken()
     }
 }

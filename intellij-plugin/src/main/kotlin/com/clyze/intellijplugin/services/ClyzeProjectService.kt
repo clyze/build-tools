@@ -12,7 +12,7 @@ import com.intellij.ui.table.JBTable
  * This service holds the plugin state for a specific open project.
  */
 class ClyzeProjectService(project: Project) {
-    val config = Config(Config.defaultRemote, "", "", null, null)
+    val config = Config(project,null, null)
     var lineResults : Triple<JBTable, LineResultsTableModel, () -> Unit>? = null
     /** Map analysis run to analysis profile. */
     val analysisProfiles : MutableMap<AnalysisRun, String> = HashMap()

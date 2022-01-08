@@ -167,7 +167,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
 
         fun showAnalysisTypes() {
             performServerAction(projectService) { remote ->
-                val projectAnalyses = remote.getProjectAnalyses(config.user, config.projectName)
+                val projectAnalyses = remote.getProjectAnalyses(config.getUser(), config.projectName)
                 analysisTypes.removeAllItems()
                 processResults(projectAnalyses) {
                     val name = it["displayName"]
@@ -185,9 +185,9 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         }
 
         fun syncServer() {
-            val user = config.user
-            val token = config.token
-            val remotePath = config.server
+            val user = config.getUser()
+            val token = config.getToken()
+            val remotePath = config.getServer()
             if (user == "") {
                 reportError("No user found, open Project Settings to diagnose.")
                 return
@@ -271,7 +271,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                         datasetResults.model = datasetTableModel
                         performServerAction(projectService) { remote ->
                             val data = remote.getOutput(
-                                config.user,
+                                config.getUser(),
                                 projectName,
                                 snapshotName,
                                 CLYZE_CONFIG,
@@ -316,7 +316,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             val projectName = getSelectedProject()
             projectService.setProjectName(projectName)
             if (projectName != null) {
-                val user = config.user
+                val user = config.getUser()
                 performServerAction(projectService) { remote ->
                     val projectInfo = remote.listSnapshots(user, projectName)
                     println(projectInfo)
@@ -338,7 +338,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             val snapshotName = getSelectedSnapshot()
             projectService.setSnapshot(snapshotName)
             if (projectName != null && snapshotName != null) {
-                val user = config.user
+                val user = config.getUser()
                 performServerAction(projectService) { remote ->
                     val analysisInfo: Map<String, Any?>?
                     try {

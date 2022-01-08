@@ -34,9 +34,9 @@ class Poster {
         val cmd = listOf(
             cli,
             "--dir", project.basePath,
-            "--server", config.server,
-            "--user", config.user,
-            "--api-key", config.token,
+            "--server", config.getServer(),
+            "--user", config.getUser(),
+            "--api-key", config.getToken(),
             "--project", project.name
         )
         println("Running command: $cmd")

@@ -114,7 +114,7 @@ class AnalysisPanel(private val profile : Map<*, *>) {
                 }
                 println("Analysis options: $anOptions")
                 analysisStatus.text = "Analyzing..."
-                remote.analyze(config.user, config.projectName, config.snapshotName, CLYZE_CONFIG, profile["id"]?.toString(), anOptions)
+                remote.analyze(config.getUser(), config.projectName, config.snapshotName, CLYZE_CONFIG, profile["id"]?.toString(), anOptions)
                 analysisStatus.text = "Done."
                 frame.dispose()
             }

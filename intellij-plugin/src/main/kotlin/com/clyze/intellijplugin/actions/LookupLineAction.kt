@@ -40,7 +40,7 @@ class LookupLineAction : AnAction() {
         val config = projectService.config
         Helper.performServerAction(projectService) { remote ->
             val symbols = remote.getSymbols(
-                config.user,
+                config.getUser(),
                 config.projectName,
                 config.snapshotName,
                 CLYZE_CONFIG,
