@@ -56,7 +56,7 @@ task copyJcPlugin(type: Copy) {
     from configurations.jcplugin
     into jcpluginResourceDir
 }
-[classes, build, jar].each { it.dependsOn(copyJcPlugin) }
+[classes, build, jar, processResources].each { it.dependsOn(copyJcPlugin) }
 task cleanJcPluginDir(type: Delete) {
     delete jcpluginResourceDir
 }
