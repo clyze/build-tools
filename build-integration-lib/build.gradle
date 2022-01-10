@@ -20,7 +20,7 @@ configurations {
 }
 
 dependencies {
-    api 'com.google.code.gson:gson:2.8.8'                          // Apache 2.0
+    api 'com.google.code.gson:gson:2.8.9'                          // Apache 2.0
     api 'org.zeroturnaround:zt-zip:1.14'                           // Apache 2.0
     compileOnly "org.codehaus.groovy:groovy:${groovyVersion}"
     api("com.clyze:clyze-client:4.2.1") {
