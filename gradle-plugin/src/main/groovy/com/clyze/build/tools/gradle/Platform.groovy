@@ -33,7 +33,7 @@ abstract class Platform {
      */
     protected static final String MISSING_PROPERTIES = msg("WARNING: Cannot configure ${Conventions.TOOL_NAME} plugin with defaults, check '${Extension.SECTION_NAME}' configuration block in build.gradle.")
     /** The current project. */
-    protected Project project
+    Project project
     /** Field to hold the configuration data structure. */
     private Extension repackageExt = null
     /** The special configuration used to turn off optimization passes. */
