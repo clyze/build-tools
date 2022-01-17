@@ -9,11 +9,6 @@ import com.intellij.openapi.project.Project
  * A server configuration.
  */
 class Config(val project: Project, var projectName: String?, var snapshotName: String?) {
-    companion object {
-        /** The default server to use. */
-        const val defaultRemote = "localhost:8080"
-    }
-
     fun getRemote() : Remote {
         return Remote.at(getServer(), AuthToken(getUser(), getToken()))
     }
