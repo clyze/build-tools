@@ -13,12 +13,17 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.components.CheckBox
 import com.intellij.ui.table.JBTable
+import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.containers.reverse
 import com.jetbrains.rd.util.first
 import java.awt.*
 import java.net.URI
 import javax.swing.*
 import javax.swing.table.DefaultTableModel
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreePath
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * This is the main tool window that appears in the IDE and
@@ -55,46 +60,77 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         items.forEach { component.addItem(it) }
     }
 
+    private fun addSortedNodeChildren(
+        treeModel: DefaultTreeModel, parent: LabelNode,
+        items: MutableList<String>
+    ) {
+        items.sort()
+        var nodeIndex = 0
+        items.forEach { name ->
+            println("Adding node for item: $name")
+            val nameNode = LabelNode(name)
+            treeModel.insertNodeInto(nameNode, parent, nodeIndex++)
+            parent.addChild(nameNode)
+        }
+    }
+
+    /**
+     * Returns the selected path ("project, snapshot, analysis") in the code structure tree.
+     * @param tree     the code structure tree component
+     * @return         the (project, snapshot, analysis) triple, where some components may be null
+     */
+    private fun getSelectedPath(tree : Tree) : Triple<String?, String?, String?> {
+        val selectionPath = tree.selectionPath
+        if (selectionPath == null || selectionPath.pathCount == 0) {
+            println("No selection in tree.")
+            return Triple(null, null, null)
+        }
+        val path = selectionPath.path as Array<*>
+        @Suppress("ReplaceSizeCheckWithIsNotEmpty")
+        val p1 = if (path.size > 1) path[1] else null
+        val p2 = if (path.size > 2) path[2] else null
+        val p3 = if (path.size > 3) path[3] else null
+        val projectName = if (p1 is LabelNode) p1.label else null
+        val snapshotName = if (p2 is LabelNode) p2.label else null
+        val analysisName = if (p3 is LabelNode) p3.label else null
+        return Triple(projectName, snapshotName, analysisName)
+    }
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val mainPanel = JPanel()
         mainPanel.layout = BoxLayout(mainPanel, BoxLayout.PAGE_AXIS)
 
-        val connectionPanel = JPanel()
-        connectionPanel.border = BorderFactory.createTitledBorder("Setup")
-        connectionPanel.layout = BoxLayout(connectionPanel, BoxLayout.PAGE_AXIS)
-        val connectionForm = JPanel()
-        connectionForm.layout = GridLayout(5, 2)
-        val connectBtn = JButton("Sync With Server")
-        connectionPanel.add(connectBtn)
-        mainPanel.add(connectBtn)
-
+        // Panel: Code Snapshot Structure.
         val codePanel = JPanel()
-        codePanel.border = BorderFactory.createTitledBorder("Code")
-        codePanel.layout = BoxLayout(codePanel, BoxLayout.PAGE_AXIS)
-        val codeStructurePanel = JPanel()
-        codeStructurePanel.layout = GridLayout(3, 2)
-        codeStructurePanel.add(JLabel("Project:"))
-        val projects = ComboBox<String>()
-        codeStructurePanel.add(JScrollPane(projects))
-        codeStructurePanel.add(JLabel("Snapshot:"))
-        val snapshots = ComboBox<String>()
-        codeStructurePanel.add(JScrollPane(snapshots))
-        codeStructurePanel.add(JLabel("Analysis:"))
-        val analyses = ComboBox<String>()
-        codeStructurePanel.add(JScrollPane(analyses))
-        setMaximumHeight(codeStructurePanel, 200)
-        codePanel.add(codeStructurePanel)
+        codePanel.border = BorderFactory.createTitledBorder("Code Snapshot Structure")
+        codePanel.layout = BorderLayout()
+        // Top: server-sync button.
+        val connectBtn = JButton("Sync With Server")
+        connectBtn.alignmentX = Component.CENTER_ALIGNMENT
+        codePanel.add(connectBtn, BorderLayout.NORTH)
+        // Center: code structure tree.
+        val codeStructure = HashMap<String, LabelNode>()
+        val treeRoot = LabelNode("Root")
+        val treeModel = DefaultTreeModel(treeRoot)
+        val tree = Tree(treeModel)
+        tree.isRootVisible = false
+        tree.minimumSize = Dimension(400, 400)
+        tree.selectionPath = TreePath(arrayOf(treeRoot))
+        codePanel.add(tree, BorderLayout.CENTER)
+        // Bottom: "open in browser" button.
         val gotoWebBtn = JButton("Open in Browser")
-        codePanel.add(gotoWebBtn)
+        gotoWebBtn.alignmentX = Component.CENTER_ALIGNMENT
+        codePanel.add(gotoWebBtn, BorderLayout.SOUTH)
         mainPanel.add(codePanel)
 
+        // Panel: Actions.
         val actionsPanel = JPanel()
         actionsPanel.layout = BoxLayout(actionsPanel, BoxLayout.PAGE_AXIS)
         actionsPanel.border = BorderFactory.createTitledBorder("Actions")
         // "Post" action.
         val postPanel = JPanel()
         postPanel.layout = BoxLayout(postPanel, BoxLayout.LINE_AXIS)
-        val postBtn = JButton("Post Project")
+        val postBtn = JButton("Post Code Snapshot")
         postPanel.add(postBtn)
         postPanel.add(JLabel("Method:"))
         val postMethodCombo = ComboBox<String>()
@@ -119,10 +155,6 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         val contentManager = toolWindow.contentManager
         val projectService = project.getService(ClyzeProjectService::class.java)
         val config = projectService.config
-
-        // Update project-specific configuration for default project/snapshot.
-        config.projectName = projects.item
-        config.snapshotName = snapshots.item
 
         // Results pane
         val lineResultsPanel = JPanel()
@@ -157,17 +189,9 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         val datasetResults = JBTable()
         analysisPanel.add(JScrollPane(datasetResults))
 
-        fun getSelectedProject() : String? {
-            return projects.item
-        }
-
-        fun getSelectedSnapshot() : String? {
-            return snapshots.item
-        }
-
-        fun showAnalysisTypes() {
+        fun showAnalysisTypes(projectName : String) {
             performServerAction(projectService) { remote ->
-                val projectAnalyses = remote.getProjectAnalyses(config.getUser(), config.projectName)
+                val projectAnalyses = remote.getProjectAnalyses(config.getUser(), projectName)
                 analysisTypes.removeAllItems()
                 processResults(projectAnalyses) {
                     val name = it["displayName"]
@@ -184,6 +208,125 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             }
         }
 
+        fun expandTree() {
+            for (i in 0..tree.rowCount) {
+                tree.expandRow(i)
+            }
+            treeModel.reload()
+        }
+
+        fun getAnalysisInfo(projectName : String, snapshotName : String, analysisName : String,
+                            mapGetter : () -> Map<AnalysisRun, String>?) : String? {
+            val anInfo = mapGetter()
+            if (anInfo == null) {
+                println("No analysis information for current project.")
+                return null
+            }
+            val res = anInfo.filter {
+                it.key.project == projectName && it.key.snapshot == snapshotName && it.key.analysis == analysisName
+            }
+            return if (res.isNotEmpty()) res.first().value else null
+        }
+
+        fun updateAnalyses(projectName : String?, snapshotName : String?, analysisName : String?) {
+            if (projectName == null || snapshotName == null || analysisName == null) {
+                println("Null project/snapshot/analysis!")
+                return
+            }
+            val profile = getAnalysisInfo(projectName, snapshotName, analysisName) { projectService.analysisProfiles }
+            println("Found analysis profile: $profile")
+            val analysisInfo = projectService.analysisProfileDescriptor[profile]
+            println("Found analysis info: $analysisInfo")
+            val outputs = analysisInfo?.get("outputs")
+            val datasetItems : MutableList<String> = ArrayList()
+            if (outputs != null && outputs is List<*>) {
+                println("Processing outputs...")
+                for (output in outputs) {
+                    println("Processing: " + output.toString())
+                    if (output is Map<*, *>) {
+                        val outputId = output["id"]
+                        println("outputId: $outputId")
+                        if (outputId != null && outputId is String)
+                            datasetItems.add(outputId)
+                    }
+                }
+                updateWithSorted(dataset, datasetItems)
+
+                if (dataset.itemCount > 0)
+                    dataset.selectedItem = dataset.getItemAt(0)
+            }
+        }
+
+        fun updateSnapshotAnalyses(projectName : String, snapshotName : String) {
+            val user = config.getUser()
+            performServerAction(projectService) { remote ->
+                val analysisInfo: Map<String, Any?>?
+                try {
+                    analysisInfo = remote.getConfiguration(user, projectName, snapshotName, CLYZE_CONFIG)
+                } catch (ex : Exception) {
+                    println("WARNING: no snapshots found in project $projectName.")
+                    return@performServerAction
+                }
+                println("Analysis information: $analysisInfo")
+                val analysisNames = ArrayList<String>()
+                if (analysisInfo is Map<*, *>) {
+                    val analysesInfo = analysisInfo["analyses"]
+                    if (analysesInfo is List<*>) {
+                        analysesInfo.forEach {
+                            if (it is Map<*, *>) {
+                                val analysisName = it["displayName"]
+                                println("Found analysis: $analysisName")
+                                if (analysisName != null && analysisName is String) {
+                                    analysisNames.add(analysisName)
+                                    // Remember analysis id/profile.
+                                    val id = it["id"]
+                                    val profile = it["profile"]
+                                    println("$analysisName : id = $id, profile = $profile")
+                                    val analysisRun = AnalysisRun(projectName, snapshotName, analysisName)
+                                    if (profile != null && profile is String)
+                                        projectService.analysisProfiles[analysisRun] = profile
+                                    if (id != null && id is String)
+                                        projectService.analysisIds[analysisRun] = id
+                                }
+                            }
+                        }
+                    }
+                }
+                val snapshotNode = codeStructure[projectName]?.getChildByLabel(snapshotName)
+                if (snapshotNode == null) {
+                    println("Internal error: no node for $projectName/$snapshotName")
+                    return@performServerAction
+                }
+                addSortedNodeChildren(treeModel, snapshotNode, analysisNames)
+            }
+        }
+
+        fun updateProjectSnapshots(projectName : String) {
+            val user = config.getUser()
+            performServerAction(projectService) { remote ->
+                val projectInfo = remote.listSnapshots(user, projectName)
+                println(projectInfo)
+                val snapshotItems = ArrayList<String>()
+                processResults(projectInfo) {
+                    val name = it["displayName"]
+                    println("Found snapshot: $name")
+                    if (name is String)
+                        snapshotItems.add(name)
+                }
+                showAnalysisTypes(projectName)
+
+                val projectNode = codeStructure[projectName]
+                if (projectNode == null) {
+                    println("Internal error: no project node for $projectName")
+                    return@performServerAction
+                }
+
+                addSortedNodeChildren(treeModel, projectNode, snapshotItems)
+                snapshotItems.forEach { snapshotName -> updateSnapshotAnalyses(projectName, snapshotName) }
+            }
+        }
+
+        // Sync the current code structure tree with the server.
         fun syncServer() {
             val user = config.getUser()
             val token = config.getToken()
@@ -201,36 +344,35 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             performServerAction(projectService) { remote ->
                 val projectsResp = remote.listProjects(user)
                 println(projectsResp)
-                projects.removeAllItems()
+                var currentProjectNode : LabelNode? = null
                 processResults(projectsResp) {
                     val name = it["name"]
                     println("Found project: $name")
                     if (name is String) {
-                        projects.addItem(name)
+                        val projectNode = LabelNode(name)
+                        codeStructure[name] = projectNode
                         if (project.name == name)
-                            projects.selectedItem = name
+                            currentProjectNode = projectNode
                     }
                 }
-            }
-        }
 
-        fun getAnalysisInfo(projectName : String, snapshotName : String, analysisName : String,
-                            mapGetter : () -> Map<AnalysisRun, String>?) : String? {
-            val anInfo = mapGetter()
-            if (anInfo == null) {
-                println("No analysis information for current project.")
-                return null
+                // Update code structure tree.
+                treeRoot.removeAllChildren()
+                codeStructure.values.forEach { projectNode ->
+                    treeModel.insertNodeInto(projectNode, treeRoot, 0)
+                }
+                // Expand the (just constructed) first level of the tree.
+                expandTree()
+                codeStructure.values.forEach { projectNode ->
+                    updateProjectSnapshots(projectNode.label)
+                }
+                // Select current project in the tree.
+                tree.selectionPath = TreePath(arrayOf(treeRoot, currentProjectNode ))
             }
-            val res = anInfo.filter {
-                it.key.project == projectName && it.key.snapshot == snapshotName && it.key.analysis == analysisName
-            }
-            return if (res.isNotEmpty()) res.first().value else null
         }
 
         fun refreshDataset() {
-            val projectName = getSelectedProject()
-            val snapshotName = getSelectedSnapshot()
-            val analysisName = analyses.item
+            val (projectName, snapshotName, analysisName) = getSelectedPath(tree)
             val output = dataset.item
             if (projectName == null) {
                 println("Null project!")
@@ -312,105 +454,6 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             syncServer()
         }
 
-        projects.addActionListener {
-            val projectName = getSelectedProject()
-            projectService.setProjectName(projectName)
-            if (projectName != null) {
-                val user = config.getUser()
-                performServerAction(projectService) { remote ->
-                    val projectInfo = remote.listSnapshots(user, projectName)
-                    println(projectInfo)
-                    val snapshotItems = ArrayList<String>()
-                    processResults(projectInfo) {
-                        val name = it["displayName"]
-                        println("Found snapshot: $name")
-                        if (name is String)
-                            snapshotItems.add(name)
-                    }
-                    updateWithSorted(snapshots, snapshotItems)
-                    showAnalysisTypes()
-                }
-            }
-        }
-
-        snapshots.addActionListener {
-            val projectName = getSelectedProject()
-            val snapshotName = getSelectedSnapshot()
-            projectService.setSnapshot(snapshotName)
-            if (projectName != null && snapshotName != null) {
-                val user = config.getUser()
-                performServerAction(projectService) { remote ->
-                    val analysisInfo: Map<String, Any?>?
-                    try {
-                        analysisInfo = remote.getConfiguration(user, projectName, snapshotName, CLYZE_CONFIG)
-                    } catch (ex : Exception) {
-                        println("WARNING: no snapshots found in project $projectName.")
-                        return@performServerAction
-                    }
-                    println("Analysis information: $analysisInfo")
-                    analyses.removeAllItems()
-                    if (analysisInfo is Map<*, *>) {
-                        val analysesInfo = analysisInfo["analyses"]
-                        if (analysesInfo is List<*>) {
-                            analysesInfo.forEach {
-                                if (it is Map<*, *>) {
-                                    val analysisName = it["displayName"]
-                                    println("Found analysis: $analysisName")
-                                    if (analysisName != null && analysisName is String) {
-                                        analyses.addItem(analysisName)
-                                        // Remember analysis id/profile.
-                                        val id = it["id"]
-                                        val profile = it["profile"]
-                                        println("$analysisName : id = $id, profile = $profile")
-                                        val analysisRun = AnalysisRun(projectName, snapshotName, analysisName)
-                                        if (profile != null && profile is String)
-                                            projectService.analysisProfiles[analysisRun] = profile
-                                        if (id != null && id is String)
-                                            projectService.analysisIds[analysisRun] = id
-                                    }
-                                }
-                            }
-                            if (analyses.itemCount > 0)
-                                analyses.selectedItem = analyses.getItemAt(0)
-                        }
-                    }
-                }
-            }
-        }
-
-        analyses.addActionListener {
-            val projectName = getSelectedProject()
-            val snapshotName = getSelectedSnapshot()
-            val analysisName = analyses.item
-            if (projectName == null || snapshotName == null || analysisName == null) {
-                println("Null project/snapshot/analysis!")
-                return@addActionListener
-            }
-            val profile = getAnalysisInfo(projectName, snapshotName, analysisName) { projectService.analysisProfiles }
-            println("Found analysis profile: $profile")
-            val analysisInfo = projectService.analysisProfileDescriptor[profile]
-            println("Found analysis info: $analysisInfo")
-            val outputs = analysisInfo?.get("outputs")
-            val datasetItems : MutableList<String> = ArrayList()
-            if (outputs != null && outputs is List<*>) {
-                println("Processing outputs...")
-                for (output in outputs) {
-                    println("Processing: " + output.toString())
-                    if (output is Map<*, *>) {
-                        val outputId = output["id"]
-                        println("outputId: $outputId")
-                        if (outputId != null && outputId is String) {
-                            datasetItems.add(outputId)
-                        }
-                    }
-                }
-                updateWithSorted(dataset, datasetItems)
-
-                if (dataset.itemCount > 0)
-                    dataset.selectedItem = dataset.getItemAt(0)
-            }
-        }
-
         postBtn.addActionListener {
             when (postMethodCombo.selectedItem) {
                 GRADLE -> { println("Gradle integration is currently not supported via the UI.")  }
@@ -424,6 +467,15 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                     }.start()
                 }
             }
+        }
+
+        // When a tree node is selected, update project/snapshot/analysis state.
+        tree.addTreeSelectionListener {
+            val (projectName, snapshotName, analysisName) = getSelectedPath(tree)
+            projectService.setProjectName(projectName)
+            projectService.setSnapshot(snapshotName)
+            if (analysisName != null)
+                updateAnalyses(projectName, snapshotName, analysisName)
         }
 
         gotoWebBtn.addActionListener {
@@ -456,10 +508,8 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
 
         mainPanel.focusTraversalPolicy = object : FocusTraversalPolicy() {
             val transitions : Map<Component, Component> = mapOf(
-                Pair(connectBtn, projects),
-                Pair(projects, snapshots),
-                Pair(snapshots, analyses),
-                Pair(analyses, gotoWebBtn),
+                Pair(connectBtn, tree),
+                Pair(tree, gotoWebBtn),
                 Pair(gotoWebBtn, postBtn),
                 Pair(postBtn, postMethodCombo),
                 Pair(postMethodCombo, startAnalysisBtn),
