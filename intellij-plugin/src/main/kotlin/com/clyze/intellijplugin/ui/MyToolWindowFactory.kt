@@ -180,7 +180,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         val count = JSpinner(SpinnerNumberModel(50, 0, 10_000, 1))
         setMaximumHeight(count, 30)
         datasetOptionsPanel.add(count)
-        val appOnly = CheckBox("App-only filter", false)
+        val appOnly = CheckBox("App-only", false)
         datasetOptionsPanel.add(appOnly)
         val refreshDatasetBtn = JButton("Refresh")
         datasetOptionsPanel.add(refreshDatasetBtn)
