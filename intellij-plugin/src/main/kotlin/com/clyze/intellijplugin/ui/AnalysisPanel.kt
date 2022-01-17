@@ -113,7 +113,6 @@ class AnalysisPanel(private val profile : Map<*, *>) {
                     }
                 }
                 println("Analysis options: $anOptions")
-                analysisStatus.text = "Analyzing..."
                 val projectName = config.projectName
                 if (projectName == null) {
                     MyToolWindowFactory.reportError("No project selected in the code tree.")
@@ -124,6 +123,7 @@ class AnalysisPanel(private val profile : Map<*, *>) {
                     MyToolWindowFactory.reportError("No snapshot selected in the code tree.")
                     return@performServerAction
                 }
+                analysisStatus.text = "Analyzing..."
                 remote.analyze(config.getUser(), projectName, snapshotName, CLYZE_CONFIG, profile["id"]?.toString(), anOptions)
                 analysisStatus.text = "Done."
                 frame.dispose()
