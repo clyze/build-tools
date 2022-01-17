@@ -10,7 +10,7 @@ import javax.swing.*
 /**
  * This class dynamically creates a "configure and start analysis" dialog for a given analysis profile.
  */
-class AnalysisPanel(private val profile : Map<*, *>) {
+class AnalysisPanel(private val profile : Map<*, *>, private val refresher : Runnable) {
     /**
      * Create the UI (dialog) for the given analysis profile.
      * @param projectService    the service object of the current project
@@ -126,6 +126,7 @@ class AnalysisPanel(private val profile : Map<*, *>) {
                 analysisStatus.text = "Analyzing..."
                 remote.analyze(config.getUser(), projectName, snapshotName, CLYZE_CONFIG, profile["id"]?.toString(), anOptions)
                 analysisStatus.text = "Done."
+                refresher.run()
                 frame.dispose()
             }
         }

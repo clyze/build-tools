@@ -503,7 +503,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                 println("ERROR: no profile info for profile: $profile")
                 return@addActionListener
             }
-            AnalysisPanel(analysisProfileInfo).showUI(projectService)
+            AnalysisPanel(analysisProfileInfo) { syncServer() }.showUI(projectService)
         }
 
         mainPanel.focusTraversalPolicy = object : FocusTraversalPolicy() {
