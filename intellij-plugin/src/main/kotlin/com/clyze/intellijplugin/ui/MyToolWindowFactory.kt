@@ -344,6 +344,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             performServerAction(projectService) { remote ->
                 val projectsResp = remote.listProjects(user)
                 println(projectsResp)
+                codeStructure.clear()
                 var currentProjectNode : LabelNode? = null
                 processResults(projectsResp) {
                     val name = it["name"]
