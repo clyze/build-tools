@@ -39,6 +39,7 @@ public class Config {
     private static final String OPT_TOKEN = "api-key";
     private static final String OPT_CACHE_DIR = "cache-dir";
     private static final String OPT_DIR = "dir";
+    private static final String OPT_PUBLIC = "public";
 
     final boolean help;
     final boolean debug;
@@ -51,6 +52,7 @@ public class Config {
     final Collection<String> sourceDirs;
     final String cacheDir;
     final String currentDir;
+    final boolean makePublic;
 
     /**
      * Returns the directory where the created snapshot will be cached.
@@ -112,6 +114,7 @@ public class Config {
         this.codeFiles = optValsOrDefault(cmd, "c", null);
         this.configurations = optValsOrDefault(cmd, "configuration", null);
         this.cacheDir = optValOrDefault(cmd, OPT_CACHE_DIR, null);
+        this.makePublic = cmd.hasOption(OPT_PUBLIC);
 
         // Set post options.
         this.postOptions.host = optValOrDefault(cmd, OPT_SERVER, Conventions.DEFAULT_HOST);
@@ -188,6 +191,7 @@ public class Config {
         opts.addOption(new Option(null, "debug", false, "Enable debug mode."));
         opts.addOption(new Option(null, OPT_DRY, false, "Enable dry mode."));
         opts.addOption(new Option(null, OPT_DEP_SOURCES, false, "Include sources from dependencies."));
+        opts.addOption(null, OPT_PUBLIC, false, "If a new project is created, make it public.");
 
         Option buildToolOpt = new Option("b", OPT_BUILD_TOOL, true, "The build tool to use. Valid values: " + BuildTool.validValues());
         buildToolOpt.setArgName("TOOL");

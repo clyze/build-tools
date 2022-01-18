@@ -46,6 +46,7 @@ public class Main {
         PostState ps = new PostState();
         ps.setId(Conventions.SNAPSHOT_ID);
         ps.addStringInput("API_VERSION", Conventions.API_VERSION);
+        ps.setMakePublic(config.makePublic);
 
         List<String> stacks = config.getPostOptions().stacks;
         ps.setStacks(stacks);
