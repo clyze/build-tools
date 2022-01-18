@@ -367,7 +367,8 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                     updateProjectSnapshots(projectNode.label)
                 }
                 // Select current project in the tree.
-                tree.selectionPath = TreePath(arrayOf(treeRoot, currentProjectNode ))
+                if (currentProjectNode != null)
+                    tree.selectionPath = TreePath(arrayOf(treeRoot, currentProjectNode ))
             }
         }
 
