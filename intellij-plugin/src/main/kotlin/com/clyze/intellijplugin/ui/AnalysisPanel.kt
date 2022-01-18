@@ -115,12 +115,12 @@ class AnalysisPanel(private val profile : Map<*, *>, private val refresher : Run
                 println("Analysis options: $anOptions")
                 val projectName = config.projectName
                 if (projectName == null) {
-                    MyToolWindowFactory.reportError("No project selected in the code tree.")
+                    UIHelper.reportNoProjectSelected()
                     return@performServerAction
                 }
                 val snapshotName = config.snapshotName
                 if (snapshotName == null) {
-                    MyToolWindowFactory.reportError("No snapshot selected in the code tree.")
+                    UIHelper.reportNoSnapshotSelected()
                     return@performServerAction
                 }
                 analysisStatus.text = "Analyzing..."

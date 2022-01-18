@@ -5,6 +5,7 @@ import com.clyze.intellijplugin.Helper
 import com.clyze.intellijplugin.Helper.CLYZE_CONFIG
 import com.clyze.intellijplugin.ui.LineResult
 import com.clyze.intellijplugin.ui.MyToolWindowFactory
+import com.clyze.intellijplugin.ui.UIHelper
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -38,11 +39,21 @@ class LookupLineAction : AnAction() {
 
         val projectService = project.getService(ClyzeProjectService::class.java)
         val config = projectService.config
+        val projectName = config.projectName
+        if (projectName == null) {
+            UIHelper.reportNoProjectSelected()
+            return
+        }
+        val snapshotName = config.snapshotName
+        if (snapshotName == null) {
+            UIHelper.reportNoSnapshotSelected()
+            return
+        }
         Helper.performServerAction(projectService) { remote ->
             val symbols = remote.getSymbols(
                 config.getUser(),
-                config.projectName,
-                config.snapshotName,
+                projectName,
+                snapshotName,
                 CLYZE_CONFIG,
                 codeFile,
                 (caretModel.logicalPosition.line + 1).toString()

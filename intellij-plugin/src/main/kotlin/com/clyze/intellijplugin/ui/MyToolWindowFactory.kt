@@ -45,14 +45,6 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                         proc(res)
                 }
         }
-
-        fun reportError(msg :String) {
-            JOptionPane.showMessageDialog(
-                JFrame(),
-                msg,
-                "Server error",
-                JOptionPane.ERROR_MESSAGE)
-        }
     }
 
     /** The number of posts that have not yet terminated. */
@@ -336,13 +328,13 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
             val token = config.getToken()
             val remotePath = config.getServer()
             if (user == "") {
-                reportError("No user found, open Project Settings to diagnose.")
+                UIHelper.reportError("No user found, open Project Settings to diagnose.")
                 return
             } else if (token == "") {
-                reportError("No API key / password found, open Project Settings to diagnose.")
+                UIHelper.reportError("No API key / password found, open Project Settings to diagnose.")
                 return
             } else if (remotePath == "") {
-                reportError("No server configured, open Project Settings to diagnose.")
+                UIHelper.reportError("No server configured, open Project Settings to diagnose.")
                 return
             }
             performServerAction(projectService) { remote ->
