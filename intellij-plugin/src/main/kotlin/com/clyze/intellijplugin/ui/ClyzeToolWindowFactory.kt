@@ -6,9 +6,13 @@ import com.clyze.intellijplugin.Poster
 import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.clyze.intellijplugin.state.AnalysisRun
 import com.clyze.intellijplugin.ui.UIHelper.setMaximumHeight
+import com.intellij.openapi.editor.LogicalPosition
+import com.intellij.openapi.editor.ScrollType
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.components.CheckBox
@@ -17,6 +21,9 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.containers.reverse
 import com.jetbrains.rd.util.first
 import java.awt.*
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.io.File
 import java.net.URI
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.*
@@ -505,6 +512,64 @@ class ClyzeToolWindowFactory : ToolWindowFactory, DumbAware {
             }
             AnalysisPanel(analysisProfileInfo) { syncServer() }.showUI(projectService)
         }
+
+        fun openFilePosition(filename : String, line : String, column : String) : Boolean {
+            val projectFilePath = project.projectFilePath
+            if (projectFilePath == null) {
+                println("ERROR: project file path not available.")
+                return false
+            }
+            val projectDir = File(projectFilePath).parentFile?.parentFile
+            val filePath = File(projectDir, filename).path
+            val file = LocalFileSystem.getInstance().findFileByPath(filePath)
+            if (file == null) {
+                println("ERROR: could not find file $filename (resolved as $filePath)")
+                return false
+            }
+            val fileEditorManager = FileEditorManager.getInstance(project)
+            fileEditorManager.openFile(file, true)
+            val editor = fileEditorManager.selectedTextEditor
+            if (editor == null) {
+                println("ERROR: could not find editor object.")
+                return false
+            }
+            try {
+                val pos = LogicalPosition(Integer.valueOf(line) - 1, Integer.valueOf(column) - 1)
+                editor.caretModel.moveToLogicalPosition(pos)
+                editor.scrollingModel.scrollToCaret(ScrollType.CENTER)
+            } catch (_: NumberFormatException) {
+                println("ERROR: bad line/column: $line/$column")
+                return false
+            }
+
+            return true
+        }
+
+        // Handle clicks on output dataset cells.
+        datasetResults.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+                if (e == null)
+                    return
+                val row = datasetResults.rowAtPoint(e.point)
+                val col = datasetResults.columnAtPoint(e.point)
+                val cellValue = datasetResults.model.getValueAt(row, col)
+                if (cellValue is String) {
+                    val parts = cellValue.split(":")
+                    if (parts.size != 3) {
+                        println("Cell value is not supported: $parts")
+                        return
+                    }
+                    val filename = parts[0]
+                    val line = parts[1]
+                    val column = parts[2]
+                    // Try both "filename" and "src/filename", since different ways of
+                    // uploading snapshots to the server (CLI, Gradle plugin, crawler)
+                    // may follow different source structure conventions.
+                    if (!openFilePosition(filename, line, column))
+                        openFilePosition("src/$filename", line, column)
+                }
+            }
+        })
 
         mainPanel.focusTraversalPolicy = object : FocusTraversalPolicy() {
             val transitions : Map<Component, Component> = mapOf(
