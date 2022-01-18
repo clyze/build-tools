@@ -9,7 +9,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.clyze.intellijplugin.services.ClyzeApplicationService"/>
         <projectService serviceImplementation="com.clyze.intellijplugin.services.ClyzeProjectService"/>
-        <toolWindow factoryClass="com.clyze.intellijplugin.ui.MyToolWindowFactory" id="Clyze"/>
+        <toolWindow factoryClass="com.clyze.intellijplugin.ui.ClyzeToolWindowFactory" id="Clyze"/>
         <projectConfigurable parentId="tools" instance="com.clyze.intellijplugin.state.ProjectSettingsConfigurable"
                              id="com.clyze.intellijplugin.state.ProjectSettingsConfigurable" displayName="Clyze"
                              nonDefaultProject="true"/>

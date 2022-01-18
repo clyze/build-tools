@@ -4,7 +4,7 @@ import com.clyze.intellijplugin.services.ClyzeProjectService
 import com.clyze.intellijplugin.Helper
 import com.clyze.intellijplugin.Helper.CLYZE_CONFIG
 import com.clyze.intellijplugin.ui.LineResult
-import com.clyze.intellijplugin.ui.MyToolWindowFactory
+import com.clyze.intellijplugin.ui.ClyzeToolWindowFactory
 import com.clyze.intellijplugin.ui.UIHelper
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -67,7 +67,7 @@ class LookupLineAction : AnAction() {
             }
             val (table, tableModel, tabFocus) = tableTriple
             val lineResults = ArrayList<LineResult>()
-            MyToolWindowFactory.processResults(symbols) {
+            ClyzeToolWindowFactory.processResults(symbols) {
                 val symbolId = it["symbolId"] ?: (if (it["analysisId"] != null) "Analysis result" else "")
                 val type = it["resultType"] ?: ""
                 val desc = it["message"] ?: ""

@@ -30,7 +30,7 @@ import kotlin.collections.HashMap
  * This is the main tool window that appears in the IDE and
  * interacts with the Clyze server.
  */
-class MyToolWindowFactory : ToolWindowFactory, DumbAware {
+class ClyzeToolWindowFactory : ToolWindowFactory, DumbAware {
     companion object {
         const val GRADLE = "Gradle"
         const val CLI = "CLI"
@@ -45,52 +45,52 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                         proc(res)
                 }
         }
+
+        private fun updateWithSorted(component : ComboBox<String>, items : MutableList<String>) {
+            component.removeAllItems()
+            items.sort()
+            items.forEach { component.addItem(it) }
+        }
+
+        private fun addSortedNodeChildren(
+            treeModel: DefaultTreeModel, parent: LabelNode,
+            items: MutableList<String>
+        ) {
+            items.sort()
+            var nodeIndex = 0
+            items.forEach { name ->
+                println("Adding node for item: $name")
+                val nameNode = LabelNode(name)
+                treeModel.insertNodeInto(nameNode, parent, nodeIndex++)
+                parent.addChild(nameNode)
+            }
+        }
+
+        /**
+         * Returns the selected path ("project, snapshot, analysis") in the code structure tree.
+         * @param tree     the code structure tree component
+         * @return         the (project, snapshot, analysis) triple, where some components may be null
+         */
+        private fun getSelectedPath(tree : Tree) : Triple<String?, String?, String?> {
+            val selectionPath = tree.selectionPath
+            if (selectionPath == null || selectionPath.pathCount == 0) {
+                println("No selection in tree.")
+                return Triple(null, null, null)
+            }
+            val path = selectionPath.path as Array<*>
+            @Suppress("ReplaceSizeCheckWithIsNotEmpty")
+            val p1 = if (path.size > 1) path[1] else null
+            val p2 = if (path.size > 2) path[2] else null
+            val p3 = if (path.size > 3) path[3] else null
+            val projectName = if (p1 is LabelNode) p1.label else null
+            val snapshotName = if (p2 is LabelNode) p2.label else null
+            val analysisName = if (p3 is LabelNode) p3.label else null
+            return Triple(projectName, snapshotName, analysisName)
+        }
     }
 
     /** The number of posts that have not yet terminated. */
     private var currentlyPosting : AtomicInteger = AtomicInteger(0)
-
-    private fun updateWithSorted(component : ComboBox<String>, items : MutableList<String>) {
-        component.removeAllItems()
-        items.sort()
-        items.forEach { component.addItem(it) }
-    }
-
-    private fun addSortedNodeChildren(
-        treeModel: DefaultTreeModel, parent: LabelNode,
-        items: MutableList<String>
-    ) {
-        items.sort()
-        var nodeIndex = 0
-        items.forEach { name ->
-            println("Adding node for item: $name")
-            val nameNode = LabelNode(name)
-            treeModel.insertNodeInto(nameNode, parent, nodeIndex++)
-            parent.addChild(nameNode)
-        }
-    }
-
-    /**
-     * Returns the selected path ("project, snapshot, analysis") in the code structure tree.
-     * @param tree     the code structure tree component
-     * @return         the (project, snapshot, analysis) triple, where some components may be null
-     */
-    private fun getSelectedPath(tree : Tree) : Triple<String?, String?, String?> {
-        val selectionPath = tree.selectionPath
-        if (selectionPath == null || selectionPath.pathCount == 0) {
-            println("No selection in tree.")
-            return Triple(null, null, null)
-        }
-        val path = selectionPath.path as Array<*>
-        @Suppress("ReplaceSizeCheckWithIsNotEmpty")
-        val p1 = if (path.size > 1) path[1] else null
-        val p2 = if (path.size > 2) path[2] else null
-        val p3 = if (path.size > 3) path[3] else null
-        val projectName = if (p1 is LabelNode) p1.label else null
-        val snapshotName = if (p2 is LabelNode) p2.label else null
-        val analysisName = if (p3 is LabelNode) p3.label else null
-        return Triple(projectName, snapshotName, analysisName)
-    }
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val mainPanel = JPanel()
