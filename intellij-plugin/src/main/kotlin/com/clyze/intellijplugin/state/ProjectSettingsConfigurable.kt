@@ -19,6 +19,7 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
     private var serverInput : JTextField? = null
     private var authUserInput : JTextField? = null
     private var authTokenInput : JTextField? = null
+    private var createPublicProjects : JCheckBox? = null
 
     companion object {
         fun addInputModelUpdater(input : JTextField, updater : (t : String) -> Unit) {
@@ -49,9 +50,14 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
         connectionForm.add(JLabel("User:"))
         val authUserInput = JTextField()
         connectionForm.add(authUserInput)
+        // API key
         connectionForm.add(JLabel("API key:"))
         val authTokenInput = JTextField()
         connectionForm.add(authTokenInput)
+        // Create public projects in the server
+        connectionForm.add(JLabel("Create public projects"))
+        val createPublicProjects = JCheckBox()
+        connectionForm.add(createPublicProjects)
         UIHelper.setMaximumHeight(connectionForm, 220)
         panel.add(connectionForm, PAGE_START)
 
@@ -60,11 +66,13 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
         addInputModelUpdater(hostInput, modificationSetter)
         addInputModelUpdater(authUserInput, modificationSetter)
         addInputModelUpdater(authTokenInput, modificationSetter)
+        createPublicProjects.addActionListener { modified = true }
 
         // Record text fields in object state.
         this.serverInput = hostInput
         this.authUserInput = authUserInput
         this.authTokenInput = authTokenInput
+        this.createPublicProjects = createPublicProjects
 
         return panel
     }
@@ -79,6 +87,7 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
         setFromTextField(serverInput) { s -> config.setServer(s) }
         setFromTextField(authUserInput) { s -> config.setUser(s) }
         setFromTextField(authTokenInput) { s -> config.setToken(s) }
+        config.setPublic(createPublicProjects?.isSelected ?: false)
         // Reset "modified" flag.
         this.modified = false
     }
@@ -102,5 +111,6 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
         serverInput?.text = config.getServer()
         authUserInput?.text = config.getUser()
         authTokenInput?.text = config.getToken()
+        createPublicProjects?.isSelected = config.getPublic()
     }
 }

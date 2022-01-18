@@ -38,7 +38,7 @@ class Poster {
             "--user", config.getUser(),
             "--api-key", config.getToken(),
             "--project", project.name
-        )
+        ) + (if (config.getPublic()) listOf("--public") else listOf())
         println("Running command: $cmd")
         val process = ProcessBuilder(cmd).start()
         val inputStream = process.inputStream

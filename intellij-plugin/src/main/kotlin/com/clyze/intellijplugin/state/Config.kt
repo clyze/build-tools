@@ -41,6 +41,14 @@ class Config(val project: Project, var projectName: String?, var snapshotName: S
         return getProps().getValue("token") ?: ""
     }
 
+    fun setPublic(p: Boolean) {
+        getProps().setValue("public", if (p) "true" else "false")
+    }
+
+    fun getPublic() : Boolean {
+        return getProps().getValue("public") == "true"
+    }
+
     /**
      * Returns a URL that can be opened in a Web browser to land the user
      * to an appropriate location in the Web UI.
