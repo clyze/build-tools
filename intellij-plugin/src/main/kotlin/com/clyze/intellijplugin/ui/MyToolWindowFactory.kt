@@ -18,6 +18,7 @@ import com.intellij.util.containers.reverse
 import com.jetbrains.rd.util.first
 import java.awt.*
 import java.net.URI
+import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.*
 import javax.swing.table.DefaultTableModel
 import javax.swing.tree.DefaultTreeModel
@@ -53,6 +54,9 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                 JOptionPane.ERROR_MESSAGE)
         }
     }
+
+    /** The number of posts that have not yet terminated. */
+    private var currentlyPosting : AtomicInteger = AtomicInteger(0)
 
     private fun updateWithSorted(component : ComboBox<String>, items : MutableList<String>) {
         component.removeAllItems()
@@ -462,9 +466,11 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
                 CLI -> {
                     println("base path: " + project.basePath)
                     postStatus.text = "Posting..."
+                    currentlyPosting.incrementAndGet()
                     Thread {
                         Poster().postWithCLI(project, config)
-                        postStatus.text = "Done."
+                        if (currentlyPosting.decrementAndGet() == 0)
+                            postStatus.text = "Done."
                         syncServer()
                     }.start()
                 }
