@@ -144,7 +144,7 @@ class MyToolWindowFactory : ToolWindowFactory, DumbAware {
         // "Analyze" action.
         val analyzePanel = JPanel()
         analyzePanel.layout = BoxLayout(analyzePanel, BoxLayout.LINE_AXIS)
-        val startAnalysisBtn = JButton("Analyze")
+        val startAnalysisBtn = JButton("Analyze...")
         analyzePanel.add(startAnalysisBtn)
         val analysisTypes = ComboBox<String>()
         analyzePanel.add(JScrollPane(analysisTypes))
