@@ -21,6 +21,9 @@ class ProjectSettingsConfigurable(val project: Project) : Configurable {
     private var authTokenInput : JTextField? = null
     private var createPublicProjects : JCheckBox? = null
 
+    /**
+     * Stateless helpers.
+     */
     companion object {
         fun addInputModelUpdater(input : JTextField, updater : (t : String) -> Unit) {
             input.document.addDocumentListener(object : DocumentListener {
