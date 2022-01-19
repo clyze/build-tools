@@ -57,6 +57,8 @@ class Config(val project: Project, var projectName: String?, var snapshotName: S
         var serverPath = getServer()
         if (!serverPath.startsWith("http://") && !serverPath.startsWith("https://"))
             serverPath = "http://$serverPath"
+        if (!serverPath.endsWith("/"))
+            serverPath += "/"
         val user = getUser()
         if (user != "") {
             serverPath += "#/u/$user"
